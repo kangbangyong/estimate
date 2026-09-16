@@ -373,6 +373,7 @@ tr.hid .ein{opacity:.55}
     <input type="search" id="eQ" placeholder="품목명 · 규격 검색" aria-label="검색">
     <label class="hint" style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" id="eHidden"> 숨긴 품목도 보기</label>
     <button class="btn sec sm" id="btnEditRefresh">↻ 새로고침</button>
+    <button class="btn sec sm" id="btnCleanDup" title="값이 하나도 없는데 같은 이름의 품목이 따로 있는 행을 숨깁니다">빈 중복 숨기기</button>
     <span class="hint" id="editCount"></span>
   </div>
   <div class="tablewrap">
@@ -710,8 +711,13 @@ $("histBody").addEventListener("click",async e=>{
 });
 
 /* ---------- 품목 등록 (시트에 추가) ---------- */
-/* 중복 기준: 공종 + 품목명 + 규격 (공백·대소문자 무시) */
-const itemKey=i=>[i.gong,i.name,i.spec].map(s=>String(s||"").trim().toLowerCase().replace(/\s+/g," ")).join("|");
+/* 중복 기준: 공종 + 품목명 + 규격 (공백·대소문자 무시). nameKey 는 규격 뺀 것 */
+const norm=s=>String(s||"").trim().toLowerCase().replace(/\s+/g," ");
+const itemKey=i=>[i.gong,i.name,i.spec].map(norm).join("|");
+const nameKey=i=>[i.gong,i.name].map(norm).join("|");
+const hasData=i=>!!(N(i.mat)||N(i.lab)||N(i.exp)||N(i.cost));
+function updPayload(ex,it,use){ return {id:ex.id,prevName:ex.name,gong:it.gong||ex.gong,name:it.name||ex.name,spec:it.spec??ex.spec,unit:it.unit||ex.unit||"식",mat:N(it.mat),lab:N(it.lab),exp:N(it.exp),cost:N(it.cost),use}; }
+
 async function pushItems(items, statusEl){
   if(!apiReady()){ openConn(); return false; }
   statusEl.innerHTML='<div class="status ok">시트와 대조하는 중…</div>';
@@ -719,12 +725,28 @@ async function pushItems(items, statusEl){
     // 올리기 직전에 시트를 새로 읽어 최신 상태와 비교
     const cur=await apiGet("catalog"); S.items=cur.items||[]; S.settings=cur.settings||S.settings;
     LS.set("catalog",{at:Date.now(),items:S.items,settings:S.settings});
-    const have=new Set(S.items.map(itemKey)), seen=new Set(), fresh=[]; let dup=0;
-    for(const it of items){ const k=itemKey(it); if(have.has(k)||seen.has(k)){ dup++; continue; } seen.add(k); fresh.push(it); }
-    if(!fresh.length){ statusEl.innerHTML=`<div class="status ok">전부 이미 있는 품목입니다 (중복 ${dup}건). 새로 들어간 건 없습니다.</div>`; renderAll(); return true; }
-    statusEl.innerHTML='<div class="status ok">시트에 쓰는 중…</div>';
-    const j=await apiPost("addItems",{items:fresh});
-    statusEl.innerHTML=`<div class="status ok"><b>${j.added}건</b> 등록${dup?` · 이미 있는 <b>${dup}건</b>은 건너뜀`:""}.</div>`;
+    const byFull=new Map(), byName=new Map();
+    for(const i of S.items){ const f=itemKey(i), n=nameKey(i); if(!byFull.has(f)||hasData(i)) byFull.set(f,i); if(!byName.has(n)||hasData(i)) byName.set(n,i); }
+    const fresh=[], fills=[], seen=new Map(); let dup=0, junk=0;
+    for(const it of items){
+      const f=itemKey(it), n=nameKey(it);
+      if(seen.has(f)){                                             // 파일 안 중복 → 값 있는 쪽만
+        const p=seen.get(f);
+        if(!hasData(p)&&hasData(it)){ fresh[fresh.indexOf(p)]=it; seen.set(f,it); } else dup++;
+        continue;
+      }
+      const exF=byFull.get(f), exN=byName.get(n);
+      if(!hasData(it)&&(exF||exN)){ junk++; continue; }            // 값 없는 행이 이미 있는 이름이면 버림
+      if(exF){ if(!hasData(exF)) fills.push({ex:exF,it}); else dup++; continue; }   // 시트의 빈 행 → 채움
+      if(exN&&!hasData(exN)&&!norm(exN.spec)){ fills.push({ex:exN,it}); continue; } // 규격 없는 빈 행 → 채움
+      seen.set(f,it); fresh.push(it);
+    }
+    let added=0, filled=0;
+    if(fresh.length){ statusEl.innerHTML='<div class="status ok">시트에 쓰는 중…</div>'; const j=await apiPost("addItems",{items:fresh}); added=j.added||0; }
+    for(const {ex,it} of fills){ statusEl.innerHTML=`<div class="status ok">빈 품목 채우는 중… ${filled+1}/${fills.length}</div>`; await apiPost("updateItem",{item:updPayload(ex,it,true)}); filled++; }
+    const parts=[]; if(added) parts.push(`<b>${added}건</b> 등록`); if(filled) parts.push(`빈 품목 <b>${filled}건</b> 채움`);
+    if(dup) parts.push(`중복 ${dup}건 건너뜀`); if(junk) parts.push(`값 없는 중복 ${junk}건 버림`);
+    statusEl.innerHTML=`<div class="status ok">${(added||filled)?parts.join(" · "):"새로 들어간 건 없습니다 — "+(parts.join(" · ")||"전부 이미 있는 품목")}.</div>`;
     await loadCatalog(true); return true;
   }catch(e){ statusEl.innerHTML=`<div class="status err">등록 실패: ${esc(e.message)}</div>`; return false; }
 }
@@ -914,6 +936,19 @@ $("editBody").addEventListener("click",e=>{
   }
 });
 ["eQ","eGong","eHidden"].forEach(id=>$(id).addEventListener("input",renderEdit));
+/* 값이 하나도 없는데 같은 이름(공종+품목명)에 값 있는 행이 따로 있으면 → 숨김 */
+$("btnCleanDup").addEventListener("click",async()=>{
+  if(!apiReady()) return openConn();
+  const good=new Set(S.items.filter(i=>i.use!==false&&hasData(i)).map(nameKey));
+  const junk=S.items.filter(i=>i.use!==false&&!hasData(i)&&good.has(nameKey(i)));
+  if(!junk.length) return toast("값 없는 중복 품목이 없습니다.");
+  const list=junk.slice(0,10).map(i=>"· "+i.name+(i.spec?" "+i.spec:"")).join("\n")+(junk.length>10?"\n… 외 "+(junk.length-10)+"건":"");
+  if(!confirm(`값이 하나도 없는 중복 품목 ${junk.length}건을 숨깁니다.\n시트에서 지우진 않고 '사용'을 N으로 표시합니다.\n\n${list}`)) return;
+  let n=0;
+  for(const i of junk){ try{ await apiPost("updateItem",{item:updPayload(i,i,false)}); i.use=false; n++; }catch(e){ toast("실패: "+i.name+" — "+e.message); break; } }
+  LS.set("catalog",{at:Date.now(),items:S.items,settings:S.settings});
+  toast(n+"건 숨김"); renderEdit(); renderCat();
+});
 $("btnEditRefresh").addEventListener("click",async()=>{ await loadCatalog(true); renderEdit(); });
 
 /* ---------- 수량 칸 키 조작: Enter → 다음 칸, ↑↓ → 단위별 증감 ---------- */
