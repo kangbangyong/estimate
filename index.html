@@ -212,6 +212,7 @@ tr.hrow{cursor:pointer}
     <button class="btn sec sm" id="btnExpand">전체 펼치기</button>
     <button class="btn sec sm" id="btnCollapse">전체 접기</button>
     <button class="btn sec sm" id="btnRefresh" title="구글 시트에서 다시 불러오기">↻ 새로고침</button>
+    <button class="btn sec sm" id="btnDlCat" title="지금 있는 단가 DB 전체를 엑셀로 백업">⬇ 전체 내려받기</button>
     <span class="hint" id="catCount"></span>
   </div>
   <div class="tablewrap">
@@ -291,8 +292,9 @@ tr.hrow{cursor:pointer}
     <div class="eyebrow">엑셀 파일 올리기</div>
     <h3 style="font-size:15px;margin:6px 0 10px">단가표 파일을 시트에 밀어넣기</h3>
     <div class="toolbar" style="margin-bottom:10px">
-      <button class="btn sec sm" id="btnDlCat">⬇ 현재 단가표 내려받기 (xlsx)</button>
-      <span class="hint">비어 있으면 빈 양식이 내려오고, 채워져 있으면 그대로 백업됩니다. 채워서 아래에 다시 올리면 됩니다.</span>
+      <button class="btn sec sm" id="btnFormXlsx">⬇ 빈 양식 (xlsx)</button>
+      <button class="btn sec sm" id="btnFormCsv">⬇ 빈 양식 (csv)</button>
+      <span class="hint">양식 받아서 채운 뒤 아래에 올리면 됩니다. 열 이름이 그대로라 자동으로 맞춰집니다.</span>
     </div>
     <div class="drop" id="drop">
       <b>파일을 끌어다 놓거나 클릭해서 선택</b>
@@ -690,18 +692,26 @@ $("btnAdd").addEventListener("click",async()=>{
 
 /* ---------- 단가표 내려받기 (비어 있으면 양식, 있으면 백업) ---------- */
 const CAT_HEAD=["공종","품목명","규격","단위","재료비","노무비","경비","원가"];
-$("btnDlCat").addEventListener("click",()=>{
-  const rows=S.items.map(i=>[i.gong,i.name,i.spec,i.unit,i.mat,i.lab,i.exp,i.cost]);
-  const stamp=new Date().toISOString().slice(0,10).replace(/-/g,"");
-  const name=rows.length?`단가DB_${stamp}`:"단가표_양식";
-  if(typeof XLSX==="undefined"){ download(name+".csv",[CAT_HEAD,...rows].map(r=>r.map(csvCell).join(",")).join("\r\n")); return; }
+function dlCatalog(rows, name, fmt){
+  if(fmt==="csv" || typeof XLSX==="undefined"){
+    download(name+".csv",[CAT_HEAD,...rows].map(r=>r.map(csvCell).join(",")).join("\r\n")); return;
+  }
   const ws=XLSX.utils.aoa_to_sheet([CAT_HEAD,...rows]);
   ws["!cols"]=[{wch:18},{wch:34},{wch:26},{wch:8},{wch:12},{wch:12},{wch:12},{wch:12}];
   ws["!freeze"]={xSplit:0,ySplit:1};
   const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"단가표");
   XLSX.writeFile(wb,name+".xlsx");
-  toast(rows.length?rows.length.toLocaleString("ko-KR")+"개 품목 내려받음":"빈 양식 내려받음");
+}
+// 단가 DB 탭 — 지금 있는 것 전부 (최종 DB 백업)
+$("btnDlCat").addEventListener("click",()=>{
+  const rows=S.items.map(i=>[i.gong,i.name,i.spec,i.unit,i.mat,i.lab,i.exp,i.cost]);
+  if(!rows.length) return toast("아직 단가 DB가 비어 있습니다. 품목 등록 탭에서 빈 양식을 받으세요.");
+  dlCatalog(rows,"단가DB_"+new Date().toISOString().slice(0,10).replace(/-/g,""),"xlsx");
+  toast(rows.length.toLocaleString("ko-KR")+"개 품목 내려받음");
 });
+// 품목 등록 탭 — 빈 양식 (채워서 올리는 폼)
+$("btnFormXlsx").addEventListener("click",()=>{ dlCatalog([],"단가표_양식","xlsx"); toast("빈 양식(xlsx) 내려받음"); });
+$("btnFormCsv").addEventListener("click", ()=>{ dlCatalog([],"단가표_양식","csv");  toast("빈 양식(csv) 내려받음"); });
 
 /* ---------- 엑셀 업로드 ---------- */
 const FIELDS=[["name","품목명",true],["spec","규격",false],["unit","단위",false],["mat","재료비",false],["lab","노무비",false],["exp","경비",false],["cost","원가",false],["gong","공종 열",false]];
