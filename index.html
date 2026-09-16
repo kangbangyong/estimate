@@ -721,7 +721,8 @@ const FIELDS=[["name","품목명",true],["spec","규격",false],["unit","단위"
 const HINTS={name:/품목|품명|명칭|자재|공종명|규격품명/,spec:/규격|사양|크기|치수/,unit:/단위|unit/i,mat:/재료|자재비|재료비/,lab:/노무|인건|노임/,exp:/경비|기타비/,cost:/원가|매입|도매|구매/,gong:/공종|분류|중공종|세부공종/};
 let XL=null;
 function cleanLabel(t){ return String(t??"").replace(/[　\s]+/g," ").replace(/^[\s▾▸▶►■□◆◇●○•·\-–—\d.)\]]+/,"").replace(/\s*\d+\s*(개|건|항목)\s*$/,"").trim(); }
-function xlCols(rows,startIdx){ const head=(startIdx>=2?rows[startIdx-2]:[])||[];   // 머리행 = 데이터 시작 바로 윗줄 const n=Math.max(...rows.slice(0,40).map(r=>r.length),head.length,1); return Array.from({length:n},(_,i)=>{ const h=String(head[i]??"").trim(); return {i,label:h?`${i+1}. ${h}`:`${i+1}열`,head:h}; }); }
+/* 머리행 = 데이터 시작 바로 윗줄 */
+function xlCols(rows,startIdx){ const head=(startIdx>=2?rows[startIdx-2]:[])||[]; const n=Math.max(...rows.slice(0,40).map(r=>r.length),head.length,1); return Array.from({length:n},(_,i)=>{ const h=String(head[i]??"").trim(); return {i,label:h?`${i+1}. ${h}`:`${i+1}열`,head:h}; }); }
 function autoMap(cols){ const m={}; for(const [k] of FIELDS){ const hit=cols.find(c=>c.head&&HINTS[k].test(c.head)); m[k]=hit?hit.i:-1; } if(m.name<0&&cols.length) m.name=cols[0].i; return m; }
 function renderMap(){
   const cols=xlCols(XL.rows,N($("xlStart").value)); XL.cols=cols; if(!XL.map) XL.map=autoMap(cols);
