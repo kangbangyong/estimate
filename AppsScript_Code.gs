@@ -70,9 +70,8 @@ function 초기화() {
   const junk = ss.getSheetByName('시트1') || ss.getSheetByName('Sheet1');
   if (junk && ss.getSheets().length > 1) ss.deleteSheet(junk);
 
-  SpreadsheetApp.getUi().alert('초기화 완료',
-    '시트 4개가 준비됐습니다.\n\n다음: 배포 → 새 배포 → 웹 앱 으로 주소를 만드세요.',
-    SpreadsheetApp.getUi().ButtonSet.OK);
+  Logger.log('초기화 완료 — 시트 4개 준비됨. 다음: 배포 → 새 배포 → 웹 앱');
+  try { ss.toast('시트 4개가 준비됐습니다. 다음: 배포 → 새 배포 → 웹 앱', '초기화 완료', 8); } catch (e) {}
 }
 
 /* ================================================================
