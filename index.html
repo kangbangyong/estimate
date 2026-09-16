@@ -84,26 +84,27 @@ h1,h2,h3{margin:0;text-wrap:balance}
 
 .tablewrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow)}
 table{border-collapse:collapse;width:100%;min-width:940px}
-thead th{background:var(--surface-2);border-bottom:1px solid var(--line);font-size:11px;font-weight:600;color:var(--ink-2);text-align:right;padding:9px 10px;white-space:nowrap}
+thead th{background:var(--surface-2);border-bottom:1px solid var(--line);font-size:11px;font-weight:600;color:var(--ink-2);text-align:right;padding:6px 8px;white-space:nowrap}
 thead th:first-child{text-align:left}
-td{padding:8px 10px;border-bottom:1px solid var(--line-2);text-align:right;vertical-align:middle}
+td{padding:3px 8px;border-bottom:1px solid var(--line-2);text-align:right;vertical-align:middle;line-height:1.35}
 td:first-child{text-align:left}
 tbody tr:hover{background:var(--surface-2)}
-tr.dae > td{background:var(--surface-3);font-weight:700;font-size:12.5px;padding:7px 10px;border-bottom:1px solid var(--line);cursor:pointer}
+tr.dae > td{background:var(--surface-3);font-weight:700;font-size:12.5px;padding:5px 8px;border-bottom:1px solid var(--line);cursor:pointer}
 tr.dae:hover > td{background:var(--surface-3)}
-tr.gong > td{background:var(--surface-2);font-weight:600;padding:6px 10px 6px 24px;font-size:12px;cursor:pointer}
+tr.gong > td{background:var(--surface-2);font-weight:600;padding:4px 8px 4px 22px;font-size:12px;cursor:pointer}
 tr.gong:hover > td{background:var(--surface-2)}
 .twist{display:inline-block;width:12px;color:var(--ink-3);transition:transform .12s}
 .twist.open{transform:rotate(90deg)}
 .count{color:var(--ink-3);font-weight:400;font-size:11px;margin-left:6px}
-.item-name{display:flex;flex-direction:column;gap:1px;padding-left:24px}
-.item-name b{font-weight:500;font-size:12.5px}
+.item-name{display:flex;flex-direction:row;align-items:baseline;flex-wrap:wrap;gap:2px 8px;padding-left:22px}
+.item-name b{font-weight:500;font-size:12px;white-space:nowrap}
 .item-meta{font-size:10.5px;color:var(--ink-3)}
+.item-meta:empty{display:none}
 .chip{display:inline-block;font-size:9.5px;padding:1px 5px;border-radius:3px;margin-left:5px;border:1px solid var(--line);color:var(--ink-3);vertical-align:1px}
 .chip.empty{color:var(--warn);border-color:var(--warn)}
 .c-mat{color:var(--mat)}.c-lab{color:var(--lab)}.c-exp{color:var(--exp)}
 .sum{font-weight:600}
-.qty{width:74px;text-align:right;background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:5px 7px}
+.qty{width:64px;text-align:right;background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:2px 6px;font-size:12px}
 .qty:not(:placeholder-shown){border-color:var(--accent);background:var(--accent-soft)}
 .rowsum{font-weight:600;color:var(--accent);min-width:88px}
 .empty-state{padding:40px 16px;text-align:center;color:var(--ink-3);font-size:12.5px}
