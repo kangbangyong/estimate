@@ -336,7 +336,7 @@ tr.hid .ein{opacity:.55}
       <h3 style="font-size:15px;margin:6px 0 8px">엑셀에서 복사 → 붙여넣기</h3>
       <div class="cols">
         <div><b>품목명</b>필수</div><div><b>규격</b></div><div><b>단위</b></div>
-        <div><b>재료비</b></div><div><b>노무비</b></div><div><b>경비</b></div><div><b>원가</b></div>
+        <div><b>재료비</b></div><div><b>노무비</b></div><div><b>경비</b></div><div><b>단가합계</b>검산용</div>
       </div>
       <div class="toolbar"><select id="impGong" aria-label="공종 지정"></select></div>
       <textarea class="paste" id="impText" placeholder="합판 12mm&#9;1220×2440&#9;장&#9;28000&#9;9000&#9;0"></textarea>
@@ -429,7 +429,8 @@ const TREE = {
 };
 const GONG2DAE = new Map(Object.entries(TREE).flatMap(([d,gs])=>gs.map(g=>[g,d])));
 const ALL_GONG = Object.values(TREE).flat();
-const daeOf = g => GONG2DAE.get(g) || "미분류";
+/* 대공종: 시트에 적힌 값 우선, 없으면 공종으로 추정. 품목 객체든 공종 문자열이든 받음 */
+const daeOf = x => (x && typeof x === "object") ? (x.dae || GONG2DAE.get(x.gong) || "미분류") : (GONG2DAE.get(x) || "미분류");
 
 const S = { items:[], settings:{}, rows:[], pick:{}, open:{}, sch:[],
             meta:{no:"", client:"", owner:"", staff:"", date:"", schStart:""} };
@@ -495,7 +496,7 @@ async function loadCatalog(force){
 function renderAll(){ fillSelects(); renderCat(); renderCartBar(); renderCo(); if(!$("panel-edit").hidden) renderEdit(); }
 
 function fillSelects(){
-  const daes=[...new Set(S.items.map(i=>daeOf(i.gong)))].sort((a,b)=>Object.keys(TREE).indexOf(a)-Object.keys(TREE).indexOf(b));
+  const daes=[...new Set(S.items.map(i=>daeOf(i)))].sort((a,b)=>Object.keys(TREE).indexOf(a)-Object.keys(TREE).indexOf(b));
   const cur=$("fDae").value;
   $("fDae").innerHTML='<option value="">대공종 전체</option>'+daes.map(d=>`<option${d===cur?" selected":""}>${esc(d)}</option>`).join("");
   syncGong();
@@ -505,7 +506,7 @@ function fillSelects(){
 }
 function syncGong(){
   const dae=$("fDae").value, cur=$("fGong").value;
-  const gongs=[...new Set(S.items.filter(i=>!dae||daeOf(i.gong)===dae).map(i=>i.gong))];
+  const gongs=[...new Set(S.items.filter(i=>!dae||daeOf(i)===dae).map(i=>i.gong))];
   gongs.sort((a,b)=>ALL_GONG.indexOf(a)-ALL_GONG.indexOf(b));
   $("fGong").innerHTML='<option value="">공종 전체</option>'+gongs.map(g=>`<option${g===cur?" selected":""}>${esc(g)}</option>`).join("");
 }
@@ -513,7 +514,7 @@ function filtered(){
   const dae=$("fDae").value, gong=$("fGong").value, q=$("fQ").value.trim().toLowerCase();
   return S.items.filter(i=>{
     if(i.use===false) return false;                 // 숨김 품목은 견적 화면에서 제외
-    if(dae && daeOf(i.gong)!==dae) return false;
+    if(dae && daeOf(i)!==dae) return false;
     if(gong && i.gong!==gong) return false;
     if(q && !((i.name+" "+(i.spec||"")+" "+(i.gong||"")).toLowerCase().includes(q))) return false;
     return true;
@@ -527,7 +528,7 @@ function renderCat(){
   }
   if(!list.length){ body.innerHTML='<tr><td colspan="8"><div class="empty-state">조건에 맞는 품목이 없습니다.</div></td></tr>'; return; }
   const grouped={};
-  for(const i of list){ const d=daeOf(i.gong); (grouped[d] ??= {}); (grouped[d][i.gong||"(공종 없음)"] ??= []).push(i); }
+  for(const i of list){ const d=daeOf(i); (grouped[d] ??= {}); (grouped[d][i.gong||"(공종 없음)"] ??= []).push(i); }
   const daeOrder=[...Object.keys(TREE),"미분류"];
   let h="";
   for(const dae of daeOrder){
@@ -563,7 +564,7 @@ $("catBody").addEventListener("input",e=>{
   tr.querySelector(".rowsum").textContent=v?F(unitOf(i)*N(v)):""; renderCartBar();
 });
 ["fDae","fGong","fQ"].forEach(id=>$(id).addEventListener("input",()=>{ if(id==="fDae") syncGong(); renderCat(); }));
-$("btnExpand").addEventListener("click",()=>{ for(const i of S.items){ const d=daeOf(i.gong); S.open["d:"+d]=true; S.open["g:"+d+"/"+(i.gong||"(공종 없음)")]=true; } renderCat(); });
+$("btnExpand").addEventListener("click",()=>{ for(const i of S.items){ const d=daeOf(i); S.open["d:"+d]=true; S.open["g:"+d+"/"+(i.gong||"(공종 없음)")]=true; } renderCat(); });
 $("btnCollapse").addEventListener("click",()=>{ S.open={}; renderCat(); });
 $("btnRefresh").addEventListener("click",()=>loadCatalog(true));
 
@@ -716,7 +717,7 @@ const norm=s=>String(s||"").trim().toLowerCase().replace(/\s+/g," ");
 const itemKey=i=>[i.gong,i.name,i.spec].map(norm).join("|");
 const nameKey=i=>[i.gong,i.name].map(norm).join("|");
 const hasData=i=>!!(N(i.mat)||N(i.lab)||N(i.exp)||N(i.cost));
-function updPayload(ex,it,use){ return {id:ex.id,prevName:ex.name,gong:it.gong||ex.gong,name:it.name||ex.name,spec:it.spec??ex.spec,unit:it.unit||ex.unit||"식",mat:N(it.mat),lab:N(it.lab),exp:N(it.exp),cost:N(it.cost),use}; }
+function updPayload(ex,it,use){ return {id:ex.id,prevName:ex.name,gong:it.gong||ex.gong,name:it.name||ex.name,spec:it.spec??ex.spec,unit:it.unit||ex.unit||"식",mat:N(it.mat),lab:N(it.lab),exp:N(it.exp),cost:N(it.cost),dae:it.dae||ex.dae||"",use}; }
 
 async function pushItems(items, statusEl){
   if(!apiReady()){ openConn(); return false; }
@@ -755,7 +756,9 @@ function parsePaste(txt,gong){
   for(const raw of txt.split(/\r?\n/)){
     if(!raw.trim()) continue; const c=raw.includes("\t")?raw.split("\t"):raw.split(","); const name=(c[0]||"").trim();
     if(!name||/^(품목명|품명|공종|no\.?|번호)$/i.test(name)) continue;
-    out.push({gong,name,spec:(c[1]||"").trim(),unit:(c[2]||"").trim()||"식",mat:N(c[3]),lab:N(c[4]),exp:N(c[5]),cost:N(c[6])});
+    let mat=N(c[3]), lab=N(c[4]), exp=N(c[5]); const total=N(c[6]);
+    if(total&&!mat&&!lab&&!exp) mat=total;                 // 7번째 열은 단가합계 — 구성 없이 합계만 있으면 재료비로
+    out.push({gong,name,spec:(c[1]||"").trim(),unit:(c[2]||"").trim()||"식",mat,lab,exp,cost:0});
   }
   return out;
 }
@@ -771,31 +774,33 @@ $("btnAdd").addEventListener("click",async()=>{
 });
 
 /* ---------- 단가표 내려받기 (비어 있으면 양식, 있으면 백업) ---------- */
-const CAT_HEAD=["공종","품목명","규격","단위","재료비","노무비","경비","원가"];
-function dlCatalog(rows, name, fmt){
+/* 양식 열: 대공종·공종·품목명·규격·단위·재료비·노무비·경비·단가합계. 백업(전체 내려받기)에는 원가·사용 도 붙임 */
+const FORM_HEAD=["대공종","공종","품목명","규격","단위","재료비","노무비","경비","단가합계"];
+const BACKUP_HEAD=[...FORM_HEAD,"원가","사용"];
+function dlCatalog(head, rows, name, fmt){
   if(fmt==="csv" || typeof XLSX==="undefined"){
-    download(name+".csv",[CAT_HEAD,...rows].map(r=>r.map(csvCell).join(",")).join("\r\n")); return;
+    download(name+".csv",[head,...rows].map(r=>r.map(csvCell).join(",")).join("\r\n")); return;
   }
-  const ws=XLSX.utils.aoa_to_sheet([CAT_HEAD,...rows]);
-  ws["!cols"]=[{wch:18},{wch:34},{wch:26},{wch:8},{wch:12},{wch:12},{wch:12},{wch:12}];
+  const ws=XLSX.utils.aoa_to_sheet([head,...rows]);
+  ws["!cols"]=[{wch:8},{wch:18},{wch:34},{wch:26},{wch:8},{wch:12},{wch:12},{wch:12},{wch:12},{wch:12},{wch:6}];
   ws["!freeze"]={xSplit:0,ySplit:1};
   const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"단가표");
   XLSX.writeFile(wb,name+".xlsx");
 }
 // 단가 DB 탭 — 지금 있는 것 전부 (최종 DB 백업)
 $("btnDlCat").addEventListener("click",()=>{
-  const rows=S.items.map(i=>[i.gong,i.name,i.spec,i.unit,i.mat,i.lab,i.exp,i.cost]);
+  const rows=S.items.map(i=>[daeOf(i),i.gong,i.name,i.spec,i.unit,i.mat,i.lab,i.exp,unitOf(i),i.cost,i.use===false?"N":""]);
   if(!rows.length) return toast("아직 단가 DB가 비어 있습니다. 품목 등록 탭에서 빈 양식을 받으세요.");
-  dlCatalog(rows,"단가DB_"+new Date().toISOString().slice(0,10).replace(/-/g,""),"xlsx");
+  dlCatalog(BACKUP_HEAD,rows,"단가DB_"+new Date().toISOString().slice(0,10).replace(/-/g,""),"xlsx");
   toast(rows.length.toLocaleString("ko-KR")+"개 품목 내려받음");
 });
 // 품목 등록 탭 — 빈 양식 (채워서 올리는 폼)
-$("btnFormXlsx").addEventListener("click",()=>{ dlCatalog([],"단가표_양식","xlsx"); toast("빈 양식(xlsx) 내려받음"); });
-$("btnFormCsv").addEventListener("click", ()=>{ dlCatalog([],"단가표_양식","csv");  toast("빈 양식(csv) 내려받음"); });
+$("btnFormXlsx").addEventListener("click",()=>{ dlCatalog(FORM_HEAD,[],"단가표_양식","xlsx"); toast("빈 양식(xlsx) 내려받음"); });
+$("btnFormCsv").addEventListener("click", ()=>{ dlCatalog(FORM_HEAD,[],"단가표_양식","csv");  toast("빈 양식(csv) 내려받음"); });
 
 /* ---------- 엑셀 업로드 ---------- */
-const FIELDS=[["name","품목명",true],["spec","규격",false],["unit","단위",false],["mat","재료비",false],["lab","노무비",false],["exp","경비",false],["cost","원가",false],["gong","공종 열",false]];
-const HINTS={name:/품목|품명|명칭|자재|공종명|규격품명/,spec:/규격|사양|크기|치수/,unit:/단위|unit/i,mat:/재료|자재비|재료비/,lab:/노무|인건|노임/,exp:/경비|기타비/,cost:/원가|매입|도매|구매/,gong:/공종|분류|중공종|세부공종/};
+const FIELDS=[["name","품목명",true],["spec","규격",false],["unit","단위",false],["mat","재료비",false],["lab","노무비",false],["exp","경비",false],["total","단가합계",false],["cost","원가",false],["gong","공종 열",false],["dae","대공종 열",false]];
+const HINTS={name:/품목|품명|명칭|자재명|공종명|규격품명/,spec:/규격|사양|크기|치수/,unit:/단위|unit/i,mat:/재료|자재비/,lab:/노무|인건|노임/,exp:/경비|기타비/,total:/단가합계|합계단가|단가$|합계/,cost:/원가|매입|도매|구매/,gong:/^(?!.*대공종).*(공종|중공종|세부공종|분류)/,dae:/대공종|대분류/};
 let XL=null;
 function cleanLabel(t){ return String(t??"").replace(/[　\s]+/g," ").replace(/^[\s▾▸▶►■□◆◇●○•·\-–—\d.)\]]+/,"").replace(/\s*\d+\s*(개|건|항목)\s*$/,"").trim(); }
 /* 머리행 = 데이터 시작 바로 윗줄 */
@@ -808,7 +813,8 @@ function renderMap(){
 }
 function xlRowsParsed(){
   const st=Math.max(0,N($("xlStart").value)-1), m=XL.map, gongSel=$("xlGong").value, groupMode=$("xlGroup").checked;
-  let curGong=gongSel, lastGong=""; const out=[];
+  let curGong=gongSel, lastGong="", lastDae=""; const out=[];
+  XL.onlyTotal=0; XL.mismatch=0;
   for(let r=st;r<XL.rows.length;r++){
     const row=XL.rows[r]||[]; const cell=i=>i>=0?String(row[i]??"").trim():""; const name=cell(m.name);
     if(groupMode){
@@ -819,10 +825,16 @@ function xlRowsParsed(){
     let gong=groupMode?curGong:gongSel;
     if(m.gong>=0){
       const g=cleanLabel(cell(m.gong));
-      if(g&&GONG2DAE.has(g)){ gong=g; lastGong=g; }
-      else if(!g&&lastGong){ gong=lastGong; }          // 공종 칸이 비면 위 행 공종을 이어받음
+      if(g){ gong=g; lastGong=g; }                       // 목록에 없는 공종명도 그대로 받음 (대공종 열이 있으면 그걸로 분류)
+      else if(lastGong){ gong=lastGong; }                // 공종 칸이 비면 위 행 공종을 이어받음
     }
-    out.push({gong,name,spec:cell(m.spec),unit:cell(m.unit)||"식",mat:N(cell(m.mat)),lab:N(cell(m.lab)),exp:N(cell(m.exp)),cost:N(cell(m.cost))});
+    let dae="";
+    if(m.dae>=0){ const d=cleanLabel(cell(m.dae)); if(d){ dae=d; lastDae=d; } else if(lastDae) dae=lastDae; }
+    let mat=N(cell(m.mat)), lab=N(cell(m.lab)), exp=N(cell(m.exp));
+    const total=m.total>=0?N(cell(m.total)):0;
+    if(total && !mat && !lab && !exp){ mat=total; XL.onlyTotal=(XL.onlyTotal||0)+1; }          // 구성 없이 합계만 → 재료비
+    else if(total && Math.round(mat+lab+exp)!==Math.round(total)){ XL.mismatch=(XL.mismatch||0)+1; }  // 검산 불일치
+    out.push({dae,gong,name,spec:cell(m.spec),unit:cell(m.unit)||"식",mat,lab,exp,cost:N(cell(m.cost))});
   }
   return out;
 }
@@ -832,7 +844,12 @@ function renderPrev(){
   el.innerHTML=`<table><thead><tr><th style="text-align:left">공종</th><th style="text-align:left">품목명</th><th style="text-align:left">규격</th><th>단위</th><th>재료비</th><th>노무비</th><th>경비</th><th>원가</th></tr></thead><tbody>`
     +rows.slice(0,6).map(r=>`<tr><td style="text-align:left;color:var(--ink-3)">${esc(r.gong)}</td><td style="text-align:left">${esc(r.name)}</td><td style="text-align:left;color:var(--ink-3)">${esc(r.spec)}</td><td>${esc(r.unit)}</td><td class="num c-mat">${r.mat?F(r.mat):"–"}</td><td class="num c-lab">${r.lab?F(r.lab):"–"}</td><td class="num c-exp">${r.exp?F(r.exp):"–"}</td><td class="num" style="color:var(--ink-3)">${r.cost?F(r.cost):"–"}</td></tr>`).join("")+`</tbody></table>`;
   const dist={}; for(const r of rows) dist[r.gong]=(dist[r.gong]||0)+1; const keys=Object.keys(dist);
-  $("xlStatus").innerHTML=`<div class="status ok"><b>${rows.length.toLocaleString("ko-KR")}건</b> 인식 · ${keys.length>1?`<b>${keys.length}개 공종</b>: `+keys.slice(0,5).map(k=>`${esc(k)} ${dist[k]}`).join(", ")+(keys.length>5?` 외 ${keys.length-5}`:""):"전부 <b>"+esc(keys[0])+"</b>"} — 확인 후 등록하세요.</div>`;
+  const unknown=keys.filter(k=>!GONG2DAE.has(k)), noDae=rows.filter(r=>!GONG2DAE.has(r.gong)&&!r.dae).length;
+  const notes=[];
+  if(XL.onlyTotal) notes.push(`단가합계만 있는 <b>${XL.onlyTotal}건</b>은 재료비로 넣음`);
+  if(XL.mismatch)  notes.push(`재료+노무+경비 ≠ 단가합계 <b>${XL.mismatch}건</b> (구성값 기준으로 들어감)`);
+  if(unknown.length) notes.push(`목록에 없는 공종 ${unknown.length}개: ${unknown.slice(0,4).map(esc).join(", ")}${unknown.length>4?" …":""}${noDae?` — 대공종 열이 없어 <b>${noDae}건</b>은 '미분류'로`:""}`);
+  $("xlStatus").innerHTML=`<div class="status ok"><b>${rows.length.toLocaleString("ko-KR")}건</b> 인식 · ${keys.length>1?`<b>${keys.length}개 공종</b>: `+keys.slice(0,5).map(k=>`${esc(k)} ${dist[k]}`).join(", ")+(keys.length>5?` 외 ${keys.length-5}`:""):"전부 <b>"+esc(keys[0])+"</b>"} — 확인 후 등록하세요.${notes.length?"<br>"+notes.join(" · "):""}</div>`;
 }
 const drop=$("drop"), fileInput=$("xlFile");
 drop.addEventListener("click",()=>fileInput.click());

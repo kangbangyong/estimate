@@ -25,7 +25,7 @@ const SS = () => SpreadsheetApp.getActiveSpreadsheet();
    1. 최초 1회 — 시트 만들기
    ================================================================ */
 const SCHEMA = {
-  '단가DB':   ['공종','품목명','규격','단위','재료비','노무비','경비','원가','단가합계','사용'],
+  '단가DB':   ['공종','품목명','규격','단위','재료비','노무비','경비','원가','단가합계','사용','대공종'],
   '견적이력': ['견적번호','작성일시','현장명','발주처','담당','공급가액','부가세','합계','원가합계','마진','품목수','비고'],
   '견적상세': ['견적번호','순번','공종','품목명','규격','단위','수량','재료비','노무비','경비','단가합계','금액','원가'],
   '설정':     ['항목','값']
@@ -58,12 +58,13 @@ function 초기화() {
   const db = ss.getSheetByName('단가DB');
   const last = db.getLastRow();
   if (last > 1) {
-    const all  = db.getRange(2, 1, last - 1, 10).getValues();
+    const all  = db.getRange(2, 1, last - 1, 11).getValues();
     const keep = all.filter(function (r) { return String(r[1] || '').trim(); });
-    db.getRange(2, 1, last - 1, 10).clearContent();
+    db.getRange(2, 1, last - 1, 11).clearContent();
     if (keep.length) {
       keep.forEach(function (r) { r[8] = ''; });          // I열은 아래 배열수식이 계산
-      db.getRange(2, 1, keep.length, 10).setValues(keep);
+      db.getRange(2, 1, keep.length, 11).setValues(keep);
+      db.getRange(2, 9, keep.length, 1).clearContent();  // I열은 완전히 비워야 배열수식이 퍼짐
     }
   }
   // 단가합계 = 재료비 + 노무비 + 경비 — 배열수식 한 칸으로 (빈 행을 만들지 않음)
@@ -120,6 +121,7 @@ function readCatalog() {
     items.push({
       id:   'r' + (r + 1),                       // 시트 행 번호 = 품목 ID
       use:  String(row[at('사용')] || '').trim().toUpperCase() !== 'N',   // N = 숨김 (견적 화면에서 안 보임)
+      dae:  at('대공종') >= 0 ? String(row[at('대공종')] || '').trim() : '',
       gong: String(row[at('공종')] || '').trim(),
       name: name,
       spec: String(row[at('규격')] || '').trim(),
@@ -272,11 +274,12 @@ function addItems(items) {
       if (have[k]) { skipped++; return; }
       have[k] = true;
       rows.push([i.gong || '', i.name || '', i.spec || '', i.unit || '식',
-                 num(i.mat), num(i.lab), num(i.exp), num(i.cost), '', '']);
+                 num(i.mat), num(i.lab), num(i.exp), num(i.cost), String(i.dae || '')]);
     });
     if (!rows.length) return { ok: true, added: 0, skipped: skipped };
     const start = lastDataRow(db) + 1;                 // 품목명 있는 마지막 행 바로 아래
-    db.getRange(start, 1, rows.length, 8).setValues(rows.map(function (r) { return r.slice(0, 8); }));   // A~H 만. I열은 배열수식
+    db.getRange(start, 1,  rows.length, 8).setValues(rows.map(function (r) { return r.slice(0, 8); }));  // A~H. I열은 배열수식, J는 비움
+    db.getRange(start, 11, rows.length, 1).setValues(rows.map(function (r) { return [r[8]]; }));         // K 대공종
     return { ok: true, added: rows.length, skipped: skipped };
   } finally {
     lock.releaseLock();
@@ -299,6 +302,7 @@ function updateItem(it) {
     db.getRange(row, 1, 1, 8).setValues([[it.gong || '', it.name || '', it.spec || '', it.unit || '식',
                                           num(it.mat), num(it.lab), num(it.exp), num(it.cost)]]);
     db.getRange(row, 10).setValue(it.use === false ? 'N' : '');
+    if (it.dae != null) db.getRange(row, 11).setValue(String(it.dae || ''));
     return { ok: true, id: it.id };
   } finally {
     lock.releaseLock();
