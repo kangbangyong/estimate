@@ -160,6 +160,15 @@ textarea.paste{width:100%;min-height:160px;background:var(--surface-2);border:1p
 .prev td,.prev th{padding:5px 8px;white-space:nowrap}
 tr.hrow{cursor:pointer}
 
+/* 단가 수정 */
+.ein{width:100%;min-width:70px;background:var(--surface);border:1px solid var(--line-2);border-radius:5px;padding:5px 7px;font-size:12px}
+.ein:focus{border-color:var(--accent)}
+.ein.xs{min-width:44px;width:56px;text-align:center}
+.ein.r{text-align:right;min-width:86px}
+tr.hid .ein{opacity:.55}
+#panel-edit table{min-width:1000px}
+#panel-edit td{padding:5px 6px}
+
 /* 연결 모달 */
 .modal{position:fixed;inset:0;z-index:100;background:rgba(15,19,21,.6);display:flex;align-items:center;justify-content:center;padding:16px}
 .modal .card{max-width:520px;width:100%}
@@ -199,6 +208,7 @@ tr.hrow{cursor:pointer}
     <button class="tab" role="tab" data-tab="sch" aria-selected="false">공정표</button>
     <button class="tab" role="tab" data-tab="hist" aria-selected="false">견적 이력</button>
     <button class="tab" role="tab" data-tab="mng" aria-selected="false">품목 등록</button>
+    <button class="tab" role="tab" data-tab="edit" aria-selected="false">단가 수정</button>
   </div>
 </div>
 
@@ -351,9 +361,29 @@ tr.hrow{cursor:pointer}
       </div>
       <button class="btn" id="btnAdd">시트에 등록</button>
       <div id="addStatus"></div>
-      <p class="hint" style="margin-top:14px">여기서 등록한 건 전부 구글 시트 <b>단가DB</b> 끝에 붙습니다. 수정·삭제는 시트에서 직접 하세요.</p>
+      <p class="hint" style="margin-top:14px">여기서 등록한 건 전부 구글 시트 <b>단가DB</b> 끝에 붙습니다. 고치는 건 <b>단가 수정</b> 탭에서.</p>
     </div>
   </div>
+</section>
+
+<section class="panel" id="panel-edit" hidden>
+  <div class="toolbar">
+    <select id="eGong" aria-label="공종"></select>
+    <input type="search" id="eQ" placeholder="품목명 · 규격 검색" aria-label="검색">
+    <label class="hint" style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" id="eHidden"> 숨긴 품목도 보기</label>
+    <button class="btn sec sm" id="btnEditRefresh">↻ 새로고침</button>
+    <span class="hint" id="editCount"></span>
+  </div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr>
+        <th style="width:26%">품목명</th><th style="width:20%">규격</th><th style="width:6%">단위</th>
+        <th style="width:10%">재료비</th><th style="width:10%">노무비</th><th style="width:9%">경비</th><th style="width:9%">원가</th><th style="width:10%"></th>
+      </tr></thead>
+      <tbody id="editBody"></tbody>
+    </table>
+  </div>
+  <p class="hint" style="margin-top:10px">고치고 <b>저장</b>(또는 Enter) — 시트 단가DB의 그 행이 바로 바뀝니다. <b>숨김</b>은 지우는 게 아니라 견적 화면에서만 빼는 것(시트 J열 '사용'이 N). 완전 삭제는 시트에서 행을 지우세요.</p>
 </section>
 </div>
 
@@ -447,7 +477,7 @@ async function loadCatalog(force){
     if(force) toast(S.items.length.toLocaleString("ko-KR")+"개 품목 불러옴");
   }catch(e){ setConn("bad"); $("catCount").textContent="연결 실패: "+e.message; }
 }
-function renderAll(){ fillSelects(); renderCat(); renderCartBar(); renderCo(); }
+function renderAll(){ fillSelects(); renderCat(); renderCartBar(); renderCo(); if(!$("panel-edit").hidden) renderEdit(); }
 
 function fillSelects(){
   const daes=[...new Set(S.items.map(i=>daeOf(i.gong)))].sort((a,b)=>Object.keys(TREE).indexOf(a)-Object.keys(TREE).indexOf(b));
@@ -456,6 +486,7 @@ function fillSelects(){
   syncGong();
   const opts=ALL_GONG.map(g=>`<option${g==="수장공사"?" selected":""}>${esc(g)}</option>`).join("");
   for(const id of ["impGong","adGong","xlGong"]) if(!$(id).options.length) $(id).innerHTML=opts;
+  if(!$("eGong").options.length) $("eGong").innerHTML='<option value="">공종 전체</option>'+ALL_GONG.map(g=>`<option>${esc(g)}</option>`).join("");
 }
 function syncGong(){
   const dae=$("fDae").value, cur=$("fGong").value;
@@ -466,6 +497,7 @@ function syncGong(){
 function filtered(){
   const dae=$("fDae").value, gong=$("fGong").value, q=$("fQ").value.trim().toLowerCase();
   return S.items.filter(i=>{
+    if(i.use===false) return false;                 // 숨김 품목은 견적 화면에서 제외
     if(dae && daeOf(i.gong)!==dae) return false;
     if(gong && i.gong!==gong) return false;
     if(q && !((i.name+" "+(i.spec||"")+" "+(i.gong||"")).toLowerCase().includes(q))) return false;
@@ -814,6 +846,62 @@ $("btnConnTest").addEventListener("click",async()=>{
   }catch(e){ API.url=prev.url; API.token=prev.token; $("cStatus").innerHTML='<div class="status err">연결 실패: '+esc(e.message)+'<br>배포 액세스 권한이 "모든 사용자"인지, 토큰이 코드와 같은지 확인하세요.</div>'; }
 });
 
+/* ---------- 단가 수정 ---------- */
+function renderEdit(){
+  const q=$("eQ").value.trim().toLowerCase(), gong=$("eGong").value, showH=$("eHidden").checked, body=$("editBody");
+  const list=S.items.filter(i=>(showH||i.use!==false)&&(!gong||i.gong===gong)&&(!q||(i.name+" "+(i.spec||"")).toLowerCase().includes(q)));
+  $("editCount").textContent=list.length.toLocaleString("ko-KR")+"개";
+  if(!list.length){ body.innerHTML='<tr><td colspan="8"><div class="empty-state">'+(S.items.length?"조건에 맞는 품목이 없습니다.":"단가 DB가 비어 있습니다.")+'</div></td></tr>'; return; }
+  const g={}; for(const i of list) (g[i.gong||"(공종 없음)"] ??= []).push(i);
+  let h="";
+  for(const gg of Object.keys(g).sort((a,b)=>ALL_GONG.indexOf(a)-ALL_GONG.indexOf(b))){
+    h+=`<tr class="gong"><td colspan="8" style="padding-left:10px;cursor:default">${esc(gg)}<span class="count">${g[gg].length}개</span></td></tr>`;
+    for(const i of g[gg]){
+      const hid=i.use===false;
+      h+=`<tr data-eid="${esc(i.id)}"${hid?' class="hid"':""}>
+        <td><input class="ein" data-f="name" value="${esc(i.name)}" aria-label="품목명">${hid?'<span class="chip empty">숨김</span>':""}</td>
+        <td><input class="ein" data-f="spec" value="${esc(i.spec||"")}" placeholder="규격" aria-label="규격"></td>
+        <td><input class="ein xs" data-f="unit" value="${esc(i.unit||"")}" aria-label="단위"></td>
+        <td><input class="ein num r" data-f="mat" inputmode="numeric" value="${i.mat||""}" placeholder="0" aria-label="재료비"></td>
+        <td><input class="ein num r" data-f="lab" inputmode="numeric" value="${i.lab||""}" placeholder="0" aria-label="노무비"></td>
+        <td><input class="ein num r" data-f="exp" inputmode="numeric" value="${i.exp||""}" placeholder="0" aria-label="경비"></td>
+        <td><input class="ein num r" data-f="cost" inputmode="numeric" value="${i.cost||""}" placeholder="0" aria-label="원가"></td>
+        <td style="white-space:nowrap"><button class="btn sm" data-save disabled>저장</button> <button class="btn sec sm" data-hide title="${hid?"견적 화면에 다시 보이기":"견적 화면에서 숨기기"}">${hid?"보이기":"숨김"}</button></td></tr>`;
+    }
+  }
+  body.innerHTML=h;
+}
+async function saveItem(tr, patch){
+  const id=tr.dataset.eid, i=S.items.find(x=>x.id===id); if(!i) return;
+  if(!apiReady()) return openConn();
+  const item={id, prevName:i.name, gong:i.gong, name:i.name, spec:i.spec, unit:i.unit, mat:i.mat, lab:i.lab, exp:i.exp, cost:i.cost, use:i.use!==false, ...patch};
+  const btn=tr.querySelector("[data-save]"); btn.disabled=true; btn.textContent="저장 중";
+  try{
+    await apiPost("updateItem",{item});
+    delete item.prevName; Object.assign(i,item);
+    LS.set("catalog",{at:Date.now(),items:S.items,settings:S.settings});
+    toast("저장됨 · "+i.name); renderEdit(); renderCat();
+  }catch(e){ toast("저장 실패: "+e.message); btn.disabled=false; btn.textContent="저장"; }
+}
+$("editBody").addEventListener("input",e=>{ const tr=e.target.closest("tr[data-eid]"); if(tr) tr.querySelector("[data-save]").disabled=false; });
+$("editBody").addEventListener("keydown",e=>{
+  if(e.key!=="Enter"||!e.target.classList.contains("ein")) return;
+  e.preventDefault(); const b=e.target.closest("tr[data-eid]").querySelector("[data-save]"); if(!b.disabled) b.click();
+});
+$("editBody").addEventListener("click",e=>{
+  const tr=e.target.closest("tr[data-eid]"); if(!tr) return;
+  if(e.target.closest("[data-save]")){
+    const patch={}; tr.querySelectorAll(".ein").forEach(el=>{ const f=el.dataset.f; patch[f]=["mat","lab","exp","cost"].includes(f)?N(el.value):el.value.trim(); });
+    if(!patch.name) return toast("품목명은 비울 수 없습니다.");
+    if(!patch.unit) patch.unit="식";
+    saveItem(tr,patch);
+  } else if(e.target.closest("[data-hide]")){
+    const i=S.items.find(x=>x.id===tr.dataset.eid); saveItem(tr,{use:i.use===false});
+  }
+});
+["eQ","eGong","eHidden"].forEach(id=>$(id).addEventListener("input",renderEdit));
+$("btnEditRefresh").addEventListener("click",async()=>{ await loadCatalog(true); renderEdit(); });
+
 /* ---------- 수량 칸에서 Enter → 다음 수량 칸 ---------- */
 function nextQty(e){
   if(e.key!=="Enter"||!e.target.classList.contains("qty")) return;
@@ -827,8 +915,8 @@ $("docBody").addEventListener("keydown",nextQty);
 /* ---------- 탭 / 부팅 ---------- */
 document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{
   document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected",x===t?"true":"false"));
-  ["db","doc","sch","hist","mng"].forEach(k=>$("panel-"+k).hidden=(k!==t.dataset.tab));
-  if(t.dataset.tab==="doc") renderDoc(); if(t.dataset.tab==="sch") renderSch();
+  ["db","doc","sch","hist","mng","edit"].forEach(k=>$("panel-"+k).hidden=(k!==t.dataset.tab));
+  if(t.dataset.tab==="doc") renderDoc(); if(t.dataset.tab==="sch") renderSch(); if(t.dataset.tab==="edit") renderEdit();
 }));
 function goTab(k){ document.querySelector('.tab[data-tab="'+k+'"]').click(); }
 

@@ -105,9 +105,9 @@ function readCatalog() {
     const row = v[r];
     const name = String(row[at('품목명')] || '').trim();
     if (!name) continue;
-    if (String(row[at('사용')] || '').trim().toUpperCase() === 'N') continue;   // 단종·보류 품목 제외
     items.push({
       id:   'r' + (r + 1),                       // 시트 행 번호 = 품목 ID
+      use:  String(row[at('사용')] || '').trim().toUpperCase() !== 'N',   // N = 숨김 (견적 화면에서 안 보임)
       gong: String(row[at('공종')] || '').trim(),
       name: name,
       spec: String(row[at('규격')] || '').trim(),
@@ -172,6 +172,7 @@ function doPost(e) {
     switch (body.action) {
       case 'save':      return json(saveEstimate(body.estimate || {}));
       case 'addItems':  return json(addItems(body.items || []));
+      case 'updateItem': return json(updateItem(body.item || {}));
       default:          return json({ ok: false, error: '알 수 없는 요청입니다: ' + body.action });
     }
   } catch (err) {
@@ -257,6 +258,28 @@ function addItems(items) {
     // R1C1: 각 행이 자기 행을 참조 (setFormula 는 같은 수식을 그대로 복사해서 전부 첫 행을 가리킴)
     db.getRange(start, 9, rows.length, 1).setFormulaR1C1('=IF(RC2="","",RC5+RC6+RC7)');
     return { ok: true, added: rows.length, skipped: skipped };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/** 화면 '단가 수정' 탭에서 한 행을 고칩니다. id = 'r<시트 행 번호>'. */
+function updateItem(it) {
+  const row = parseInt(String(it.id || '').replace(/^r/, ''), 10);
+  if (!row || row < 2) return { ok: false, error: '잘못된 행 번호입니다.' };
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const db = SS().getSheetByName('단가DB');
+    // 안전장치: 화면에서 보던 품목명과 시트의 그 행이 같은지 확인 (행이 밀렸으면 엉뚱한 행을 덮지 않도록)
+    const curName = String(db.getRange(row, 2).getValue() || '').trim();
+    if (it.prevName != null && curName !== String(it.prevName).trim()) {
+      return { ok: false, error: '시트가 그새 바뀌었습니다. ↻ 새로고침 후 다시 시도하세요.' };
+    }
+    db.getRange(row, 1, 1, 8).setValues([[it.gong || '', it.name || '', it.spec || '', it.unit || '식',
+                                          num(it.mat), num(it.lab), num(it.exp), num(it.cost)]]);
+    db.getRange(row, 10).setValue(it.use === false ? 'N' : '');
+    return { ok: true, id: it.id };
   } finally {
     lock.releaseLock();
   }
