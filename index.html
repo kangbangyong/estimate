@@ -572,7 +572,10 @@ function renderDoc(){
       <tr class="grand"><td colspan="6">합계 금액</td><td class="num v">${W(grand)}</td><td colspan="2" class="no-print"></td></tr>
       <tr class="no-print"><td colspan="6" style="color:var(--ink-3);font-size:11.5px">원가 합계 ${W(cost)} · 예상 마진</td>
         <td class="num ${margin>=0?"margin-pos":"margin-neg"}">${W(margin)}</td><td class="num ${margin>=0?"margin-pos":"margin-neg"}">${mr.toFixed(1)}%</td><td></td></tr>`;
+  // 다시 그려도 커서가 있던 수량 칸으로 돌아가게
+  const act=document.activeElement, key=act&&act.classList&&act.classList.contains("qty")?act.closest("tr[data-row]")?.dataset.row:null;
   body.innerHTML=h;
+  if(key){ const el=body.querySelector('tr[data-row="'+CSS.escape(key)+'"] .qty'); if(el){ el.focus(); el.setSelectionRange(el.value.length,el.value.length); } }
 }
 $("docBody").addEventListener("click",e=>{ const b=e.target.closest("[data-del]"); if(!b) return; S.rows=S.rows.filter(r=>r.key!==b.dataset.del); renderDoc(); renderCartBar(); autoSchedule(); badge("저장 안 됨"); });
 $("docBody").addEventListener("input",e=>{
@@ -800,6 +803,16 @@ $("btnConnTest").addEventListener("click",async()=>{
     setTimeout(()=>{ $("connModal").hidden=true; loadCatalog(true); },600);
   }catch(e){ API.url=prev.url; API.token=prev.token; $("cStatus").innerHTML='<div class="status err">연결 실패: '+esc(e.message)+'<br>배포 액세스 권한이 "모든 사용자"인지, 토큰이 코드와 같은지 확인하세요.</div>'; }
 });
+
+/* ---------- 수량 칸에서 Enter → 다음 수량 칸 ---------- */
+function nextQty(e){
+  if(e.key!=="Enter"||!e.target.classList.contains("qty")) return;
+  e.preventDefault();
+  const all=[...e.currentTarget.querySelectorAll(".qty")], i=all.indexOf(e.target);
+  const nx=all[i+1]; if(nx){ nx.focus(); nx.select(); }
+}
+$("catBody").addEventListener("keydown",nextQty);
+$("docBody").addEventListener("keydown",nextQty);
 
 /* ---------- 탭 / 부팅 ---------- */
 document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{
