@@ -290,6 +290,10 @@ tr.hrow{cursor:pointer}
   <div class="card card-pad" style="margin-bottom:14px">
     <div class="eyebrow">엑셀 파일 올리기</div>
     <h3 style="font-size:15px;margin:6px 0 10px">단가표 파일을 시트에 밀어넣기</h3>
+    <div class="toolbar" style="margin-bottom:10px">
+      <button class="btn sec sm" id="btnDlCat">⬇ 현재 단가표 내려받기 (xlsx)</button>
+      <span class="hint">비어 있으면 빈 양식이 내려오고, 채워져 있으면 그대로 백업됩니다. 채워서 아래에 다시 올리면 됩니다.</span>
+    </div>
     <div class="drop" id="drop">
       <b>파일을 끌어다 놓거나 클릭해서 선택</b>
       <span>.xlsx · .xls · .csv — 등록하면 구글 시트 단가DB 끝에 추가됩니다</span>
@@ -682,6 +686,21 @@ $("btnAdd").addEventListener("click",async()=>{
   const name=$("adName").value.trim(); if(!name){ $("addStatus").innerHTML='<div class="status err">품목명을 입력하세요.</div>'; return; }
   const ok=await pushItems([{gong:$("adGong").value,name,spec:$("adSpec").value.trim(),unit:$("adUnit").value.trim()||"식",mat:N($("adMat").value),lab:N($("adLab").value),exp:N($("adExp").value),cost:N($("adCost").value)}],$("addStatus"));
   if(ok) ["adName","adSpec","adMat","adLab","adExp","adCost"].forEach(id=>$(id).value="");
+});
+
+/* ---------- 단가표 내려받기 (비어 있으면 양식, 있으면 백업) ---------- */
+const CAT_HEAD=["공종","품목명","규격","단위","재료비","노무비","경비","원가"];
+$("btnDlCat").addEventListener("click",()=>{
+  const rows=S.items.map(i=>[i.gong,i.name,i.spec,i.unit,i.mat,i.lab,i.exp,i.cost]);
+  const stamp=new Date().toISOString().slice(0,10).replace(/-/g,"");
+  const name=rows.length?`단가DB_${stamp}`:"단가표_양식";
+  if(typeof XLSX==="undefined"){ download(name+".csv",[CAT_HEAD,...rows].map(r=>r.map(csvCell).join(",")).join("\r\n")); return; }
+  const ws=XLSX.utils.aoa_to_sheet([CAT_HEAD,...rows]);
+  ws["!cols"]=[{wch:18},{wch:34},{wch:26},{wch:8},{wch:12},{wch:12},{wch:12},{wch:12}];
+  ws["!freeze"]={xSplit:0,ySplit:1};
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"단가표");
+  XLSX.writeFile(wb,name+".xlsx");
+  toast(rows.length?rows.length.toLocaleString("ko-KR")+"개 품목 내려받음":"빈 양식 내려받음");
 });
 
 /* ---------- 엑셀 업로드 ---------- */
