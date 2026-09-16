@@ -55,7 +55,7 @@ function 초기화() {
 
   // 단가합계 = 재료비 + 노무비 + 경비 (500행까지)
   const db = ss.getSheetByName('단가DB');
-  db.getRange('I2:I500').setFormula('=IF(B2="","",E2+F2+G2)');
+  db.getRange('I2:I500').setFormulaR1C1('=IF(RC2="","",RC5+RC6+RC7)');   // 행마다 자기 행 참조
   db.getRange('E2:I500').setNumberFormat('#,##0');
   db.setColumnWidth(1, 150); db.setColumnWidth(2, 240); db.setColumnWidth(3, 180);
 
@@ -223,18 +223,40 @@ function saveEstimate(est) {
 }
 
 /** 화면에서 등록한 신규 품목을 단가DB 끝에 덧붙입니다. */
+/** 중복 기준: 공종 + 품목명 + 규격 (공백·대소문자 무시). 이미 있는 건 건너뜁니다. */
+function itemKey(gong, name, spec) {
+  return [gong, name, spec].map(function (s) {
+    return String(s == null ? '' : s).trim().toLowerCase().replace(/\s+/g, ' ');
+  }).join('|');
+}
+
 function addItems(items) {
-  if (!items.length) return { ok: true, added: 0 };
+  if (!items.length) return { ok: true, added: 0, skipped: 0 };
   const lock = LockService.getScriptLock();
   lock.waitLock(20000);
   try {
     const db = SS().getSheetByName('단가DB');
-    const rows = items.map(i => [i.gong || '', i.name || '', i.spec || '', i.unit || '식',
-                                 num(i.mat), num(i.lab), num(i.exp), num(i.cost), '', '']);
+    const have = {};
+    if (db.getLastRow() > 1) {
+      db.getRange(2, 1, db.getLastRow() - 1, 3).getValues().forEach(function (r) {
+        if (String(r[1] || '').trim()) have[itemKey(r[0], r[1], r[2])] = true;
+      });
+    }
+    const rows = [];
+    let skipped = 0;
+    items.forEach(function (i) {
+      const k = itemKey(i.gong, i.name, i.spec);
+      if (have[k]) { skipped++; return; }
+      have[k] = true;
+      rows.push([i.gong || '', i.name || '', i.spec || '', i.unit || '식',
+                 num(i.mat), num(i.lab), num(i.exp), num(i.cost), '', '']);
+    });
+    if (!rows.length) return { ok: true, added: 0, skipped: skipped };
     const start = db.getLastRow() + 1;
     db.getRange(start, 1, rows.length, rows[0].length).setValues(rows);
-    db.getRange(start, 9, rows.length, 1).setFormula('=IF(B' + start + '="","",E' + start + '+F' + start + '+G' + start + ')');
-    return { ok: true, added: rows.length };
+    // R1C1: 각 행이 자기 행을 참조 (setFormula 는 같은 수식을 그대로 복사해서 전부 첫 행을 가리킴)
+    db.getRange(start, 9, rows.length, 1).setFormulaR1C1('=IF(RC2="","",RC5+RC6+RC7)');
+    return { ok: true, added: rows.length, skipped: skipped };
   } finally {
     lock.releaseLock();
   }

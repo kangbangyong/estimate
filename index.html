@@ -664,12 +664,21 @@ $("histBody").addEventListener("click",async e=>{
 });
 
 /* ---------- 품목 등록 (시트에 추가) ---------- */
+/* 중복 기준: 공종 + 품목명 + 규격 (공백·대소문자 무시) */
+const itemKey=i=>[i.gong,i.name,i.spec].map(s=>String(s||"").trim().toLowerCase().replace(/\s+/g," ")).join("|");
 async function pushItems(items, statusEl){
   if(!apiReady()){ openConn(); return false; }
-  statusEl.innerHTML='<div class="status ok">시트에 쓰는 중…</div>';
+  statusEl.innerHTML='<div class="status ok">시트와 대조하는 중…</div>';
   try{
-    const j=await apiPost("addItems",{items});
-    statusEl.innerHTML=`<div class="status ok"><b>${j.added}건</b>을 단가DB 시트에 등록했습니다.</div>`;
+    // 올리기 직전에 시트를 새로 읽어 최신 상태와 비교
+    const cur=await apiGet("catalog"); S.items=cur.items||[]; S.settings=cur.settings||S.settings;
+    LS.set("catalog",{at:Date.now(),items:S.items,settings:S.settings});
+    const have=new Set(S.items.map(itemKey)), seen=new Set(), fresh=[]; let dup=0;
+    for(const it of items){ const k=itemKey(it); if(have.has(k)||seen.has(k)){ dup++; continue; } seen.add(k); fresh.push(it); }
+    if(!fresh.length){ statusEl.innerHTML=`<div class="status ok">전부 이미 있는 품목입니다 (중복 ${dup}건). 새로 들어간 건 없습니다.</div>`; renderAll(); return true; }
+    statusEl.innerHTML='<div class="status ok">시트에 쓰는 중…</div>';
+    const j=await apiPost("addItems",{items:fresh});
+    statusEl.innerHTML=`<div class="status ok"><b>${j.added}건</b> 등록${dup?` · 이미 있는 <b>${dup}건</b>은 건너뜀`:""}.</div>`;
     await loadCatalog(true); return true;
   }catch(e){ statusEl.innerHTML=`<div class="status err">등록 실패: ${esc(e.message)}</div>`; return false; }
 }
