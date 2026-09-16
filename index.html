@@ -432,10 +432,23 @@ const daeOf = g => GONG2DAE.get(g) || "미분류";
 
 const S = { items:[], settings:{}, rows:[], pick:{}, open:{}, sch:[],
             meta:{no:"", client:"", owner:"", staff:"", date:"", schStart:""} };
-const W = n => "₩" + Math.round(n||0).toLocaleString("ko-KR");
+const W = n => "₩" + Math.round(n||0).toLocaleString("ko-KR");   // 합계 표시용
+const F = n => Math.round(n||0).toLocaleString("ko-KR");         // 표 안 칸 (₩ 없이)
 const N = v => { const x=parseFloat(String(v??"").replace(/[^0-9.\-]/g,"")); return isFinite(x)?x:0; };
 const esc = s => String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const unitOf = i => N(i.mat)+N(i.lab)+N(i.exp);
+
+/* 수량 규칙 — 단위별 자릿수와 ↑↓ 증감 폭 */
+const U_INT  = new Set(["동","ea","식","set","세트","월","개","개소","회","장","매","본","롤","포","조","벌","켤레","쌍","면","호","실","구","단","봉","통","캔","병","팩","box","박스","자루","판","주","그루","공","열","기","련","점","권","부"]);
+const U_HALF = new Set(["대","인","일","시간","h","hr","시"]);
+function qtyRule(unit){
+  const u=String(unit||"").trim().toLowerCase();
+  if(U_INT.has(u))  return {step:1,   dec:0};
+  if(U_HALF.has(u)) return {step:0.5, dec:1};
+  return {step:0.01, dec:2};                       // ㎡ · m · ㎥ · kg · ton · L · 평 등
+}
+const qtyAttr = unit => { const r=qtyRule(unit); return `data-step="${r.step}" data-dec="${r.dec}"`; };
+const fmtQty  = (v,unit) => { const n=N(v); return n ? n.toFixed(qtyRule(unit).dec) : ""; };
 const $ = id => document.getElementById(id);
 
 /* ---------- 로컬 ---------- */
@@ -536,17 +549,17 @@ function rowHtml(i){
   return `<tr data-item="${esc(i.id)}">
     <td><div class="item-name"><b>${esc(i.name)}${u===0?'<span class="chip empty">단가 미입력</span>':""}</b><span class="item-meta">${esc(i.spec||"")}</span></div></td>
     <td>${esc(i.unit||"")}</td>
-    <td class="num c-mat">${i.mat?W(i.mat):"–"}</td><td class="num c-lab">${i.lab?W(i.lab):"–"}</td><td class="num c-exp">${i.exp?W(i.exp):"–"}</td>
-    <td class="num sum">${u?W(u):"–"}</td>
-    <td><input class="qty num" type="text" inputmode="decimal" placeholder="0" value="${esc(qv)}" aria-label="${esc(i.name)} 수량"></td>
-    <td class="num rowsum">${sub?W(sub):""}</td></tr>`;
+    <td class="num c-mat">${i.mat?F(i.mat):"–"}</td><td class="num c-lab">${i.lab?F(i.lab):"–"}</td><td class="num c-exp">${i.exp?F(i.exp):"–"}</td>
+    <td class="num sum">${u?F(u):"–"}</td>
+    <td><input class="qty num" type="text" inputmode="decimal" placeholder="0" value="${esc(qv)}" ${qtyAttr(i.unit)} aria-label="${esc(i.name)} 수량"></td>
+    <td class="num rowsum">${sub?F(sub):""}</td></tr>`;
 }
 $("catBody").addEventListener("click",e=>{ const tr=e.target.closest("tr[data-node]"); if(!tr) return; S.open[tr.dataset.node]=!S.open[tr.dataset.node]; renderCat(); });
 $("catBody").addEventListener("input",e=>{
   if(!e.target.classList.contains("qty")) return;
   const tr=e.target.closest("tr[data-item]"), i=S.items.find(x=>x.id===tr.dataset.item), v=e.target.value.trim();
   if(v==="") delete S.pick[i.id]; else S.pick[i.id]=v;
-  tr.querySelector(".rowsum").textContent=v?W(unitOf(i)*N(v)):""; renderCartBar();
+  tr.querySelector(".rowsum").textContent=v?F(unitOf(i)*N(v)):""; renderCartBar();
 });
 ["fDae","fGong","fQ"].forEach(id=>$(id).addEventListener("input",()=>{ if(id==="fDae") syncGong(); renderCat(); }));
 $("btnExpand").addEventListener("click",()=>{ for(const i of S.items){ const d=daeOf(i.gong); S.open["d:"+d]=true; S.open["g:"+d+"/"+(i.gong||"(공종 없음)")]=true; } renderCat(); });
@@ -592,9 +605,9 @@ function renderDoc(){
     arr.forEach(r=>{
       const amt=unitOf(r)*N(r.qty); gs+=amt; cost+=N(r.cost)*N(r.qty);
       h+=`<tr data-row="${esc(r.key)}"><td><div class="item-name" style="padding-left:12px"><b>${esc(r.name)}</b><span class="item-meta">${esc(r.spec||"")}</span></div></td>
-        <td>${esc(r.unit||"")}</td><td><input class="qty num" type="text" inputmode="decimal" value="${r.qty}" aria-label="${esc(r.name)} 수량"></td>
-        <td class="num c-mat">${r.mat?W(r.mat*r.qty):"–"}</td><td class="num c-lab">${r.lab?W(r.lab*r.qty):"–"}</td><td class="num c-exp">${r.exp?W(r.exp*r.qty):"–"}</td>
-        <td class="num sum">${W(amt)}</td><td class="num no-print" style="color:var(--ink-3)">${r.cost?W(r.cost*r.qty):"–"}</td>
+        <td>${esc(r.unit||"")}</td><td><input class="qty num" type="text" inputmode="decimal" value="${fmtQty(r.qty,r.unit)}" ${qtyAttr(r.unit)} aria-label="${esc(r.name)} 수량"></td>
+        <td class="num c-mat">${r.mat?F(r.mat*r.qty):"–"}</td><td class="num c-lab">${r.lab?F(r.lab*r.qty):"–"}</td><td class="num c-exp">${r.exp?F(r.exp*r.qty):"–"}</td>
+        <td class="num sum">${F(amt)}</td><td class="num no-print" style="color:var(--ink-3)">${r.cost?F(r.cost*r.qty):"–"}</td>
         <td class="no-print"><button class="del" data-del="${esc(r.key)}" aria-label="행 삭제">×</button></td></tr>`;
     });
     sup+=gs; h+=`<tr class="tot"><td colspan="6">${esc(gong)} 소계</td><td class="num">${W(gs)}</td><td colspan="2" class="no-print"></td></tr>`;
@@ -795,7 +808,7 @@ function renderPrev(){
   const rows=xlRowsParsed(), el=$("xlPrev");
   if(!rows.length){ el.innerHTML='<div class="empty-state" style="padding:20px">읽을 행이 없습니다. 시작 행과 품목명 열을 확인하세요.</div>'; $("xlStatus").innerHTML=""; return; }
   el.innerHTML=`<table><thead><tr><th style="text-align:left">공종</th><th style="text-align:left">품목명</th><th style="text-align:left">규격</th><th>단위</th><th>재료비</th><th>노무비</th><th>경비</th><th>원가</th></tr></thead><tbody>`
-    +rows.slice(0,6).map(r=>`<tr><td style="text-align:left;color:var(--ink-3)">${esc(r.gong)}</td><td style="text-align:left">${esc(r.name)}</td><td style="text-align:left;color:var(--ink-3)">${esc(r.spec)}</td><td>${esc(r.unit)}</td><td class="num c-mat">${r.mat?W(r.mat):"–"}</td><td class="num c-lab">${r.lab?W(r.lab):"–"}</td><td class="num c-exp">${r.exp?W(r.exp):"–"}</td><td class="num" style="color:var(--ink-3)">${r.cost?W(r.cost):"–"}</td></tr>`).join("")+`</tbody></table>`;
+    +rows.slice(0,6).map(r=>`<tr><td style="text-align:left;color:var(--ink-3)">${esc(r.gong)}</td><td style="text-align:left">${esc(r.name)}</td><td style="text-align:left;color:var(--ink-3)">${esc(r.spec)}</td><td>${esc(r.unit)}</td><td class="num c-mat">${r.mat?F(r.mat):"–"}</td><td class="num c-lab">${r.lab?F(r.lab):"–"}</td><td class="num c-exp">${r.exp?F(r.exp):"–"}</td><td class="num" style="color:var(--ink-3)">${r.cost?F(r.cost):"–"}</td></tr>`).join("")+`</tbody></table>`;
   const dist={}; for(const r of rows) dist[r.gong]=(dist[r.gong]||0)+1; const keys=Object.keys(dist);
   $("xlStatus").innerHTML=`<div class="status ok"><b>${rows.length.toLocaleString("ko-KR")}건</b> 인식 · ${keys.length>1?`<b>${keys.length}개 공종</b>: `+keys.slice(0,5).map(k=>`${esc(k)} ${dist[k]}`).join(", ")+(keys.length>5?` 외 ${keys.length-5}`:""):"전부 <b>"+esc(keys[0])+"</b>"} — 확인 후 등록하세요.</div>`;
 }
@@ -903,15 +916,32 @@ $("editBody").addEventListener("click",e=>{
 ["eQ","eGong","eHidden"].forEach(id=>$(id).addEventListener("input",renderEdit));
 $("btnEditRefresh").addEventListener("click",async()=>{ await loadCatalog(true); renderEdit(); });
 
-/* ---------- 수량 칸에서 Enter → 다음 수량 칸 ---------- */
-function nextQty(e){
-  if(e.key!=="Enter"||!e.target.classList.contains("qty")) return;
-  e.preventDefault();
-  const all=[...e.currentTarget.querySelectorAll(".qty")], i=all.indexOf(e.target);
-  const nx=all[i+1]; if(nx){ nx.focus(); nx.select(); }
+/* ---------- 수량 칸 키 조작: Enter → 다음 칸, ↑↓ → 단위별 증감 ---------- */
+function qtyKeys(e){
+  const el=e.target; if(!el.classList.contains("qty")) return;
+  if(e.key==="Enter"){
+    e.preventDefault();
+    const all=[...e.currentTarget.querySelectorAll(".qty")], i=all.indexOf(el);
+    const nx=all[i+1]; if(nx){ nx.focus(); nx.select(); }
+    return;
+  }
+  if(e.key==="ArrowUp"||e.key==="ArrowDown"){
+    e.preventDefault();
+    const step=+el.dataset.step||0.01, dec=+el.dataset.dec||0;
+    let v=N(el.value)+(e.key==="ArrowUp"?step:-step);
+    if(v<0) v=0;
+    el.value=v?v.toFixed(dec):"";
+    el.dispatchEvent(new Event("input",{bubbles:true}));
+  }
 }
-$("catBody").addEventListener("keydown",nextQty);
-$("docBody").addEventListener("keydown",nextQty);
+/* 칸을 떠날 때 단위 자릿수로 정리 (정수 단위에 1.7 넣으면 2, ㎡에 3 넣으면 3.00) */
+function qtyBlur(e){
+  const el=e.target; if(!el.classList.contains("qty")) return;
+  const dec=+el.dataset.dec||0, n=N(el.value);
+  const out=n?n.toFixed(dec):"";
+  if(out!==el.value){ el.value=out; el.dispatchEvent(new Event("input",{bubbles:true})); }
+}
+for(const id of ["catBody","docBody"]){ $(id).addEventListener("keydown",qtyKeys); $(id).addEventListener("focusout",qtyBlur); }
 
 /* ---------- 탭 / 부팅 ---------- */
 document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{
