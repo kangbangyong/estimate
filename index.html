@@ -16,6 +16,7 @@
   --mat:#2E5D50; --lab:#8A5A23; --exp:#43617F;
   --good:#2E6B4F; --warn:#8A6410; --crit:#9B3524;
   --head:#22282B; --head-ink:#EDEFEA;
+  --ln:block; --lw:none;                 /* 견적서 로고: 밝은 화면엔 남색, 어두운 화면엔 흰색 */
   --shadow:0 1px 2px rgba(23,28,25,.06),0 6px 20px rgba(23,28,25,.05);
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
@@ -26,6 +27,7 @@
   --mat:#6FB89F; --lab:#D2A15E; --exp:#83AAD0;
   --good:#63B98D; --warn:#D4AB5A; --crit:#DE7C68;
   --head:#0F1315; --head-ink:#E7EBE6;
+  --ln:none; --lw:block;
   --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.3);
 }}
 :root[data-theme="dark"]{
@@ -36,6 +38,7 @@
   --mat:#6FB89F; --lab:#D2A15E; --exp:#83AAD0;
   --good:#63B98D; --warn:#D4AB5A; --crit:#DE7C68;
   --head:#0F1315; --head-ink:#E7EBE6;
+  --ln:none; --lw:block;
   --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.3);
 }
 *{box-sizing:border-box}
@@ -54,6 +57,10 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .brand{display:flex;align-items:baseline;gap:9px;margin-right:auto}
 .brand b{font-size:15px;font-weight:700;letter-spacing:-.01em}
 .brand span{font-size:11px;color:#9AA49C;letter-spacing:.06em}
+.brand .logo{height:34px;width:auto;display:block}
+.doc-logo{display:block;height:44px;width:auto;margin-bottom:10px}
+.doc-logo.navy{display:var(--ln,block)} .doc-logo.white{display:var(--lw,none)}
+@media (max-width:640px){.brand .logo{height:28px}}
 .estno{font-size:11.5px;color:#9AA49C}
 .estno b{color:var(--head-ink);font-weight:600}
 .topbar .total{font-size:12px;color:#9AA49C}
@@ -190,6 +197,7 @@ tr.hid .ein{opacity:.55}
   td,th{padding:4px 6px}
   .del{display:none}
   .qty{border:0;background:transparent;padding:0;width:auto}
+  .doc-logo.navy{display:block!important} .doc-logo.white{display:none!important}   /* 인쇄는 항상 남색 로고 */
 }
 </style>
 </head>
@@ -197,7 +205,7 @@ tr.hid .ein{opacity:.55}
 
 <div class="topbar">
   <div class="topbar-in">
-    <div class="brand"><b>그리다</b><span>견적</span></div>
+    <div class="brand"><img src="img/logo-white.png" alt="Grid-A 4U 그리드에이포유" class="logo"><span>견적</span></div>
     <span class="estno"><span class="dot" id="connDot"></span><b id="estNo">새 견적</b></span>
     <div class="total">합계 <b class="num" id="topTotal">₩0</b></div>
     <button class="ghost" id="btnNew">새 견적</button>
@@ -242,6 +250,7 @@ tr.hid .ein{opacity:.55}
 <section class="panel" id="panel-doc" hidden>
   <div class="doc">
     <div class="doc-head">
+      <img src="img/logo-navy.png" alt="Grid-A 4U" class="doc-logo navy"><img src="img/logo-white.png" alt="" class="doc-logo white">
       <div class="doc-title">견 적 서</div>
       <div class="doc-co" id="docCo"></div>
       <div class="doc-fields">
