@@ -53,10 +53,22 @@ function 초기화() {
     cfg.getRange(2, 1, 설정기본값.length, 2).setValues(설정기본값);
   }
 
-  // 단가합계 = 재료비 + 노무비 + 경비 (500행까지)
+  // 단가DB 정리: 품목명 없는 빈 행을 걷어내고 데이터를 2행부터 붙여 올립니다
+  // (예전 초기화가 I열에 수식을 500행까지 깔아둔 탓에 새 품목이 501행 아래로 들어가던 문제 복구)
   const db = ss.getSheetByName('단가DB');
-  db.getRange('I2:I500').setFormulaR1C1('=IF(RC2="","",RC5+RC6+RC7)');   // 행마다 자기 행 참조
-  db.getRange('E2:I500').setNumberFormat('#,##0');
+  const last = db.getLastRow();
+  if (last > 1) {
+    const all  = db.getRange(2, 1, last - 1, 10).getValues();
+    const keep = all.filter(function (r) { return String(r[1] || '').trim(); });
+    db.getRange(2, 1, last - 1, 10).clearContent();
+    if (keep.length) {
+      keep.forEach(function (r) { r[8] = ''; });          // I열은 아래 배열수식이 계산
+      db.getRange(2, 1, keep.length, 10).setValues(keep);
+    }
+  }
+  // 단가합계 = 재료비 + 노무비 + 경비 — 배열수식 한 칸으로 (빈 행을 만들지 않음)
+  db.getRange('I2').setFormula('=ARRAYFORMULA(IF(B2:B="","",E2:E+F2:F+G2:G))');
+  db.getRange('E2:I2000').setNumberFormat('#,##0');
   db.setColumnWidth(1, 150); db.setColumnWidth(2, 240); db.setColumnWidth(3, 180);
 
   const h = ss.getSheetByName('견적이력');
@@ -231,6 +243,15 @@ function itemKey(gong, name, spec) {
   }).join('|');
 }
 
+/** 품목명(B열) 기준 마지막 데이터 행. getLastRow() 는 수식만 있는 빈 행도 세므로 쓰지 않는다. */
+function lastDataRow(sh) {
+  const last = sh.getLastRow();
+  if (last < 2) return 1;
+  const v = sh.getRange(2, 2, last - 1, 1).getValues();
+  for (let i = v.length - 1; i >= 0; i--) if (String(v[i][0] || '').trim()) return i + 2;
+  return 1;
+}
+
 function addItems(items) {
   if (!items.length) return { ok: true, added: 0, skipped: 0 };
   const lock = LockService.getScriptLock();
@@ -238,8 +259,9 @@ function addItems(items) {
   try {
     const db = SS().getSheetByName('단가DB');
     const have = {};
-    if (db.getLastRow() > 1) {
-      db.getRange(2, 1, db.getLastRow() - 1, 3).getValues().forEach(function (r) {
+    const ld = lastDataRow(db);
+    if (ld > 1) {
+      db.getRange(2, 1, ld - 1, 3).getValues().forEach(function (r) {
         if (String(r[1] || '').trim()) have[itemKey(r[0], r[1], r[2])] = true;
       });
     }
@@ -253,10 +275,8 @@ function addItems(items) {
                  num(i.mat), num(i.lab), num(i.exp), num(i.cost), '', '']);
     });
     if (!rows.length) return { ok: true, added: 0, skipped: skipped };
-    const start = db.getLastRow() + 1;
-    db.getRange(start, 1, rows.length, rows[0].length).setValues(rows);
-    // R1C1: 각 행이 자기 행을 참조 (setFormula 는 같은 수식을 그대로 복사해서 전부 첫 행을 가리킴)
-    db.getRange(start, 9, rows.length, 1).setFormulaR1C1('=IF(RC2="","",RC5+RC6+RC7)');
+    const start = lastDataRow(db) + 1;                 // 품목명 있는 마지막 행 바로 아래
+    db.getRange(start, 1, rows.length, 8).setValues(rows.map(function (r) { return r.slice(0, 8); }));   // A~H 만. I열은 배열수식
     return { ok: true, added: rows.length, skipped: skipped };
   } finally {
     lock.releaseLock();
