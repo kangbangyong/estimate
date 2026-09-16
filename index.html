@@ -369,6 +369,7 @@ tr.hid .ein{opacity:.55}
 
 <section class="panel" id="panel-edit" hidden>
   <div class="toolbar">
+    <select id="eDae" aria-label="대공종"><option value="">대공종 전체</option></select>
     <select id="eGong" aria-label="공종"></select>
     <input type="search" id="eQ" placeholder="품목명 · 규격 검색" aria-label="검색">
     <label class="hint" style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" id="eHidden"> 숨긴 품목도 보기</label>
@@ -504,7 +505,16 @@ function fillSelects(){
   syncGong();
   const opts=ALL_GONG.map(g=>`<option${g==="수장공사"?" selected":""}>${esc(g)}</option>`).join("");
   for(const id of ["impGong","adGong","xlGong"]) if(!$(id).options.length) $(id).innerHTML=opts;
-  if(!$("eGong").options.length) $("eGong").innerHTML='<option value="">공종 전체</option>'+ALL_GONG.map(g=>`<option>${esc(g)}</option>`).join("");
+  const curE=$("eDae").value;
+  $("eDae").innerHTML='<option value="">대공종 전체</option>'+daes.map(d=>`<option${d===curE?" selected":""}>${esc(d)}</option>`).join("");
+  syncEGong();
+}
+/* 단가 수정 탭 공종 목록: 고른 대공종에 실제로 있는 공종만 */
+function syncEGong(){
+  const dae=$("eDae").value, cur=$("eGong").value;
+  const gongs=[...new Set(S.items.filter(i=>!dae||daeOf(i)===dae).map(i=>String(i.gong||"").trim()||"(공종 없음)"))];
+  gongs.sort((a,b)=>ALL_GONG.indexOf(a)-ALL_GONG.indexOf(b));
+  $("eGong").innerHTML='<option value="">공종 전체</option>'+gongs.map(g=>`<option${g===cur?" selected":""}>${esc(g)}</option>`).join("");
 }
 function syncGong(){
   const dae=$("fDae").value, cur=$("fGong").value;
@@ -923,15 +933,21 @@ $("btnConnTest").addEventListener("click",async()=>{
 
 /* ---------- 단가 수정 ---------- */
 function renderEdit(){
-  const q=$("eQ").value.trim().toLowerCase(), gong=$("eGong").value, showH=$("eHidden").checked, body=$("editBody");
-  const list=S.items.filter(i=>(showH||i.use!==false)&&(!gong||i.gong===gong)&&(!q||(i.name+" "+(i.spec||"")).toLowerCase().includes(q)));
+  const q=$("eQ").value.trim().toLowerCase(), dae=$("eDae").value, gong=$("eGong").value, showH=$("eHidden").checked, body=$("editBody");
+  const gName=i=>String(i.gong||"").trim()||"(공종 없음)";
+  const list=S.items.filter(i=>(showH||i.use!==false)&&(!dae||daeOf(i)===dae)&&(!gong||gName(i)===gong)&&(!q||(i.name+" "+(i.spec||"")).toLowerCase().includes(q)));
   $("editCount").textContent=list.length.toLocaleString("ko-KR")+"개";
   if(!list.length){ body.innerHTML='<tr><td colspan="8"><div class="empty-state">'+(S.items.length?"조건에 맞는 품목이 없습니다.":"단가 DB가 비어 있습니다.")+'</div></td></tr>'; return; }
-  const g={}; for(const i of list) (g[i.gong||"(공종 없음)"] ??= []).push(i);
+  // 대공종 → 공종 → 품목
+  const tree={}; for(const i of list){ const d=daeOf(i); (tree[d] ??= {}); (tree[d][gName(i)] ??= []).push(i); }
+  const daeOrder=[...Object.keys(TREE),"미분류"];
   let h="";
-  for(const gg of Object.keys(g).sort((a,b)=>ALL_GONG.indexOf(a)-ALL_GONG.indexOf(b))){
-    h+=`<tr class="gong"><td colspan="8" style="padding-left:10px;cursor:default">${esc(gg)}<span class="count">${g[gg].length}개</span></td></tr>`;
-    for(const i of g[gg]){
+  for(const d of [...daeOrder.filter(x=>tree[x]),...Object.keys(tree).filter(x=>!daeOrder.includes(x))]){
+    const gs=tree[d], total=Object.values(gs).reduce((a,b)=>a+b.length,0);
+    h+=`<tr class="dae"><td colspan="8" style="cursor:default">${esc(d)}<span class="count">${total}개</span></td></tr>`;
+    for(const gg of Object.keys(gs).sort((a,b)=>ALL_GONG.indexOf(a)-ALL_GONG.indexOf(b))){
+    h+=`<tr class="gong"><td colspan="8" style="cursor:default">${esc(gg)}<span class="count">${gs[gg].length}개</span></td></tr>`;
+    for(const i of gs[gg]){
       const hid=i.use===false;
       h+=`<tr data-eid="${esc(i.id)}"${hid?' class="hid"':""}>
         <td><input class="ein" data-f="name" value="${esc(i.name)}" aria-label="품목명">${hid?'<span class="chip empty">숨김</span>':""}</td>
@@ -942,6 +958,7 @@ function renderEdit(){
         <td><input class="ein num r" data-f="exp" inputmode="numeric" value="${i.exp||""}" placeholder="0" aria-label="경비"></td>
         <td><input class="ein num r" data-f="cost" inputmode="numeric" value="${i.cost||""}" placeholder="0" aria-label="원가"></td>
         <td style="white-space:nowrap"><button class="btn sm" data-save disabled>저장</button> <button class="btn sec sm" data-hide title="${hid?"견적 화면에 다시 보이기":"견적 화면에서 숨기기"}">${hid?"보이기":"숨김"}</button></td></tr>`;
+    }
     }
   }
   body.innerHTML=h;
@@ -975,6 +992,7 @@ $("editBody").addEventListener("click",e=>{
   }
 });
 ["eQ","eGong","eHidden"].forEach(id=>$(id).addEventListener("input",renderEdit));
+$("eDae").addEventListener("input",()=>{ syncEGong(); renderEdit(); });
 /* 값이 하나도 없는데 같은 이름(공종+품목명)에 값 있는 행이 따로 있으면 → 숨김 */
 $("btnCleanDup").addEventListener("click",async()=>{
   if(!apiReady()) return openConn();
