@@ -26,7 +26,9 @@ const SS = () => SpreadsheetApp.getActiveSpreadsheet();
    ================================================================ */
 const SCHEMA = {
   '단가DB':   ['대공종','공종','품목명','규격','단위','재료비','노무비','경비','단가합계','원가','사용'],
-  '견적이력': ['견적번호','작성일시','현장명','발주처','담당','공급가액','부가세','합계','원가합계','마진','품목수','비고'],
+  '견적이력': ['견적번호','작성일시','현장명','발주처','담당','공급가액','부가세','합계','원가합계','마진','품목수','비고','시공사','발주처사업자번호','메타'],
+  '시공사':   ['사업자등록번호','상호','성명','사업장주소','업태','종목','이메일','담당자성명','담당자연락처','로고이미지','도장이미지'],
+  '발주처':   ['사업자등록번호','상호','성명','사업장주소','업태','종목','이메일','담당자성명','담당자연락처','로고이미지'],
   '견적상세': ['견적번호','순번','공종','품목명','규격','단위','수량','재료비','노무비','경비','단가합계','금액','원가'],
   '설정':     ['항목','값']
 };
@@ -100,6 +102,7 @@ function doGet(e) {
       case 'settings': return json({ ok: true, settings: readSettings() });
       case 'history':  return json({ ok: true, rows: readHistory() });
       case 'estimate': return json({ ok: true, estimate: readEstimate(p.no) });
+      case 'parties':  return json({ ok: true, contractors: readParties('시공사'), clients: readParties('발주처') });
       default:         return json({ ok: true, pong: true, time: now() });
     }
   } catch (err) {
@@ -151,7 +154,8 @@ function readHistory() {
   const sh = SS().getSheetByName('견적이력');
   const last = sh.getLastRow();
   if (last < 2) return [];
-  return sh.getRange(1, 1, last, SCHEMA['견적이력'].length).getValues()
+  // 목록에는 '메타'(마지막 열, JSON)를 빼고 보냅니다 — 목록이 가벼워야 해서
+  return sh.getRange(1, 1, last, SCHEMA['견적이력'].length - 1).getValues()
            .map(r => r.map(c => (c instanceof Date) ? Utilities.formatDate(c, TZ, 'yyyy-MM-dd HH:mm') : c));
 }
 
@@ -172,7 +176,68 @@ function readEstimate(no) {
     : [];
   const h = hv.find(r => String(r[0]) === String(no));
 
-  return { no: no, client: h ? h[2] : '', owner: h ? h[3] : '', staff: h ? h[4] : '', rows: rows };
+  let meta = {};
+  try { meta = h && h[14] ? JSON.parse(h[14]) : {}; } catch (e) { meta = {}; }
+  return { no: no, client: h ? h[2] : '', owner: h ? h[3] : '', staff: h ? h[4] : '',
+           contractor: h ? h[12] : '', clientBiz: h ? h[13] : '', meta: meta, rows: rows };
+}
+
+/* ---------------- 거래처 (시공사 · 발주처) ---------------- */
+const PARTY_KEYS = { '사업자등록번호':'bizno','상호':'name','성명':'ceo','사업장주소':'addr','업태':'uptae','종목':'jongmok',
+                     '이메일':'email','담당자성명':'mgr','담당자연락처':'mgrTel','로고이미지':'logo','도장이미지':'stamp' };
+
+function bizDigits(v) { return String(v == null ? '' : v).replace(/\D/g, ''); }
+function bizFormat(v) { const d = bizDigits(v); return d.length === 10 ? d.slice(0,3) + '-' + d.slice(3,5) + '-' + d.slice(5) : String(v || '').trim(); }
+
+function readParties(sheetName) {
+  const sh = SS().getSheetByName(sheetName);
+  if (!sh || sh.getLastRow() < 2) return [];
+  const v = sh.getDataRange().getValues();
+  const head = v[0].map(String);
+  const out = [];
+  for (let r = 1; r < v.length; r++) {
+    const o = { id: 'r' + (r + 1) };
+    head.forEach(function (hname, c) { const k = PARTY_KEYS[hname]; if (k) o[k] = String(v[r][c] == null ? '' : v[r][c]).trim(); });
+    if (o.name || o.bizno) out.push(o);
+  }
+  return out;
+}
+
+/** 등록·수정. 같은 사업자등록번호가 있으면 그 행을 고치고, 없으면 새 행. (번호가 없으면 상호로 찾음) */
+function saveParty(type, p) {
+  const sheetName = type === 'contractor' ? '시공사' : '발주처';
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const sh = SS().getSheetByName(sheetName);
+    if (!sh) return { ok: false, error: sheetName + ' 시트가 없습니다. 초기화를 먼저 실행하세요.' };
+    const head = SCHEMA[sheetName];
+    if (!String(p.name || '').trim()) return { ok: false, error: '상호는 필수입니다.' };
+    const biz = bizDigits(p.bizno);
+    let row = 0;
+    const last = sh.getLastRow();
+    if (last > 1) {
+      const v = sh.getRange(2, 1, last - 1, 2).getValues();
+      for (let i = 0; i < v.length; i++) {
+        const sameBiz  = biz && bizDigits(v[i][0]) === biz;
+        const sameName = !biz && !bizDigits(v[i][0]) && String(v[i][1]).trim() === String(p.name).trim();
+        if (sameBiz || sameName) { row = i + 2; break; }
+      }
+    }
+    const inv = {}; Object.keys(PARTY_KEYS).forEach(function (k) { inv[PARTY_KEYS[k]] = k; });
+    const vals = head.map(function (hname) {
+      const key = PARTY_KEYS[hname];
+      let val = p[key] == null ? '' : String(p[key]);
+      if (key === 'bizno') val = bizFormat(val);
+      if ((key === 'logo' || key === 'stamp') && val.length > 49000) val = '';   // 셀 한도(5만 자) 보호
+      return val;
+    });
+    if (!row) row = Math.max(sh.getLastRow(), 1) + 1;
+    sh.getRange(row, 1, 1, vals.length).setNumberFormat('@').setValues([vals]);   // 번호 앞자리 0 보존 위해 텍스트로
+    return { ok: true, id: 'r' + row, created: row > last };
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 /* ================================================================
@@ -187,6 +252,7 @@ function doPost(e) {
       case 'save':      return json(saveEstimate(body.estimate || {}));
       case 'addItems':  return json(addItems(body.items || []));
       case 'updateItem': return json(updateItem(body.item || {}));
+      case 'saveParty':  return json(saveParty(body.type, body.party || {}));
       default:          return json({ ok: false, error: '알 수 없는 요청입니다: ' + body.action });
     }
   } catch (err) {
@@ -228,8 +294,11 @@ function saveEstimate(est) {
     const vat   = Math.round(sup * rate);
     const total = sup + vat;
 
+    // 메타: 시공사·발주처 선택, 표지 문구, 집계 비율, 제출 양식 등 견적서 머리 전체 (이미지는 넣지 않음)
+    const metaJson = JSON.stringify(est.meta || {});
     hist.appendRow([no, new Date(), est.client || '', est.owner || '', est.staff || '',
-                    sup, vat, total, costSum, sup - costSum, rows.length, est.memo || '']);
+                    sup, vat, total, costSum, sup - costSum, rows.length, est.memo || '',
+                    est.contractor || '', est.clientBiz || '', metaJson.length < 45000 ? metaJson : '{}']);
 
     return { ok: true, no: no, sup: sup, vat: vat, total: total, cost: costSum, margin: sup - costSum };
   } finally {

@@ -17,6 +17,7 @@
   --good:#2E6B4F; --warn:#8A6410; --crit:#9B3524;
   --head:#22282B; --head-ink:#EDEFEA;
   --ln:block; --lw:none;                 /* 견적서 로고: 밝은 화면엔 남색, 어두운 화면엔 흰색 */
+  --ht-line:#B9C6E6; --ht-strong:#3F5FA8; --ht-side:#D7E0F7; --ht-label:#EEF2FC;   /* 세금계산서 양식 */
   --shadow:0 1px 2px rgba(23,28,25,.06),0 6px 20px rgba(23,28,25,.05);
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
@@ -28,6 +29,7 @@
   --good:#63B98D; --warn:#D4AB5A; --crit:#DE7C68;
   --head:#0F1315; --head-ink:#E7EBE6;
   --ln:none; --lw:block;
+  --ht-line:#3A4663; --ht-strong:#8FA8E8; --ht-side:#262F45; --ht-label:#202738;
   --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.3);
 }}
 :root[data-theme="dark"]{
@@ -39,6 +41,7 @@
   --good:#63B98D; --warn:#D4AB5A; --crit:#DE7C68;
   --head:#0F1315; --head-ink:#E7EBE6;
   --ln:none; --lw:block;
+  --ht-line:#3A4663; --ht-strong:#8FA8E8; --ht-side:#262F45; --ht-label:#202738;
   --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.3);
 }
 *{box-sizing:border-box}
@@ -177,6 +180,33 @@ tr.hid .ein{opacity:.55}
 #panel-edit table{min-width:1000px}
 #panel-edit td{padding:5px 6px}
 
+/* 거래처 — 세금계산서 양식 */
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.segb{background:var(--surface);border:0;padding:7px 14px;font-size:12.5px;font-weight:600;color:var(--ink-2)}
+.segb + .segb{border-left:1px solid var(--line)}
+.segb.on{background:var(--accent);color:#fff}
+.ht{display:flex;border:1px solid var(--ht-line);border-top:2px solid var(--ht-strong);background:var(--surface);border-radius:2px;overflow:hidden}
+.ht-side{flex:none;width:44px;display:flex;align-items:center;justify-content:center;text-align:center;background:var(--ht-side);color:var(--ht-strong);font-weight:700;font-size:13px;line-height:1.9;border-right:1px solid var(--ht-line)}
+.ht-grid{flex:1;display:grid;grid-template-columns:110px minmax(0,1fr) 110px minmax(0,1fr)}
+.ht-l{background:var(--ht-label);border-bottom:1px solid var(--ht-line);border-right:1px solid var(--ht-line);padding:10px 12px;font-size:12.5px;font-weight:600;display:flex;align-items:center}
+.ht-l.req::before{content:"*";color:var(--crit);margin-right:3px}
+.ht-f{border-bottom:1px solid var(--ht-line);border-right:1px solid var(--ht-line);padding:6px 8px;display:flex;gap:6px;align-items:center;min-width:0}
+.ht-f.ht-wide{grid-column:span 3}
+.ht-f input:not([type=file]){flex:1;min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:6px 8px;font-size:12.5px}
+.ht-f input[type=file]{font-size:11px;max-width:190px}
+.ht-img{height:34px;max-width:120px;object-fit:contain;background:#fff;border:1px solid var(--line);border-radius:3px;padding:2px}
+@media (max-width:760px){.ht-grid{grid-template-columns:92px minmax(0,1fr)}.ht-f.ht-wide{grid-column:span 1}}
+
+/* 출력 — 가로 A4 한 장 = .pg. 안쪽 치수는 전부 cqw(장 너비 기준)라 화면·인쇄 어디서든 비율이 같음. 종이라서 색은 고정 */
+.pg{container-type:inline-size;position:relative;width:100%;max-width:1123px;aspect-ratio:297/210;margin:0 auto 18px;background:#fff;color:#111;box-shadow:var(--shadow);overflow:hidden}
+.pg-frame{position:absolute;inset:6.6% 3.7%;border:.2cqw solid #5a5a5a}
+.cv-client{position:absolute;left:9.3%;top:8.6%;font-weight:700;font-size:1.15cqw;color:#333;letter-spacing:.02em}
+.cv-center{position:absolute;left:25.7%;right:12.8%;top:30%;height:21.5%;display:flex;align-items:flex-end;justify-content:center;padding-bottom:1.2cqw}
+.cv-center img{max-height:100%;max-width:46%;object-fit:contain}
+.cv-name{font-size:4.4cqw;font-weight:700;color:#4a4f52;letter-spacing:-.02em}
+.cv-band{position:absolute;left:25.7%;right:12.8%;top:52.4%;background:#d9d9d9;padding:.85cqw 1.1cqw;font-weight:700;font-size:1.5cqw;letter-spacing:.04em}
+.cv-conf{position:absolute;left:12.4%;bottom:12.4%;transform:rotate(-13deg);transform-origin:left bottom;border:.38cqw solid #d2232a;border-radius:.4cqw;color:#d2232a;font:900 2.7cqw/1 Impact,"Arial Black","IBM Plex Sans KR",sans-serif;letter-spacing:.06em;padding:.45cqw 1cqw .35cqw;opacity:.9}
+
 /* 연결 모달 */
 .modal{position:fixed;inset:0;z-index:100;background:rgba(15,19,21,.6);display:flex;align-items:center;justify-content:center;padding:16px}
 .modal .card{max-width:520px;width:100%}
@@ -187,8 +217,15 @@ tr.hid .ein{opacity:.55}
 
 @media (max-width:640px){.wrap{padding:0 16px 150px}.doc-title{font-size:17px}.topbar-in{gap:8px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@page{size:A4 landscape;margin:0}
 @media print{
   body{background:#fff;color:#000;font-size:11px}
+  body:not(.print-doc) .wrap{padding:10mm!important}
+  /* 출력 탭 인쇄: 장(.pg)만, 가로 A4 한 장씩 */
+  body.print-doc .panel:not(#panel-out){display:none!important}
+  body.print-doc #panel-out{display:block!important;padding:0!important}
+  body.print-doc .pg{width:297mm;max-width:none;height:210mm;aspect-ratio:auto;margin:0;box-shadow:none;break-after:page;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+  body.print-doc .pg:last-child{break-after:auto}
   .topbar,.tabs,.cartbar,.toolbar,.no-print,.toast,.modal{display:none!important}
   .wrap{padding:0;max-width:none}
   .panel{padding:0}
@@ -218,6 +255,8 @@ tr.hid .ein{opacity:.55}
     <button class="tab" role="tab" data-tab="hist" aria-selected="false">견적 이력</button>
     <button class="tab" role="tab" data-tab="mng" aria-selected="false">품목 등록</button>
     <button class="tab" role="tab" data-tab="edit" aria-selected="false">단가 수정</button>
+    <button class="tab" role="tab" data-tab="party" aria-selected="false">거래처</button>
+    <button class="tab" role="tab" data-tab="out" aria-selected="false">출력</button>
   </div>
 </div>
 
@@ -254,8 +293,9 @@ tr.hid .ein{opacity:.55}
       <div class="doc-title">견 적 서</div>
       <div class="doc-co" id="docCo"></div>
       <div class="doc-fields">
-        <div class="field"><label for="dfClient">현장명</label><input id="dfClient" placeholder="○○ 리모델링"></div>
-        <div class="field"><label for="dfOwner">발주처</label><input id="dfOwner" placeholder="상호 / 담당자"></div>
+        <div class="field no-print"><label for="dfContractor">시공사</label><select id="dfContractor" style="flex:1;background:transparent;border:0;font-size:12.5px;min-width:0"></select></div>
+        <div class="field"><label for="dfClient">공사명</label><input id="dfClient" placeholder="○○ 인테리어공사"></div>
+        <div class="field"><label for="dfOwner">발주처</label><input id="dfOwner" list="clientList" placeholder="상호로 조회 — 거래처 탭에 등록된 곳"><datalist id="clientList"></datalist></div>
         <div class="field"><label for="dfStaff">담당</label><input id="dfStaff" placeholder="작성자"></div>
         <div class="field"><label for="dfDate">견적일</label><input id="dfDate" type="date"></div>
       </div>
@@ -396,6 +436,73 @@ tr.hid .ein{opacity:.55}
     </table>
   </div>
   <p class="hint" style="margin-top:10px">고치고 <b>저장</b>(또는 Enter) — 시트 단가DB의 그 행이 바로 바뀝니다. <b>숨김</b>은 지우는 게 아니라 견적 화면에서만 빼는 것(시트 J열 '사용'이 N). 완전 삭제는 시트에서 행을 지우세요.</p>
+</section>
+
+<!-- ======== 거래처 (시공사 · 발주처) — 세금계산서 기준 항목 ======== -->
+<section class="panel" id="panel-party" hidden>
+  <div class="toolbar">
+    <div class="seg" role="group" aria-label="거래처 구분">
+      <button class="segb on" id="ptContractor" data-t="contractor">시공사 (공급자)</button>
+      <button class="segb" id="ptClient" data-t="client">발주처 (공급받는자)</button>
+    </div>
+    <button class="btn sec sm" id="btnPartyRefresh">↻ 새로고침</button>
+    <span class="hint" id="partyCount"></span>
+  </div>
+
+  <div class="ht" id="htForm">
+    <div class="ht-side" id="htSide">공<br>급<br>자</div>
+    <div class="ht-grid">
+      <label class="ht-l req" for="pBiz">등록번호</label>
+      <div class="ht-f"><input id="pBiz" inputmode="numeric" placeholder="000-00-00000" maxlength="12"><button class="btn sm" id="btnPartyFind">조회</button></div>
+      <label class="ht-l" for="pMgr">담당자</label>
+      <div class="ht-f"><input id="pMgr" placeholder="성명"><input id="pMgrTel" placeholder="연락처" inputmode="tel"></div>
+
+      <label class="ht-l req" for="pName">상호</label>
+      <div class="ht-f"><input id="pName"></div>
+      <label class="ht-l req" for="pCeo">성명</label>
+      <div class="ht-f"><input id="pCeo" placeholder="대표자"></div>
+
+      <label class="ht-l" for="pAddr">사업장</label>
+      <div class="ht-f ht-wide"><input id="pAddr" placeholder="사업장 주소"></div>
+
+      <label class="ht-l" for="pUptae">업태</label>
+      <div class="ht-f"><input id="pUptae"></div>
+      <label class="ht-l" for="pJong">종목</label>
+      <div class="ht-f"><input id="pJong"></div>
+
+      <label class="ht-l" for="pEmail">이메일</label>
+      <div class="ht-f ht-wide"><input id="pEmail" type="email" placeholder="세금계산서 받을 주소"></div>
+
+      <span class="ht-l">로고</span>
+      <div class="ht-f"><input type="file" id="pLogoFile" accept="image/*"><img id="pLogoPrev" class="ht-img" alt="" hidden><button class="del" id="pLogoDel" title="로고 지우기" hidden>×</button></div>
+      <span class="ht-l" id="pStampL">도장</span>
+      <div class="ht-f" id="pStampF"><input type="file" id="pStampFile" accept="image/*"><img id="pStampPrev" class="ht-img" alt="" hidden><button class="del" id="pStampDel" title="도장 지우기" hidden>×</button></div>
+    </div>
+  </div>
+  <div class="toolbar" style="margin-top:10px">
+    <button class="btn" id="btnPartySave">저장</button>
+    <button class="btn sec" id="btnPartyNew">새로 입력</button>
+    <span id="partyStatus" class="hint"></span>
+  </div>
+  <p class="hint">로고·도장은 구글 시트에만 저장됩니다 (공개 저장소에 올라가지 않음). 큰 이미지는 자동으로 줄여서 넣습니다. 배경이 투명한 PNG가 제일 깔끔합니다.</p>
+
+  <div class="tablewrap" style="margin-top:12px">
+    <table>
+      <thead><tr><th style="width:14%">등록번호</th><th style="width:22%">상호</th><th style="width:10%">성명</th><th style="width:24%">사업장</th><th style="width:10%">담당자</th><th style="width:12%">연락처</th><th style="width:8%"></th></tr></thead>
+      <tbody id="partyBody"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ======== 출력 (1 표지 · 2 갑지 · 3 상세내역) ======== -->
+<section class="panel" id="panel-out" hidden>
+  <div class="toolbar no-print">
+    <label class="hint" for="coverText">표지 문구</label>
+    <input type="text" id="coverText" style="flex:1 1 360px">
+    <button class="btn" id="btnPrintDoc">인쇄 / PDF</button>
+  </div>
+  <p class="hint no-print" style="margin:-4px 0 12px">시공사·발주처는 <b>견적서</b> 탭에서 고릅니다. 지금은 <b>1 표지</b>까지 — 2 갑지, 3 상세내역은 이어서 붙습니다.</p>
+  <div id="printDoc"></div>
 </section>
 </div>
 
@@ -616,8 +723,12 @@ function persistDraft(){ LS.set("draft",{rows:S.rows,meta:S.meta,sch:S.sch}); }
 /* ---------- 견적서 ---------- */
 function groups(){ const g={}; for(const r of S.rows) (g[r.gong||"(공종 없음)"] ??= []).push(r); return g; }
 function renderCo(){
-  const s=S.settings||{};
-  $("docCo").innerHTML = s["회사명"] ? `<div><b>${esc(s["회사명"])}</b><br>${esc(s["주소"]||"")}</div><div style="text-align:right">${s["사업자등록번호"]?"사업자등록번호 "+esc(s["사업자등록번호"])+"<br>":""}${esc(s["연락처"]||"")}</div>` : "";
+  // 선택한 시공사 정보가 견적서 머리에 찍힘 (없으면 설정 시트의 회사 정보)
+  const c=(typeof curContractor==="function"&&S.parties)?curContractor():null, s=S.settings||{};
+  const name=c?c.name:s["회사명"], addr=c?c.addr:s["주소"], biz=c?bizFmt(c.bizno):s["사업자등록번호"], tel=c?[c.mgr,c.mgrTel].filter(Boolean).join(" "):s["연락처"];
+  $("docCo").innerHTML = name ? `<div><b>${esc(name)}</b>${c&&c.ceo?" · 대표 "+esc(c.ceo):""}<br>${esc(addr||"")}</div><div style="text-align:right">${biz?"사업자등록번호 "+esc(biz)+"<br>":""}${esc(tel||"")}</div>` : "";
+  const logo=c&&typeof okImg==="function"&&okImg(c.logo)?c.logo:null;
+  document.querySelectorAll(".doc-logo").forEach(el=>{ el.src = logo || (el.classList.contains("white")?"img/logo-white.png":"img/logo-navy.png"); });
 }
 function renderDoc(){
   const body=$("docBody"), g=groups();
@@ -662,7 +773,10 @@ $("btnSave").addEventListener("click",async()=>{
   if(!S.rows.length) return toast("담긴 내역이 없습니다.");
   $("btnSave").disabled=true; badge("저장 중…");
   try{
+    const _c=curContractor(), _cl=curClient();
     const j=await apiPost("save",{estimate:{no:S.meta.no,client:S.meta.client,owner:S.meta.owner,staff:S.meta.staff,
+      contractor:_c?_c.name:"", clientBiz:_cl?bizFmt(_cl.bizno):"",
+      meta:{contractorKey:S.meta.contractorKey||"",clientKey:S.meta.clientKey||"",coverText:S.meta.coverText||""},
       rows:S.rows.map(r=>({gong:r.gong,name:r.name,spec:r.spec,unit:r.unit,qty:N(r.qty),mat:r.mat,lab:r.lab,exp:r.exp,cost:r.cost}))}});
     S.meta.no=j.no; renderCartBar();
     badge("저장됨 · "+j.no+" · "+new Date().toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"}));
@@ -672,7 +786,7 @@ $("btnSave").addEventListener("click",async()=>{
 });
 $("btnNew").addEventListener("click",()=>{
   if(S.rows.length && !confirm("현재 견적을 닫고 새로 시작합니다. 저장 안 한 내용은 사라집니다.")) return;
-  S.rows=[]; S.sch=[]; S.pick={}; S.meta={no:"",client:"",owner:"",staff:"",date:new Date().toISOString().slice(0,10),schStart:""};
+  S.rows=[]; S.sch=[]; S.pick={}; S.meta={no:"",client:"",owner:"",staff:"",date:new Date().toISOString().slice(0,10),schStart:"",contractorKey:S.meta.contractorKey||"",clientKey:"",coverText:""};   // 시공사 선택은 유지
   fillMeta(); renderCat(); renderCartBar(); renderDoc(); badge(""); goTab("db");
 });
 function fillMeta(){ $("dfClient").value=S.meta.client||""; $("dfOwner").value=S.meta.owner||""; $("dfStaff").value=S.meta.staff||""; $("dfDate").value=S.meta.date||new Date().toISOString().slice(0,10); $("schStart").value=S.meta.schStart||""; }
@@ -727,8 +841,8 @@ $("histBody").addEventListener("click",async e=>{
   try{
     const j=await apiGet("estimate",{no:tr.dataset.no}); const est=j.estimate; if(!est) return toast("찾을 수 없습니다.");
     S.rows=est.rows.map((r,i)=>({key:"h"+i,gong:r.gong,name:r.name,spec:r.spec,unit:r.unit,qty:N(r.qty),mat:N(r.mat),lab:N(r.lab),exp:N(r.exp),cost:N(r.cost)}));
-    S.meta={no:est.no,client:est.client||"",owner:est.owner||"",staff:est.staff||"",date:new Date().toISOString().slice(0,10),schStart:""};
-    S.sch=[]; autoSchedule(); fillMeta(); renderCartBar(); renderDoc(); badge("불러옴 · "+est.no); goTab("doc");
+    S.meta={no:est.no,client:est.client||"",owner:est.owner||"",staff:est.staff||"",date:new Date().toISOString().slice(0,10),schStart:"",...(est.meta||{})};
+    S.sch=[]; autoSchedule(); fillMeta(); syncPartyPickers(); renderCartBar(); renderDoc(); badge("불러옴 · "+est.no); goTab("doc");
   }catch(e){ toast("불러오기 실패: "+e.message); }
 });
 
@@ -936,7 +1050,7 @@ $("btnConnTest").addEventListener("click",async()=>{
     const j=await apiGet("ping");
     LS.set("api.url",url); LS.set("api.token",tok);
     $("cStatus").innerHTML='<div class="status ok">연결됐습니다. (서버 시각 '+esc(j.time)+')</div>';
-    setTimeout(()=>{ $("connModal").hidden=true; loadCatalog(true); },600);
+    setTimeout(()=>{ $("connModal").hidden=true; loadCatalog(true); loadParties(true); },600);
   }catch(e){ API.url=prev.url; API.token=prev.token; $("cStatus").innerHTML='<div class="status err">연결 실패: '+esc(e.message)+'<br>배포 액세스 권한이 "모든 사용자"인지, 토큰이 코드와 같은지 확인하세요.</div>'; }
 });
 
@@ -1017,6 +1131,118 @@ $("btnCleanDup").addEventListener("click",async()=>{
 });
 $("btnEditRefresh").addEventListener("click",async()=>{ await loadCatalog(true); renderEdit(); });
 
+/* ---------- 거래처 (시공사 · 발주처) ---------- */
+S.parties={contractors:[],clients:[]};
+let PT="contractor", PIMG={logo:"",stamp:""};
+const DEFAULT_COVER="귀하의 소중한 프로젝트에 인테리어공사 견적서를 제출합니다.";
+const bizDigits=v=>String(v??"").replace(/\D/g,"");
+const bizFmt=v=>{ const d=bizDigits(v); return d.length===10?`${d.slice(0,3)}-${d.slice(3,5)}-${d.slice(5)}`:String(v||"").trim(); };
+const partyKey=p=>bizDigits(p.bizno)||String(p.name||"").trim();
+const ptList=()=>PT==="contractor"?S.parties.contractors:S.parties.clients;
+const okImg=s=>typeof s==="string"&&s.startsWith("data:image/");
+const curContractor=()=>S.parties.contractors.find(p=>partyKey(p)===S.meta.contractorKey)||S.parties.contractors[0]||null;
+const curClient=()=>S.parties.clients.find(p=>partyKey(p)===S.meta.clientKey)||S.parties.clients.find(p=>p.name&&p.name===String(S.meta.owner||"").trim())||null;
+
+async function loadParties(force){
+  const c=LS.get("parties",null); if(!force&&c&&c.data){ S.parties=c.data; syncPartyPickers(); }   // 강제 새로고침 땐 옛 캐시를 끼워넣지 않음
+  if(!apiReady()) return;
+  if(!force&&c&&Date.now()-c.at<10*60*1000) return;
+  try{
+    const j=await apiGet("parties");
+    S.parties={contractors:j.contractors||[],clients:j.clients||[]};
+    LS.set("parties",{at:Date.now(),data:S.parties}); syncPartyPickers();
+    if(!$("panel-party").hidden) renderParty(); if(!$("panel-out").hidden) renderOut();
+  }catch(e){ if(force) toast("거래처 불러오기 실패: "+e.message); }
+}
+/* 견적서 탭의 시공사 선택 · 발주처 조회 목록 */
+function syncPartyPickers(){
+  const cs=S.parties.contractors;
+  if(!S.meta.contractorKey&&cs.length) S.meta.contractorKey=partyKey(cs[0]);
+  $("dfContractor").innerHTML=cs.length?cs.map(p=>`<option value="${esc(partyKey(p))}"${partyKey(p)===S.meta.contractorKey?" selected":""}>${esc(p.name)}</option>`).join(""):'<option value="">거래처 탭에서 시공사를 등록하세요</option>';
+  $("clientList").innerHTML=S.parties.clients.map(p=>`<option value="${esc(p.name)}">${esc(bizFmt(p.bizno))}${p.ceo?" · "+esc(p.ceo):""}</option>`).join("");
+  renderCo();
+}
+$("dfContractor").addEventListener("change",e=>{ S.meta.contractorKey=e.target.value; persistDraft(); renderCo(); badge("저장 안 됨"); });
+$("dfOwner").addEventListener("input",e=>{ const hit=S.parties.clients.find(p=>p.name===e.target.value.trim()); S.meta.clientKey=hit?partyKey(hit):""; persistDraft(); });
+
+function renderParty(){
+  const isC=PT==="contractor", list=ptList();
+  $("ptContractor").classList.toggle("on",isC); $("ptClient").classList.toggle("on",!isC);
+  $("htSide").innerHTML=isC?"공<br>급<br>자":"공<br>급<br>받<br>는<br>자";
+  $("pStampL").hidden=!isC; $("pStampF").hidden=!isC;
+  $("partyCount").textContent=(isC?"시공사 ":"발주처 ")+list.length+"곳";
+  $("partyBody").innerHTML=list.length?list.map(p=>`<tr class="hrow" data-pk="${esc(partyKey(p))}"><td class="mono" style="text-align:left">${esc(bizFmt(p.bizno))}</td><td style="text-align:left"><b>${esc(p.name)}</b></td><td style="text-align:left">${esc(p.ceo||"")}</td><td style="text-align:left;color:var(--ink-3)">${esc(p.addr||"")}</td><td style="text-align:left">${esc(p.mgr||"")}</td><td class="mono" style="text-align:left">${esc(p.mgrTel||"")}</td><td><button class="btn sec sm">불러오기</button></td></tr>`).join("")
+    :`<tr><td colspan="7"><div class="empty-state">${apiReady()?"등록된 "+(isC?"시공사":"발주처")+"가 없습니다. 위 양식을 채우고 저장하세요.":"먼저 ⚙ 에서 구글 시트를 연결하세요."}</div></td></tr>`;
+}
+const PF={pBiz:"bizno",pName:"name",pCeo:"ceo",pAddr:"addr",pUptae:"uptae",pJong:"jongmok",pEmail:"email",pMgr:"mgr",pMgrTel:"mgrTel"};
+function showPartyImg(kind){ const cap=kind[0].toUpperCase()+kind.slice(1), v=PIMG[kind]; $("p"+cap+"Prev").hidden=!okImg(v); if(okImg(v)) $("p"+cap+"Prev").src=v; $("p"+cap+"Del").hidden=!okImg(v); }
+function fillPartyForm(p){ for(const [id,k] of Object.entries(PF)) $(id).value=k==="bizno"?bizFmt(p[k]):(p[k]||""); PIMG={logo:p.logo||"",stamp:p.stamp||""}; showPartyImg("logo"); showPartyImg("stamp"); $("pLogoFile").value=""; $("pStampFile").value=""; }
+function clearPartyForm(){ fillPartyForm({}); $("partyStatus").textContent=""; $("pBiz").focus(); }
+document.querySelectorAll(".segb").forEach(b=>b.addEventListener("click",()=>{ PT=b.dataset.t; clearPartyForm(); renderParty(); }));
+$("pBiz").addEventListener("blur",e=>{ e.target.value=bizFmt(e.target.value); });
+$("btnPartyNew").addEventListener("click",clearPartyForm);
+$("btnPartyRefresh").addEventListener("click",()=>loadParties(true).then(()=>toast("거래처 불러옴")));
+$("partyBody").addEventListener("click",e=>{ const tr=e.target.closest("tr[data-pk]"); if(!tr) return; const p=ptList().find(x=>partyKey(x)===tr.dataset.pk); if(p){ fillPartyForm(p); $("partyStatus").textContent="불러옴 — 고친 뒤 저장하면 덮어씁니다."; window.scrollTo({top:0,behavior:"smooth"}); } });
+$("btnPartyFind").addEventListener("click",()=>{
+  const d=bizDigits($("pBiz").value), nm=$("pName").value.trim();
+  const hit=ptList().find(p=>d?bizDigits(p.bizno)===d:(nm&&p.name===nm));
+  if(hit){ fillPartyForm(hit); $("partyStatus").textContent="조회됨: "+hit.name; }
+  else $("partyStatus").textContent=d||nm?"등록된 곳이 없습니다 — 아래를 채우고 저장하면 새로 등록됩니다.":"등록번호나 상호를 넣고 조회하세요.";
+});
+/* 이미지 → 시트 한 칸(5만 자)에 들어가게 줄여서 data URL 로 */
+function shrinkImage(file,maxW,limit=44000){
+  return new Promise((res,rej)=>{
+    const img=new Image();
+    img.onload=()=>{
+      let w=Math.min(maxW,img.naturalWidth), q=.92, out="";
+      for(let n=0;n<10;n++){
+        const c=document.createElement("canvas"); c.width=w; c.height=Math.max(1,Math.round(img.naturalHeight*w/img.naturalWidth));
+        c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+        out=c.toDataURL("image/webp",q); if(!out.startsWith("data:image/webp")) out=c.toDataURL("image/png");
+        if(out.length<=limit) break; w=Math.round(w*.84); q=Math.max(.55,q-.06);
+      }
+      URL.revokeObjectURL(img.src); out.length<=limit?res(out):rej(new Error("이미지가 너무 큽니다. 더 작은 파일로 올려주세요."));
+    };
+    img.onerror=()=>rej(new Error("이미지를 읽지 못했습니다.")); img.src=URL.createObjectURL(file);
+  });
+}
+for(const [kind,maxW] of [["logo",640],["stamp",300]]){
+  const cap=kind[0].toUpperCase()+kind.slice(1);
+  $("p"+cap+"File").addEventListener("change",async e=>{ const f=e.target.files[0]; if(!f) return; try{ PIMG[kind]=await shrinkImage(f,maxW); showPartyImg(kind); }catch(err){ toast(err.message); e.target.value=""; } });
+  $("p"+cap+"Del").addEventListener("click",()=>{ PIMG[kind]=""; showPartyImg(kind); $("p"+cap+"File").value=""; });
+}
+$("btnPartySave").addEventListener("click",async()=>{
+  if(!apiReady()) return openConn();
+  const party={logo:PIMG.logo}; for(const [id,k] of Object.entries(PF)) party[k]=$(id).value.trim();
+  if(PT==="contractor") party.stamp=PIMG.stamp;
+  if(!party.name){ $("partyStatus").textContent="상호는 필수입니다."; $("pName").focus(); return; }
+  if(party.bizno&&bizDigits(party.bizno).length!==10){ $("partyStatus").textContent="사업자등록번호는 숫자 10자리입니다."; $("pBiz").focus(); return; }
+  $("btnPartySave").disabled=true; $("partyStatus").textContent="저장 중…";
+  try{ const j=await apiPost("saveParty",{type:PT,party}); await loadParties(true); renderParty(); $("partyStatus").textContent=(j.created?"새로 등록됨: ":"수정됨: ")+party.name; toast("저장됨 · "+party.name); }
+  catch(e){ $("partyStatus").textContent="저장 실패: "+e.message; }
+  $("btnPartySave").disabled=false;
+});
+
+/* ---------- 출력 (1 표지) ---------- */
+function renderOut(){
+  const cl=curClient(), clientName=(cl&&cl.name)||String(S.meta.owner||"").trim()||"발주처";
+  const text=S.meta.coverText||DEFAULT_COVER;
+  if(document.activeElement!==$("coverText")) $("coverText").value=text;
+  $("printDoc").innerHTML=`<div class="pg" aria-label="1 표지">
+    <div class="pg-frame"></div>
+    <div class="cv-client">CLIENT_${esc(clientName)}</div>
+    <div class="cv-center">${cl&&okImg(cl.logo)?`<img src="${cl.logo}" alt="${esc(clientName)}">`:`<span class="cv-name">${esc(clientName)}</span>`}</div>
+    <div class="cv-band">${esc(text)}</div>
+    <div class="cv-conf">CONFIDENTIAL</div>
+  </div>`;
+}
+$("coverText").addEventListener("input",e=>{ S.meta.coverText=e.target.value; persistDraft(); renderOut(); });
+$("btnPrintDoc").addEventListener("click",()=>{
+  renderOut(); document.body.classList.add("print-doc");
+  window.addEventListener("afterprint",()=>document.body.classList.remove("print-doc"),{once:true});
+  setTimeout(()=>window.print(),80);
+});
+
 /* ---------- 수량 칸 키 조작: Enter → 다음 칸, ↑↓ → 단위별 증감 ---------- */
 function qtyKeys(e){
   const el=e.target; if(!el.classList.contains("qty")) return;
@@ -1047,8 +1273,9 @@ for(const id of ["catBody","docBody"]){ $(id).addEventListener("keydown",qtyKeys
 /* ---------- 탭 / 부팅 ---------- */
 document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{
   document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected",x===t?"true":"false"));
-  ["db","doc","sch","hist","mng","edit"].forEach(k=>$("panel-"+k).hidden=(k!==t.dataset.tab));
+  ["db","doc","sch","hist","mng","edit","party","out"].forEach(k=>$("panel-"+k).hidden=(k!==t.dataset.tab));
   if(t.dataset.tab==="doc") renderDoc(); if(t.dataset.tab==="sch") renderSch(); if(t.dataset.tab==="edit") renderEdit();
+  if(t.dataset.tab==="party") renderParty(); if(t.dataset.tab==="out") renderOut();
 }));
 function goTab(k){ document.querySelector('.tab[data-tab="'+k+'"]').click(); }
 
@@ -1057,7 +1284,7 @@ function goTab(k){ document.querySelector('.tab[data-tab="'+k+'"]').click(); }
   if(d){ S.rows=d.rows||[]; S.sch=d.sch||[]; Object.assign(S.meta,d.meta||{}); }
   if(!S.meta.date) S.meta.date=new Date().toISOString().slice(0,10);
   fillMeta(); S.open["d:건축"]=true;
-  loadCatalog(false);
+  loadCatalog(false); loadParties(false);
   if(!apiReady()) setTimeout(openConn,300);
 })();
 </script>
