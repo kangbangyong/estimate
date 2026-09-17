@@ -244,10 +244,10 @@ tr.hid .ein{opacity:.55}
 .trio label{flex:1;min-width:0;font-size:10.5px!important;color:var(--ink-3)!important;gap:2px!important}
 
 /* 2 갑지 — 가로 A4, cqw 기준 */
-.gj-in{position:absolute;inset:0;padding:5.2cqw 6.3cqw 0 6.5cqw;font-size:1.06cqw;line-height:1.35;color:#111}
-.gj-logo{position:absolute;left:8.4cqw;top:4.2cqw;height:5.6cqw;width:auto;max-width:30cqw;object-fit:contain;object-position:left center}
-.gj-rule{position:absolute;left:6.5cqw;right:6.3cqw;top:10.9cqw;border-top:.24cqw solid #000}
-.gj-title{display:flex;justify-content:space-between;align-items:flex-end;margin-top:7.4cqw;padding:0 .4cqw .7cqw}
+.gj-in{position:absolute;inset:0;padding:2.4cqw 6.3cqw 0 6.5cqw;font-size:1.06cqw;line-height:1.35;color:#111}
+.gj-logo{position:absolute;left:7.2cqw;top:2.5cqw;height:3.9cqw;width:auto;max-width:30cqw;object-fit:contain;object-position:left center}
+.gj-rule{position:absolute;left:6.5cqw;right:6.3cqw;top:7.2cqw;border-top:.24cqw solid #000}
+.gj-title{display:flex;justify-content:space-between;align-items:flex-end;margin-top:5.7cqw;padding:0 .4cqw .6cqw}
 .gj-title b{font-size:1.62cqw;letter-spacing:-.01em}
 .gj-title span{font-size:1cqw;padding-right:3cqw}
 .gj-tbl{width:100%;min-width:0;border-collapse:collapse;table-layout:fixed}
@@ -260,7 +260,8 @@ tr.hid .ein{opacity:.55}
 .gj-k{display:inline-flex;justify-content:space-between;width:8.6cqw;vertical-align:bottom}
 .gj-k i{font-style:normal}
 .gj-stampcell{position:relative;overflow:visible!important}
-.gj-stamp{position:absolute;left:23.2cqw;top:-2.3cqw;width:9.2cqw;height:auto;pointer-events:none}
+.gj-seal{position:relative;display:inline-block}
+.gj-stamp{position:absolute;left:50%;top:50%;width:5.6cqw;height:auto;transform:translate(-42%,-52%);pointer-events:none;opacity:.92}
 .gj-sub{display:flex;justify-content:space-between;align-items:baseline;padding:.75cqw 1.4cqw .55cqw;font-size:1.02cqw}
 .gj-sub span{font-weight:700;letter-spacing:.42em}
 .gj-sub em{font-style:normal;font-weight:500;font-size:1.06cqw;letter-spacing:.02em;padding-right:1.6cqw}
@@ -272,33 +273,34 @@ tr.hid .ein{opacity:.55}
 .gj-sum tr.grand td.fill{background:#fbd4b4}
 /* 집계표 — Grid-A 남색 기조. 세로줄·겹선·점선 없이 옅은 가로줄만. 구역(A·B)은 옅은 띠, 소계는 살짝 강조, 합계(a+b)는 남색 띠 */
 .gj-cost{--navy:#0b2a4a;--ink2:#5b6b7c;--hair:#e2e7ed;width:100%;min-width:0;border-collapse:collapse;table-layout:fixed;border:0;border-bottom:.2cqw solid var(--navy)}
-.gj-cost td,.gj-cost th{border:0;border-bottom:.07cqw solid var(--hair);padding:0 .9cqw;height:var(--rh,1.7cqw);font-size:min(1.04cqw,calc(var(--rh,1.7cqw)*.63));line-height:1.15;background:transparent;color:#1a2430;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left;font-weight:400;vertical-align:middle}
-.gj-cost th{background:var(--navy);color:#fff;font-weight:600;font-size:1cqw;height:2.15cqw;border-bottom:0;text-align:center;letter-spacing:.25em}
+.gj-cost td,.gj-cost th{border:0;border-bottom:.07cqw solid var(--hair);padding:0 .9cqw;height:var(--rh,2.1cqw);font-size:min(1.24cqw,calc(var(--rh,2.1cqw)*.6));line-height:1.15;background:transparent;color:#1a2430;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left;font-weight:400;vertical-align:middle}
+.gj-cost th{background:var(--navy);color:#fff;font-weight:600;font-size:1.12cqw;height:2.45cqw;border-bottom:0;text-align:center;letter-spacing:.25em}
 .gj-cost tr:hover{background:transparent}
 .gj-cost td.c{text-align:center}.gj-cost td.r{text-align:right;font-variant-numeric:tabular-nums}
 .gj-cost td.b{font-weight:600}
-.gj-cost td.spec{color:var(--ink2);font-size:min(.96cqw,calc(var(--rh,1.7cqw)*.58))}
-.gj-cost td.note{color:#3c4a58;font-size:min(1cqw,calc(var(--rh,1.7cqw)*.6))}
+.gj-cost td.spec{color:var(--ink2);font-size:min(1.08cqw,calc(var(--rh,2.1cqw)*.53))}
+.gj-cost td.note{color:#3c4a58;font-size:min(1.12cqw,calc(var(--rh,2.1cqw)*.55))}
 /* 들여쓰기: A·B = 0칸, 항목(1~8) = 1칸, 소계 = 2칸 */
 .gj-cost td:first-child{padding-left:2.7cqw}
 .gj-cost tr.sec td{background:#edf1f6;color:var(--navy);font-weight:700;border-bottom:.08cqw solid #cfd8e3;letter-spacing:.02em}
 .gj-cost tr.sec td:first-child{padding-left:1cqw}
 .gj-cost tr.sub td{font-weight:700;background:#f7f9fb;border-top:.08cqw solid #aab8c8;border-bottom:.08cqw solid #aab8c8;color:var(--navy)}
 .gj-cost tr.sub td:first-child{padding-left:4.4cqw}
-.gj-cost tr.gap td{height:calc(var(--rh,1.7cqw)*.42);border-bottom:0;padding:0}
+.gj-cost tr.gap td{height:calc(var(--rh,2.1cqw)*.42);border-bottom:0;padding:0}
 .gj-cost tr.adj td{font-weight:600}
 .gj-cost tr.adj td:first-child{padding-left:1cqw}
 .gj-cost .neg{color:#d2232a}
-.gj-cost tr.fin td{background:var(--navy);color:#fff;font-weight:700;font-size:1.22cqw;height:2.6cqw;border-bottom:0}
+.gj-cost tr.fin td{background:var(--navy);color:#fff;font-weight:700;font-size:1.42cqw;height:3cqw;border-bottom:0}
 .gj-cost tr.fin td:first-child{padding-left:1cqw;letter-spacing:.35em}
-.gj-cost tr.nt td{border-bottom:.06cqw solid var(--hair);font-size:1.02cqw}
+.gj-cost tr.nt td{border-bottom:.06cqw solid var(--hair);font-size:1.12cqw}
 .gj-cost tr.nt td:first-child{padding-left:1cqw}
 .gj-cost tr.nt td.red{color:#d2232a;font-weight:700}
 .hj{display:flex;justify-content:space-around;padding:0 14%}.hj i{font-style:normal}
 .gj-cond{margin-top:.75cqw}
 .gj-cond>b{display:block;font-size:1.08cqw;font-weight:700;color:#0b2a4a;letter-spacing:.18em;padding-left:1cqw;margin-bottom:.15cqw}
-.gj-foot{margin:0 0 0 3.4cqw;padding:0;list-style:none;font-size:1.02cqw}
-.gj-foot li{border-bottom:.08cqw dotted #9aa5b1;padding:.1cqw 0;height:1.42cqw;line-height:1.22cqw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gj-foot{margin:0 0 0 3.4cqw;padding:0;list-style:none;font-size:1.08cqw}
+.gj-foot li{display:flex;border-bottom:.08cqw dotted #9aa5b1;padding:.12cqw 0;height:1.56cqw;line-height:1.3cqw}
+.gj-foot li span{flex:1 1 50%;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:1.2cqw}
 .gj-foot li i{font-style:normal;display:inline-block;width:1.7cqw;color:#0b2a4a;font-weight:600}
 
 /* 연결 모달 */
@@ -629,7 +631,7 @@ tr.hid .ein{opacity:.55}
       <label>특기사항 <span class="hint">표 맨 아래 줄 — 한 줄에 하나. <b>빨강 글 | 검정 글</b> 로 나누면 두 칸에 들어감. <b>*</b> 로 시작하면 앞칸도 검정</span><textarea id="gNotes" rows="6"></textarea></label>
     </div>
     <div class="gset-grid two">
-      <label>견적조건 <span class="hint">한 줄에 하나 — 번호는 자동. 갑지 맨 아래 6줄에 들어갑니다</span><textarea id="gFoot" rows="6"></textarea></label>
+      <label>견적조건 <span class="hint">한 줄에 하나 — 번호는 자동. 갑지 맨 아래에 3줄 × 2칸(1·2·3 | 4·5·6)으로 들어갑니다</span><textarea id="gFoot" rows="6"></textarea></label>
       <label class="chk"><input type="checkbox" id="gFormB"> 관공서·건설사 제출용 <span class="hint">(3 상세내역을 재료비·노무비·경비·합계 전부 단가/금액으로)</span></label>
     </div>
   </div>
@@ -1423,7 +1425,7 @@ function gapjiHtml(){
   if(c.cut) R.push({n:c.adjKind,adj:1,s:c.adjSpec,u:"식",q:1,a:-c.cut},{sp:1});
   // 장 안에 들어가는 줄 수: 기본 행높이(1.62cqw)로 본문+특기사항 18줄. 넘치면 ① 뒤쪽 빈 줄부터 빼고 ② 그래도 넘치면 행 높이를 줄임
   /* 높이 계산 단위: 보통 줄 = 1, 간격 줄(sp) = 0.42 */
-  const nNotes=notes.length, FIT=15, RH=1.62;
+  const nNotes=notes.length, FIT=15, RH=2.12;
   const units=()=>R.reduce((t,r)=>t+(r.sp?0.42:1),0)+nNotes;
   for(let i=R.length-1;i>=0&&units()>FIT;i--) if(R[i].sp) R.splice(i,1);
   const rowH=Math.max(1.1,Math.min(RH,RH*FIT/units()));   /* cqw */
@@ -1437,15 +1439,17 @@ function gapjiHtml(){
     const i=t.indexOf("|"), a=(i<0?t:t.slice(0,i)).trim(), b=i<0?"":t.slice(i+1).trim();
     return `<tr class="nt"><td class="${a.startsWith("*")?"":"red"}">${esc(a)}</td><td colspan="6">${esc(b)}</td></tr>`;
   }).join("");
-  const conds=lines(g.foot).slice(0,8), nLines=Math.max(6,conds.length);
-  const foot=Array.from({length:nLines},(_,i)=>conds[i]?`<li><i>${i+1}.</i>${esc(conds[i])}</li>`:"<li>&nbsp;</li>").join("");
+  /* 2칸: 왼쪽 1·2·3, 오른쪽 4·5·6 (8개까지면 4줄). 점선은 li 하나라 가운데서 끊기지 않음 */
+  const conds=lines(g.foot).slice(0,8), nRows=Math.max(3,Math.ceil(conds.length/2));
+  const cond=i=>conds[i]?`<span><i>${i+1}.</i>${esc(conds[i])}</span>`:"<span>&nbsp;</span>";
+  const foot=Array.from({length:nRows},(_,r)=>`<li>${cond(r)}${cond(r+nRows)}</li>`).join("");
   return `<div class="pg" aria-label="2 갑지"><div class="gj-in">
     <img class="gj-logo" src="${logo}" alt="${esc(ct?ct.name:"")}"><div class="gj-rule"></div>
     <div class="gj-title"><b>견적서 / ESTIMATE</b><span>견적일자 &nbsp;: ${esc(dateStr)}</span></div>
     <table class="gj-tbl gj-info"><colgroup><col style="width:45%"><col style="width:55%"></colgroup>
       <tr><td>■ <span class="gj-lbl">발주처</span>: &nbsp;${esc(clientLine)}${clientLine?" 귀하":""}</td><td class="vsep">${jl("상호명")} : &nbsp; ${esc(ct?ct.name:"")}</td></tr>
       <tr><td>■ <span class="gj-lbl">공사명</span>: &nbsp;${esc(S.meta.client||"")}</td><td class="vsep">${jl("사업자번호")} : &nbsp; ${esc(ct?bizFmt(ct.bizno):"")}</td></tr>
-      <tr><td>■ <span class="gj-lbl">총금액</span>: &nbsp;<b>${esc(toKoreanWon(gt))}</b>${gt?` &nbsp;(₩${F(gt)}) &nbsp;VAT별도`:""}</td><td class="vsep gj-stampcell">${jl("대표자")} : &nbsp; ${esc(ct?ct.ceo:"")} &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ( 인 )${ct&&okImg(ct.stamp)?`<img class="gj-stamp" src="${ct.stamp}" alt="">`:""}</td></tr>
+      <tr><td>■ <span class="gj-lbl">총금액</span>: &nbsp;<b>${esc(toKoreanWon(gt))}</b>${gt?` &nbsp;(₩${F(gt)}) &nbsp;VAT별도`:""}</td><td class="vsep gj-stampcell">${jl("대표자")} : &nbsp; ${esc(ct?ct.ceo:"")} &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="gj-seal">( 인 )${ct&&okImg(ct.stamp)?`<img class="gj-stamp" src="${ct.stamp}" alt="">`:""}</span></td></tr>
       <tr><td>■ 대금조건 : &nbsp;${esc(payText(g))}</td><td class="vsep">${jl("주소")} : &nbsp; ${esc(ct?ct.addr:"")}</td></tr>
     </table>
     <div class="gj-sub"><span>[ 견적내역집계표 ]</span><em>${esc(g.lead||"")}</em></div>
