@@ -270,24 +270,30 @@ tr.hid .ein{opacity:.55}
 .gj-sum .note{padding-left:1cqw}.gj-sum .note.red{color:#e11}
 .gj-sum tr.grand td{font-weight:700;border-top:.14cqw solid #000;border-bottom:.14cqw solid #000}
 .gj-sum tr.grand td.fill{background:#fbd4b4}
-/* 집계표 — 원가계산서 양식: 겹선 테두리 · 세로 실선 · 가로 점선 · 푸른 합계 띠 */
-.gj-cost{width:100%;min-width:0;border-collapse:collapse;table-layout:fixed;border:.34cqw double #000}
-.gj-cost td,.gj-cost th{border:0;border-right:.08cqw solid #000;border-bottom:.08cqw dotted #333;padding:0 .7cqw;height:var(--rh,1.78cqw);font-size:min(1.04cqw,calc(var(--rh,1.78cqw)*.62));line-height:1.15;background:transparent;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left;font-weight:400;vertical-align:middle}
-.gj-cost th{border-bottom:.1cqw solid #000;font-size:1.14cqw;height:2cqw}
-.gj-cost td:last-child,.gj-cost th:last-child{border-right:0}
+/* 집계표 — Grid-A 남색 기조. 세로줄·겹선·점선 없이 옅은 가로줄만. 구역(A·B)은 옅은 띠, 소계는 살짝 강조, 합계(a+b)는 남색 띠 */
+.gj-cost{--navy:#0b2a4a;--ink2:#5b6b7c;--hair:#e2e7ed;width:100%;min-width:0;border-collapse:collapse;table-layout:fixed;border:0;border-bottom:.2cqw solid var(--navy)}
+.gj-cost td,.gj-cost th{border:0;border-bottom:.07cqw solid var(--hair);padding:0 .9cqw;height:var(--rh,1.7cqw);font-size:min(1.04cqw,calc(var(--rh,1.7cqw)*.63));line-height:1.15;background:transparent;color:#1a2430;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left;font-weight:400;vertical-align:middle}
+.gj-cost th{background:var(--navy);color:#fff;font-weight:600;font-size:1cqw;height:2.15cqw;border-bottom:0;text-align:center;letter-spacing:.25em}
 .gj-cost tr:hover{background:transparent}
-.gj-cost td:first-child{padding-left:1.5cqw}
 .gj-cost td.c{text-align:center}.gj-cost td.r{text-align:right;font-variant-numeric:tabular-nums}
 .gj-cost td.b{font-weight:600}
-.gj-cost td.lbl{letter-spacing:2.6em}
-.gj-cost tr.sub td{font-weight:700;border-top:.08cqw solid #000;border-bottom:.08cqw solid #000}   /* 소계(a) · 소계(b) */
-.gj-cost tr.sub td:first-child{padding-left:2.4cqw}
-.gj-cost .neg{color:#e11}
-.gj-cost tr.fin td{background:#dce6f1;border-top:.1cqw solid #000;border-bottom:.14cqw solid #000;font-weight:700}
-.gj-cost tr.fin td.lbl{letter-spacing:4em;padding-left:4em}
-.gj-cost tr.nt td{border-bottom:.06cqw solid #d8d8d8;border-right-color:#d8d8d8;font-size:1.08cqw}
-.gj-cost tr.nt td:first-child{padding-left:.6cqw}
-.gj-cost tr.nt td.red{color:#e11;font-weight:700}
+.gj-cost td.spec{color:var(--ink2);font-size:min(.96cqw,calc(var(--rh,1.7cqw)*.58))}
+.gj-cost td.note{color:#3c4a58;font-size:min(1cqw,calc(var(--rh,1.7cqw)*.6))}
+/* 들여쓰기: A·B = 0칸, 항목(1~8) = 1칸, 소계 = 2칸 */
+.gj-cost td:first-child{padding-left:2.7cqw}
+.gj-cost tr.sec td{background:#edf1f6;color:var(--navy);font-weight:700;border-bottom:.08cqw solid #cfd8e3;letter-spacing:.02em}
+.gj-cost tr.sec td:first-child{padding-left:1cqw}
+.gj-cost tr.sub td{font-weight:700;background:#f7f9fb;border-top:.08cqw solid #aab8c8;border-bottom:.08cqw solid #aab8c8;color:var(--navy)}
+.gj-cost tr.sub td:first-child{padding-left:4.4cqw}
+.gj-cost tr.gap td{height:calc(var(--rh,1.7cqw)*.42);border-bottom:0;padding:0}
+.gj-cost tr.adj td{font-weight:600}
+.gj-cost tr.adj td:first-child{padding-left:1cqw}
+.gj-cost .neg{color:#d2232a}
+.gj-cost tr.fin td{background:var(--navy);color:#fff;font-weight:700;font-size:1.22cqw;height:2.6cqw;border-bottom:0}
+.gj-cost tr.fin td:first-child{padding-left:1cqw;letter-spacing:.35em}
+.gj-cost tr.nt td{border-bottom:.06cqw solid var(--hair);font-size:1.02cqw}
+.gj-cost tr.nt td:first-child{padding-left:1cqw}
+.gj-cost tr.nt td.red{color:#d2232a;font-weight:700}
 .hj{display:flex;justify-content:space-around;padding:0 14%}.hj i{font-style:normal}
 .gj-foot{margin:.9cqw 0 0 3.4cqw;padding:0;list-style:none;font-size:1.06cqw}
 .gj-foot li{border-bottom:.06cqw solid #ddd;padding:.12cqw 0}
@@ -1407,17 +1413,21 @@ function gapjiHtml(){
   const notes=lines(g.notes);
   const gt=c.total;                                         /* 총금액 = 합계(a+b), 부가세 별도 */
   /* 표 줄 구성 — sp = 빈 줄(여백). 줄이 많아지면 뒤쪽 빈 줄부터 뺌. 소계(a)는 3.경비 바로 아래에 붙임 */
-  const R=[{n:"A. 직접공사비"},{n:"1. 재료비",u:"식",q:1,a:c.mat},{n:"2. 노무비",u:"식",q:1,a:c.lab},{n:"3. 경 비",u:"식",q:1,a:c.exp},{n:"소계(a)",sub:1,a:c.direct},{sp:1},{n:"B. 간접공사비"}];
+  const R=[{n:"A. 직접공사비",sec:1},{n:"1. 재료비",u:"식",q:1,a:c.mat},{n:"2. 노무비",u:"식",q:1,a:c.lab},{n:"3. 경 비",u:"식",q:1,a:c.exp},{n:"소계(a)",sub:1,a:c.direct},{sp:1},{n:"B. 간접공사비",sec:1}];
   c.ind.forEach(x=>R.push({n:`${x.no}. ${x.name}`,s:x.spec,u:"식",q:1,p:x.unit,a:x.a,note:x.note}));
   R.push({n:"소계(b)",sub:1,a:c.indirect},{sp:1});
-  if(c.cut) R.push({n:c.adjKind,s:c.adjSpec,u:"식",q:1,a:-c.cut},{sp:1});
+  if(c.cut) R.push({n:c.adjKind,adj:1,s:c.adjSpec,u:"식",q:1,a:-c.cut},{sp:1});
   // 장 안에 들어가는 줄 수: 기본 행높이(1.62cqw)로 본문+특기사항 18줄. 넘치면 ① 뒤쪽 빈 줄부터 빼고 ② 그래도 넘치면 행 높이를 줄임
-  const nNotes=notes.length, FIT=18, RH=1.62;
-  for(let i=R.length-1;i>=0&&R.length+nNotes>FIT;i--) if(R[i].sp) R.splice(i,1);
-  const rowH=Math.max(1.1,Math.min(RH,RH*FIT/(R.length+nNotes)));   // cqw
+  /* 높이 계산 단위: 보통 줄 = 1, 간격 줄(sp) = 0.42 */
+  const nNotes=notes.length, FIT=15.5, RH=1.8;
+  const units=()=>R.reduce((t,r)=>t+(r.sp?0.42:1),0)+nNotes;
+  for(let i=R.length-1;i>=0&&units()>FIT;i--) if(R[i].sp) R.splice(i,1);
+  const rowH=Math.max(1.1,Math.min(RH,RH*FIT/units()));   /* cqw */
   const money=a=>a==null?"":(a<0?`<span class="neg">(${F(-a)})</span>`:F(a));
-  const sumRows=R.map(r=>r.sp?'<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>'
-    :`<tr${r.sub?' class="sub"':""}><td class="b">${esc(r.n)}</td><td class="c">${esc(r.s||"")}</td><td class="c b">${esc(r.u||"")}</td><td class="c b">${esc(r.q??"")}</td><td class="r b">${r.p?F(r.p):""}</td><td class="r b">${money(r.a)}</td><td class="c b">${esc(r.note||"")}</td></tr>`).join("");
+  const rowCls=r=>r.sec?"sec":r.sub?"sub":r.adj?"adj":"";
+  const sumRows=R.map(r=>r.sp?'<tr class="gap"><td colspan="7"></td></tr>'
+    :r.sec?`<tr class="sec"><td colspan="7">${esc(r.n)}</td></tr>`
+    :`<tr class="${rowCls(r)}"><td${r.sub||r.adj?"":' class="b"'}>${esc(r.n)}</td><td class="c spec">${esc(r.s||"")}</td><td class="c">${esc(r.u||"")}</td><td class="c">${esc(r.q??"")}</td><td class="r">${r.p?F(r.p):""}</td><td class="r b">${money(r.a)}</td><td class="c note">${esc(r.note||"")}</td></tr>`).join("");
   /* 특기사항이 없으면 표는 합계 띠에서 끝남 */
   const noteRows=notes.map(t=>{
     const i=t.indexOf("|"), a=(i<0?t:t.slice(0,i)).trim(), b=i<0?"":t.slice(i+1).trim();
@@ -1435,9 +1445,9 @@ function gapjiHtml(){
     </table>
     <div class="gj-sub"><span>[ 견적내역집계표 ]</span><em>${esc(g.lead||"")}</em></div>
     <table class="gj-cost" style="--rh:${rowH.toFixed(3)}cqw"><colgroup><col style="width:24%"><col style="width:16%"><col style="width:9%"><col style="width:9%"><col style="width:14.5%"><col style="width:17.5%"><col style="width:10%"></colgroup>
-      <tr><th><span class="hj"><i>품</i><i>명</i></span></th><th><span class="hj"><i>규</i><i>격</i></span></th><th><span class="hj"><i>단</i><i>위</i></span></th><th><span class="hj"><i>수</i><i>량</i></span></th><th><span class="hj"><i>단</i><i>가</i></span></th><th><span class="hj"><i>금</i><i>액</i></span></th><th><span class="hj"><i>비</i><i>고</i></span></th></tr>
+      <tr><th>품 명</th><th>규 격</th><th>단 위</th><th>수 량</th><th>단 가</th><th>금 액</th><th>비 고</th></tr>
       ${sumRows}
-      <tr class="fin"><td class="c">합 &nbsp; 계 (a+b)</td><td></td><td></td><td></td><td></td><td class="r">${F(c.total)}</td><td></td></tr>
+      <tr class="fin"><td colspan="5">합계 (a+b)</td><td class="r">${F(c.total)}</td><td></td></tr>
       ${noteRows}
     </table>
     <ol class="gj-foot">${foot}</ol>
