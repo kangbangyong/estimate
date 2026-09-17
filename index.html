@@ -1388,7 +1388,7 @@ function gapjiHtml(){
     </table>
     <div class="gj-sub"><span>[ 견적내역집계표 ]</span><em>${esc(g.lead||"")}</em></div>
     <table class="gj-cost" style="--rh:${rowH.toFixed(3)}cqw"><colgroup><col style="width:24%"><col style="width:16%"><col style="width:9%"><col style="width:9%"><col style="width:14.5%"><col style="width:17.5%"><col style="width:10%"></colgroup>
-      <tr><th><span class="hj"><i>品</i><i>明</i></span></th><th><span class="hj"><i>規</i><i>格</i></span></th><th><span class="hj"><i>單</i><i>位</i></span></th><th><span class="hj"><i>數</i><i>量</i></span></th><th><span class="hj"><i>單</i><i>價</i></span></th><th><span class="hj"><i>金</i><i>額</i></span></th><th><span class="hj"><i>備</i><i>考</i></span></th></tr>
+      <tr><th><span class="hj"><i>품</i><i>명</i></span></th><th><span class="hj"><i>규</i><i>격</i></span></th><th><span class="hj"><i>단</i><i>위</i></span></th><th><span class="hj"><i>수</i><i>량</i></span></th><th><span class="hj"><i>단</i><i>가</i></span></th><th><span class="hj"><i>금</i><i>액</i></span></th><th><span class="hj"><i>비</i><i>고</i></span></th></tr>
       ${sumRows}
       <tr class="fin"><td class="c lbl">합계</td><td></td><td></td><td></td><td></td><td class="r">${inc?F(c.total+c.vat):""}</td><td></td></tr>
       ${noteRows}
