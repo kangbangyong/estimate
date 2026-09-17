@@ -149,6 +149,20 @@ table.xl td.q{padding:0;background:var(--accent-soft)}
 table.xl .qty{display:block;width:100%;height:27px;border:0;border-radius:0;background:transparent;padding:0 8px;text-align:right;font-size:12.5px;color:var(--ink)}
 table.xl .qty:focus{outline:2px solid var(--accent);outline-offset:-2px;background:var(--surface)}
 table.xl td.x{padding:0;text-align:center}
+/* 단가 조정 — 재료비·노무비·경비 칸은 단가 입력칸. DB와 다르면 굵게+색 */
+table.xl{min-width:1040px}
+table.xl td.pi{padding:0}
+table.xl .pin{display:block;width:100%;height:27px;border:0;background:transparent;padding:0 8px;text-align:right;font-size:12.5px;color:var(--ink);font-variant-numeric:tabular-nums}
+table.xl .pin:focus{outline:2px solid var(--accent);outline-offset:-2px;background:var(--surface)}
+table.xl td.pi.chg{background:var(--accent-soft)}
+table.xl td.pi.chg .pin{color:var(--accent);font-weight:700}
+table.xl td.aj{padding:0 4px;text-align:center}
+.adjc{display:inline-flex;align-items:center;gap:2px;white-space:nowrap}
+.adjc button,.orig{background:var(--surface);border:1px solid var(--line);border-radius:4px;font-size:10px;line-height:1;padding:4px 6px;color:var(--ink-2);cursor:pointer}
+.adjc button:hover,.orig:hover{border-color:var(--accent);color:var(--accent)}
+.adjc em{font-style:normal;display:inline-block;min-width:46px;text-align:center;font-size:12px;font-variant-numeric:tabular-nums;color:var(--ink-3)}
+.adjc em.up{color:var(--accent);font-weight:700}.adjc em.dn{color:var(--crit);font-weight:700}
+table.xl .orig{margin-left:4px;padding:4px 5px;font-size:9.5px;font-weight:700;letter-spacing:.02em}
 .doc{background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);overflow:hidden}
 .doc-head{padding:18px 20px;border-bottom:2px solid var(--ink)}
 .doc-title{font-size:20px;font-weight:700;letter-spacing:.22em;text-align:center;margin-bottom:14px}
@@ -479,8 +493,8 @@ tr.hid .ein{opacity:.55}
   </div>
   <div class="xl-wrap">
     <table class="xl">
-      <colgroup><col style="width:22%"><col style="width:16%"><col style="width:6%"><col style="width:8%"><col style="width:10%"><col style="width:10%"><col style="width:7%"><col style="width:11%"><col style="width:7%"><col style="width:3%"></colgroup>
-      <thead><tr><th>품목</th><th>규격</th><th>단위</th><th>수량</th><th>재료비</th><th>노무비</th><th>경비</th><th>금액</th><th>원가</th><th></th></tr></thead>
+      <colgroup><col style="width:19%"><col style="width:12%"><col style="width:5%"><col style="width:7%"><col style="width:8.5%"><col style="width:8.5%"><col style="width:7%"><col style="width:8.5%"><col style="width:9.5%"><col style="width:6.5%"><col style="width:15.5%"><col style="width:3%"></colgroup>
+      <thead><tr><th>품목</th><th>규격</th><th>단위</th><th>수량</th><th>재료비</th><th>노무비</th><th>경비</th><th>단가</th><th>금액</th><th>원가</th><th>조정</th><th></th></tr></thead>
       <tbody id="docBody"></tbody>
     </table>
   </div>
@@ -931,39 +945,75 @@ function renderCo(){
   const logo=c&&typeof okImg==="function"&&okImg(c.logo)?c.logo:null;
   document.querySelectorAll(".doc-logo").forEach(el=>{ el.src = logo || (el.classList.contains("white")?"img/logo-white.png":"img/logo-navy.png"); });
 }
+/* 단가 조정: r.o = 조정 전 원래 단가(재료비·노무비·경비). 처음 조정할 때 단가 DB에서 찾아 기억 (없으면 그때 값).
+   ▲▼ = 원래 단가 × (1 ± n%) 로 세 칸을 같이 다시 계산. ORIGIN = 단가 DB 숫자로 되돌림 */
+const PK=["mat","lab","exp"];
+function dbOrig(r){
+  const i=S.items.find(x=>x.id===r.key)||S.items.find(x=>itemKey(x)===itemKey(r));
+  return i?{mat:N(i.mat),lab:N(i.lab),exp:N(i.exp)}:null;
+}
+const baseOf=r=>r.o||{mat:N(r.mat),lab:N(r.lab),exp:N(r.exp)};
+const isChg=(r,k)=>!!r.o&&N(r[k])!==N(r.o[k]);
+function adjPct(r){ const b=unitOf(baseOf(r)); return b?(unitOf(r)/b-1)*100:0; }
+function stepAdj(r,d){
+  if(!r.o) r.o=dbOrig(r)||baseOf(r);
+  const p=Math.round(adjPct(r))+d;
+  PK.forEach(k=>r[k]=Math.max(0,Math.round(N(r.o[k])*(1+p/100))));
+}
+function origAdj(r){
+  const o=dbOrig(r)||r.o; if(o) PK.forEach(k=>r[k]=o[k]);
+  delete r.o;
+}
+const pctTxt=p=>{ const v=Math.round(p*10)/10; return (v>0?"+":"")+v+"%"; };
+const pctCls=p=>Math.abs(p)<0.05?"":p>0?"up":"dn";
 function renderDoc(){
   const body=$("docBody"), g=groups();
-  if(!S.rows.length){ body.innerHTML='<tr><td colspan="10" class="c" style="height:80px;color:var(--ink-3)">담긴 내역이 없습니다 — 단가 DB에서 수량을 넣고 내역담기</td></tr>'; return; }
+  if(!S.rows.length){ body.innerHTML='<tr><td colspan="12" class="c" style="height:80px;color:var(--ink-3)">담긴 내역이 없습니다 — 단가 DB에서 수량을 넣고 내역담기</td></tr>'; return; }
   const m=v=>v?F(v):"";
-  const sums=t=>`<td>${m(t.mat)}</td><td>${m(t.lab)}</td><td>${m(t.exp)}</td><td>${m(t.amt)}</td><td class="z">${m(t.cost)}</td><td></td>`;
-  const all={mat:0,lab:0,exp:0,amt:0,cost:0};
+  const sums=t=>`<td></td><td></td><td></td><td></td><td>${m(t.amt)}</td><td class="z">${m(t.cost)}</td><td></td><td></td>`;
+  const all={amt:0,cost:0};
   let h="";
   for(const [gong,arr] of Object.entries(g)){
-    const t={mat:0,lab:0,exp:0,amt:0,cost:0};
-    h+=`<tr class="grp"><td colspan="10">${esc(gong)}</td></tr>`;
+    const t={amt:0,cost:0};
+    h+=`<tr class="grp"><td colspan="12">${esc(gong)}</td></tr>`;
     arr.forEach(r=>{
-      const q=N(r.qty), x={mat:N(r.mat)*q,lab:N(r.lab)*q,exp:N(r.exp)*q,amt:unitOf(r)*q,cost:N(r.cost)*q};
+      const q=N(r.qty), x={amt:unitOf(r)*q,cost:N(r.cost)*q};
       for(const k in t){ t[k]+=x[k]; all[k]+=x[k]; }
+      const pi=k=>`<td class="pi${isChg(r,k)?" chg":""}"${isChg(r,k)?` title="단가 DB ${F(r.o[k])}"`:""}><input class="pin" data-f="${k}" type="text" inputmode="numeric" value="${m(N(r[k]))}" aria-label="${esc(r.name)} ${k==="mat"?"재료비":k==="lab"?"노무비":"경비"} 단가"></td>`;
+      const p=adjPct(r);
       h+=`<tr data-row="${esc(r.key)}"><td class="t" title="${esc(r.name)}">${esc(r.name)}</td><td class="sp" title="${esc(r.spec||"")}">${esc(r.spec||"")}</td><td class="c">${esc(r.unit||"")}</td>
         <td class="q"><input class="qty" type="text" inputmode="decimal" value="${fmtQty(r.qty,r.unit)}" ${qtyAttr(r.unit)} aria-label="${esc(r.name)} 수량"></td>
-        <td>${m(x.mat)}</td><td>${m(x.lab)}</td><td>${m(x.exp)}</td><td>${m(x.amt)}</td><td class="z">${m(x.cost)}</td>
+        ${PK.map(pi).join("")}<td>${m(unitOf(r))}</td><td>${m(x.amt)}</td><td class="z">${m(x.cost)}</td>
+        <td class="aj"><span class="adjc"><button type="button" data-adj="-1" aria-label="1% 내림">▼</button><em class="${pctCls(p)}">${pctTxt(p)}</em><button type="button" data-adj="1" aria-label="1% 올림">▲</button></span><button type="button" class="orig" data-orig title="단가 DB 원래 숫자로">ORIGIN</button></td>
         <td class="x"><button class="del" data-del="${esc(r.key)}" aria-label="행 삭제">×</button></td></tr>`;
     });
     h+=`<tr class="tot"><td class="t" colspan="4">${esc(gong)} 소계</td>${sums(t)}</tr>`;
   }
   const margin=all.amt-all.cost, mr=all.amt?margin/all.amt*100:0;
   h+=`<tr class="grand"><td class="t" colspan="4">합계 (직접공사비)</td>${sums(all)}</tr>`;
-  if(all.cost) h+=`<tr><td class="t z" colspan="7">원가 대비 예상 마진</td><td class="${margin>=0?"margin-pos":"margin-neg"}">${F(margin)}</td><td class="${margin>=0?"margin-pos":"margin-neg"}">${mr.toFixed(1)}%</td><td></td></tr>`;
+  if(all.cost) h+=`<tr><td class="t z" colspan="8">원가 대비 예상 마진</td><td class="${margin>=0?"margin-pos":"margin-neg"}">${F(margin)}</td><td class="${margin>=0?"margin-pos":"margin-neg"}">${mr.toFixed(1)}%</td><td></td><td></td></tr>`;
   // 다시 그려도 커서가 있던 수량 칸으로 돌아가게
-  const act=document.activeElement, key=act&&act.classList&&act.classList.contains("qty")?act.closest("tr[data-row]")?.dataset.row:null;
+  const act=document.activeElement, inRow=act&&act.closest&&act.closest("#docBody tr[data-row]");
+  const key=inRow&&act.matches("input")?inRow.dataset.row:null, sel=act&&act.dataset&&act.dataset.f?'.pin[data-f="'+act.dataset.f+'"]':".qty";
   body.innerHTML=h;
-  if(key){ const el=body.querySelector('tr[data-row="'+CSS.escape(key)+'"] .qty'); if(el){ el.focus(); el.setSelectionRange(el.value.length,el.value.length); } }
+  if(key){ const el=body.querySelector('tr[data-row="'+CSS.escape(key)+'"] '+sel); if(el){ el.focus(); el.setSelectionRange(el.value.length,el.value.length); } }
 }
-$("docBody").addEventListener("click",e=>{ const b=e.target.closest("[data-del]"); if(!b) return; S.rows=S.rows.filter(r=>r.key!==b.dataset.del); renderDoc(); renderCartBar(); autoSchedule(); badge("저장 안 됨"); });
+$("docBody").addEventListener("click",e=>{
+  const b=e.target.closest("[data-del]");
+  if(b){ S.rows=S.rows.filter(r=>r.key!==b.dataset.del); renderDoc(); renderCartBar(); autoSchedule(); badge("저장 안 됨"); return; }
+  const tr=e.target.closest("tr[data-row]"), r=tr&&S.rows.find(x=>x.key===tr.dataset.row); if(!r) return;
+  const a=e.target.closest("[data-adj]"), o=e.target.closest("[data-orig]");
+  if(!a&&!o) return;
+  if(a) stepAdj(r,+a.dataset.adj); else origAdj(r);
+  renderDoc(); renderCartBar(); badge("저장 안 됨");
+});
 $("docBody").addEventListener("input",e=>{
-  if(!e.target.classList.contains("qty")) return;
-  const r=S.rows.find(x=>x.key===e.target.closest("tr").dataset.row); if(!r) return;
-  r.qty=N(e.target.value); renderCartBar(); badge("저장 안 됨");
+  const el=e.target, isQ=el.classList.contains("qty"), f=el.dataset.f;
+  if(!isQ&&!f) return;
+  const r=S.rows.find(x=>x.key===el.closest("tr").dataset.row); if(!r) return;
+  if(isQ) r.qty=N(el.value);
+  else { if(!r.o) r.o=dbOrig(r)||baseOf(r); r[f]=Math.max(0,Math.round(N(el.value))); }
+  renderCartBar(); badge("저장 안 됨");
   clearTimeout(window._dq); window._dq=setTimeout(renderDoc,600);
 });
 $("btnClear").addEventListener("click",()=>{ if(!S.rows.length) return; if(!confirm("내역 "+S.rows.length+"건을 비웁니다.")) return; S.rows=[]; S.sch=[]; renderDoc(); renderCartBar(); if(!$("panel-out").hidden) renderOut(); });
@@ -979,7 +1029,7 @@ $("btnSave").addEventListener("click",async()=>{
     const j=await apiPost("save",{estimate:{no:S.meta.no,client:S.meta.client,owner:S.meta.owner,staff:S.meta.staff,
       contractor:_c?_c.name:"", clientBiz:_cl?bizFmt(_cl.bizno):"",
       grandTotal:calcG().total,                                   // 갑지 총계 (부가세 별도) → 이력의 공급가액
-      meta:{contractorKey:S.meta.contractorKey||"",clientKey:S.meta.clientKey||"",coverText:S.meta.coverText||"",date:S.meta.date||"",g:G()},
+      meta:{contractorKey:S.meta.contractorKey||"",clientKey:S.meta.clientKey||"",coverText:S.meta.coverText||"",date:S.meta.date||"",g:G(),orig:S.rows.map(r=>r.o?PK.map(k=>N(r.o[k])):0)},
       rows:S.rows.map(r=>({gong:r.gong,name:r.name,spec:r.spec,unit:r.unit,qty:N(r.qty),mat:r.mat,lab:r.lab,exp:r.exp,cost:r.cost}))}});
     S.meta.no=j.no; renderCartBar();
     badge("저장됨 · "+j.no+" · "+new Date().toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"}));
@@ -1056,6 +1106,7 @@ $("histBody").addEventListener("click",async e=>{
     const j=await apiGet("estimate",{no:tr.dataset.no}); const est=j.estimate; if(!est) return toast("찾을 수 없습니다.");
     S.rows=est.rows.map((r,i)=>({key:"h"+i,gong:r.gong,name:r.name,spec:r.spec,unit:r.unit,qty:N(r.qty),mat:N(r.mat),lab:N(r.lab),exp:N(r.exp),cost:N(r.cost)}));
     S.meta={no:est.no,client:est.client||"",owner:est.owner||"",staff:est.staff||"",date:new Date().toISOString().slice(0,10),schStart:"",...(est.meta||{})};
+    (S.meta.orig||[]).forEach((o,i)=>{ if(o&&S.rows[i]) S.rows[i].o={mat:N(o[0]),lab:N(o[1]),exp:N(o[2])}; }); delete S.meta.orig;
     S.sch=[]; autoSchedule(); fillMeta(); syncPartyPickers(); renderCartBar(); renderDoc(); badge("불러옴 · "+est.no); goTab("doc");
   }catch(e){ toast("불러오기 실패: "+e.message); }
 });
