@@ -1382,7 +1382,8 @@ function calcG(){
   const b=ind.reduce((s,x)=>s+(x.a||0),0), sub=a+b;                               // 소계(b), a+b
   const mode=String(g.adjMode||"none"), unit=/^\d+$/.test(mode)?+mode:0;
   let cut=0;                                                                      // 빼는 금액 (양수)
-  if(unit>0) cut=sub-Math.floor(sub/unit)*unit; else if(mode==="manual") cut=Math.min(sub,Math.max(0,N(g.adjAmt)));
+  /* "십만원 단위 절사" = 십만원 자리까지 버림 (백만원 미만을 0으로). 그래서 고른 단위의 10배로 내림 */
+  if(unit>0){ const step=unit*10; cut=sub-Math.floor(sub/step)*step; } else if(mode==="manual") cut=Math.min(sub,Math.max(0,N(g.adjAmt)));
   return {mat,lab,exp,direct:a,ind,indirect:b,sub,cut,total:sub-cut,adjKind:g.adjKind||"단수정리",adjSpec:ADJ_LABEL[mode]||""};
 }
 /* 70000000 → 칠천만원정 */
