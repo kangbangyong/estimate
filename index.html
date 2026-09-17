@@ -226,14 +226,14 @@ tr.hid .ein{opacity:.55}
 .gset textarea{resize:vertical;line-height:1.5}
 
 /* 2 갑지 — 가로 A4, cqw 기준 */
-.gj-in{position:absolute;inset:0;padding:10.4cqw 6.3cqw 0 6.5cqw;font-size:1.06cqw;line-height:1.35;color:#111}
-.gj-logo{position:absolute;left:9.2cqw;top:8cqw;height:6.9cqw;width:auto;max-width:30cqw;object-fit:contain;object-position:left center}
-.gj-rule{position:absolute;left:6.5cqw;right:6.3cqw;top:16.3cqw;border-top:.24cqw solid #000}
-.gj-title{display:flex;justify-content:space-between;align-items:flex-end;margin-top:8.6cqw;padding:0 .4cqw .9cqw}
+.gj-in{position:absolute;inset:0;padding:5.2cqw 6.3cqw 0 6.5cqw;font-size:1.06cqw;line-height:1.35;color:#111}
+.gj-logo{position:absolute;left:8.4cqw;top:4.2cqw;height:5.6cqw;width:auto;max-width:30cqw;object-fit:contain;object-position:left center}
+.gj-rule{position:absolute;left:6.5cqw;right:6.3cqw;top:10.9cqw;border-top:.24cqw solid #000}
+.gj-title{display:flex;justify-content:space-between;align-items:flex-end;margin-top:7.4cqw;padding:0 .4cqw .7cqw}
 .gj-title b{font-size:1.62cqw;letter-spacing:-.01em}
 .gj-title span{font-size:1cqw;padding-right:3cqw}
 .gj-tbl{width:100%;min-width:0;border-collapse:collapse;table-layout:fixed}
-.gj-info td{padding-top:.66cqw!important;padding-bottom:.66cqw!important}
+.gj-info td{padding-top:.5cqw!important;padding-bottom:.5cqw!important}
 .gj-sum.tight td,.gj-sum.tight th{padding-top:.14cqw;padding-bottom:.14cqw}   /* 행이 많을 때 (별도공사·특기사항이 길 때) */
 .gj-tbl td,.gj-tbl th{border:0;border-top:.09cqw solid #000;border-bottom:.09cqw solid #000;padding:.3cqw .5cqw;text-align:left;font-size:1.06cqw;background:transparent;color:#111;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.35}
 .gj-tbl tr:hover{background:transparent}
@@ -252,6 +252,23 @@ tr.hid .ein{opacity:.55}
 .gj-sum .note{padding-left:1cqw}.gj-sum .note.red{color:#e11}
 .gj-sum tr.grand td{font-weight:700;border-top:.14cqw solid #000;border-bottom:.14cqw solid #000}
 .gj-sum tr.grand td.fill{background:#fbd4b4}
+/* 집계표 — 원가계산서 양식: 겹선 테두리 · 세로 실선 · 가로 점선 · 푸른 합계 띠 */
+.gj-cost{width:100%;min-width:0;border-collapse:collapse;table-layout:fixed;border:.34cqw double #000}
+.gj-cost td,.gj-cost th{border:0;border-right:.08cqw solid #000;border-bottom:.08cqw dotted #333;padding:0 .7cqw;height:var(--rh,1.78cqw);font-size:min(1.04cqw,calc(var(--rh,1.78cqw)*.62));line-height:1.15;background:transparent;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left;font-weight:400;vertical-align:middle}
+.gj-cost th{border-bottom:.1cqw solid #000;font-size:1.14cqw;height:2cqw}
+.gj-cost td:last-child,.gj-cost th:last-child{border-right:0}
+.gj-cost tr:hover{background:transparent}
+.gj-cost td:first-child{padding-left:1.5cqw}
+.gj-cost td.c{text-align:center}.gj-cost td.r{text-align:right;font-variant-numeric:tabular-nums}
+.gj-cost td.b{font-weight:600}
+.gj-cost td.lbl{letter-spacing:2.6em}
+.gj-cost .neg{color:#e11}
+.gj-cost tr.fin td{background:#dce6f1;border-top:.1cqw solid #000;border-bottom:.14cqw solid #000;font-weight:700}
+.gj-cost tr.fin td.lbl{letter-spacing:4em;padding-left:4em}
+.gj-cost tr.nt td{border-bottom:.06cqw solid #d8d8d8;border-right-color:#d8d8d8;font-size:1.08cqw}
+.gj-cost tr.nt td:first-child{padding-left:.6cqw}
+.gj-cost tr.nt td.red{color:#e11;font-weight:700}
+.hj{display:flex;justify-content:space-around;padding:0 14%}.hj i{font-style:normal}
 .gj-foot{margin:.9cqw 0 0 3.4cqw;padding:0;list-style:none;font-size:1.06cqw}
 .gj-foot li{border-bottom:.06cqw solid #ddd;padding:.12cqw 0}
 
@@ -557,20 +574,17 @@ tr.hid .ein{opacity:.55}
   <div class="card card-pad no-print gset">
     <div class="eyebrow">2 갑지 설정</div>
     <div class="gset-grid">
-      <label>공사 구분<input type="text" id="gWork" placeholder="인테리어 공사"></label>
+      <label>구분 제목<input type="text" id="gWork" placeholder="A.직접 공사비."></label>
       <label>대금조건<input type="text" id="gPay" placeholder="계약금(50%)/중도금(30%)/잔금(20%)"></label>
       <label>견적유효기간<input type="text" id="gValid" placeholder="30일"></label>
       <label>안내 문구<input type="text" id="gLead" placeholder="아래와 같이 견적합니다."></label>
-      <label>경비 %<input type="text" id="gExp" class="num" inputmode="decimal"></label>
-      <label>이윤 %<input type="text" id="gProfit" class="num" inputmode="decimal"></label>
-      <label>일반관리비+공과잡비 %<input type="text" id="gAdmin" class="num" inputmode="decimal"></label>
+      <label>부가가치세<select id="gVat"><option value="sep">별도</option><option value="inc">포함 (10% 더해서 합계)</option></select></label>
       <label>절사 단위<select id="gRound"><option value="0">절사 없음</option><option value="1000">천 단위</option><option value="10000">만 단위</option><option value="100000">십만 단위</option><option value="1000000">백만 단위</option><option value="10000000">천만 단위</option></select></label>
-      <label>총계 직접 입력 <span class="hint">(비우면 자동)</span><input type="text" id="gTotal" class="num" inputmode="numeric" placeholder="예: 70000000"></label>
-      <label>총계 옆 메모<input type="text" id="gTotalNote" placeholder="*전기온수기설치비 포함"></label>
+      <label>합계 직접 입력 <span class="hint">(비우면 절사 단위대로 자동 — 차액은 단수정리)</span><input type="text" id="gTotal" class="num" inputmode="numeric" placeholder="예: 215000000"></label>
     </div>
     <div class="gset-grid two">
-      <label>별도공사분 <span class="hint">한 줄에 하나 — 이름 | 금액</span><textarea id="gExtras" rows="3" placeholder="냉난방기, 소방, 간판공사분 | 5350000"></textarea></label>
-      <label>특기사항 <span class="hint">한 줄에 하나 — <b>*</b> 로 시작하면 검정, 아니면 빨강</span><textarea id="gNotes" rows="3"></textarea></label>
+      <label>간접비 줄 <span class="hint">한 줄에 하나 — <b>이름 | 규격 | 금액 | 비고</b>. 번호(4, 5, 6…)는 자동. 금액을 비우면 규격의 식 <b>(1+2)*14%</b> 으로 자동 계산, 숫자를 적으면 그 값, <b>제외</b>라고 적으면 빈칸. 1=재료비 2=노무비 3=경비</span><textarea id="gInd" rows="6" style="font-family:'IBM Plex Mono',monospace;font-size:12px"></textarea></label>
+      <label>특기사항 <span class="hint">표 맨 아래 줄 — 한 줄에 하나. <b>빨강 글 | 검정 글</b> 로 나누면 두 칸에 들어감. <b>*</b> 로 시작하면 앞칸도 검정</span><textarea id="gNotes" rows="6"></textarea></label>
     </div>
     <div class="gset-grid two">
       <label>하단 문구 <span class="hint">한 줄에 하나</span><textarea id="gFoot" rows="2"></textarea></label>
@@ -1302,21 +1316,34 @@ $("btnPartySave").addEventListener("click",async()=>{
 });
 
 /* ---------- 2 갑지 ---------- */
-const DEFAULT_G={work:"인테리어 공사",pay:"계약금(50%)/중도금(30%)/잔금(20%)",valid:"30일",lead:"아래와 같이 견적합니다.",exp:5,profit:20,admin:6,round:100000,total:"",totalNote:"",
-  extras:"",notes:"*부가세별도",foot:"귀사의 일익 번창하심을 기원합니다.\n본 견적은 견적일로부터 1개월간 유효합니다.",formB:false};
-const GSET={gWork:"work",gPay:"pay",gValid:"valid",gLead:"lead",gExp:"exp",gProfit:"profit",gAdmin:"admin",gRound:"round",gTotal:"total",gTotalNote:"totalNote",gExtras:"extras",gNotes:"notes",gFoot:"foot"};
+/* 집계표 = 원가계산서 양식. 간접비 줄은 "이름 | 규격 | 금액 | 비고" — 금액 비우면 규격의 식으로 자동, 숫자면 그 값, 그 밖의 글자(제외 등)면 빈칸 */
+const DEFAULT_IND="디자인, 설계비 |  |  | \n안전관리비 | (1+2)*2.48% | 제외 | 제외\n일반관리비 | (1+2)*14% |  | \n공과 잡비 | (2+6)*5.0% |  | ";
+const DEFAULT_G={work:"A.직접 공사비.",pay:"계약금(50%)/중도금(30%)/잔금(20%)",valid:"30일",lead:"아래와 같이 견적합니다.",ind:DEFAULT_IND,vat:"sep",round:100000,total:"",
+  notes:"1. 부가세별도금액임",foot:"귀사의 일익 번창하심을 기원합니다.\n본 견적은 견적일로부터 1개월간 유효합니다.",formB:false};
+const GSET={gWork:"work",gPay:"pay",gValid:"valid",gLead:"lead",gVat:"vat",gRound:"round",gTotal:"total",gInd:"ind",gNotes:"notes",gFoot:"foot"};
 const ROUND_LABEL={1000:"천 단위 절사",10000:"만 단위 절사",100000:"십만 단위 절사",1000000:"백만 단위 절사",10000000:"천만 단위 절사"};
-const G=()=>(S.meta.g=Object.assign({},DEFAULT_G,S.meta.g||{}));
+const G=()=>{ const g=S.meta.g=Object.assign({},DEFAULT_G,S.meta.g||{}); if(g.work==="인테리어 공사") g.work=DEFAULT_G.work; return g; };   // 예전 양식 초안 호환
 const lines=s=>String(s||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
-/* 집계: 순공사비 → 경비·이윤·일반관리비(%) → 별도공사분 → 합계 → 절사 → 총계 (부가세 별도) */
+/* 집계: 직접공사비(1 재료비·2 노무비·3 경비 — 견적 품목에서 합산) → 간접비 줄(4~) → 단수정리 → 합계 (부가세 별도) */
 function calcG(){
-  const g=G(), net=S.rows.reduce((a,r)=>a+unitOf(r)*N(r.qty),0);
-  const exp=Math.round(net*N(g.exp)/100), profit=Math.round(net*N(g.profit)/100), admin=Math.round(net*N(g.admin)/100);
-  const extras=lines(g.extras).map(l=>{ const i=l.lastIndexOf("|"); return i<0?{name:l,amt:0}:{name:l.slice(0,i).trim(),amt:N(l.slice(i+1))}; });
-  const sub=net+exp+profit+admin+extras.reduce((a,x)=>a+x.amt,0);
+  const g=G(), sumOf=k=>S.rows.reduce((a,r)=>a+N(r[k])*N(r.qty),0);
+  const mat=sumOf("mat"), lab=sumOf("lab"), exp=sumOf("exp"), direct=mat+lab+exp;
+  const amt={1:mat,2:lab,3:exp};
+  const ind=lines(g.ind).map((l,i)=>{
+    const c=l.split("|").map(x=>x.trim()), no=4+i, raw=c[2]||"";
+    let a=null;                                             // null = 빈칸 (제외)
+    if(raw&&/^[\d,.\s]+$/.test(raw)) a=N(raw);              // 숫자를 적으면 그 값
+    else if(!raw){                                          // 비우면 규격의 식 (1+2)*14% 로 자동
+      const m=(c[1]||"").match(/\(([\d+\s]+)\)\s*[*×xX]\s*([\d.]+)\s*%/);
+      if(m) a=Math.round(m[1].split("+").reduce((s,k)=>s+(amt[+k.trim()]||0),0)*parseFloat(m[2])/100);
+    }
+    amt[no]=a||0;
+    return {no,name:c[0]||"",spec:c[1]||"",a,note:c[3]||""};
+  });
+  const indirect=ind.reduce((s,x)=>s+(x.a||0),0), sub=direct+indirect;
   const manual=N(g.total), unit=N(g.round);
   const total=manual>0?manual:(unit>0?Math.floor(sub/unit)*unit:sub);
-  return {net,exp,profit,admin,extras,sub,cut:total-sub,total,unit};
+  return {mat,lab,exp,direct,ind,indirect,sub,cut:total-sub,total,unit,vat:Math.round(total*0.1),vatNo:4+ind.length};
 }
 /* 70000000 → 칠천만원정 */
 function toKoreanWon(n){
@@ -1334,13 +1361,22 @@ function gapjiHtml(){
   const clientLine=[(cl&&cl.name)||String(S.meta.owner||"").trim(), cl&&cl.ceo?"대표 "+cl.ceo:""].filter(Boolean).join(" ");
   const d=String(S.meta.date||"").split("-"), dateStr=d.length===3?`${d[0]}년 ${d[1]}월 ${d[2]}일`:"";
   const logo=ct&&okImg(ct.logo)?ct.logo:"img/logo-navy.png";
-  const notes=lines(g.notes);
-  const rows=[{l:"■ "+g.work,sp:1},{l:"순공사비",sp:1,m:"1 식",a:c.net},{l:"경비",m:N(g.exp)+"%",a:c.exp},{l:"이윤",m:N(g.profit)+"%",a:c.profit},
-    {l:"일반관리비+공과잡비",m:N(g.admin)+"%",a:c.admin},...c.extras.map(x=>({l:x.name,a:x.amt})),{l:"합계",sp:1,m:"1 식",a:c.sub}];
-  if(c.cut) rows.push({l:ROUND_LABEL[c.unit]||"단수 조정",m:"-",a:c.cut,neg:1});
-  while(rows.length<Math.max(9,notes.length)) rows.push({l:""});
-  const note=i=>{ const t=notes[i]; return t?`<td class="vsep note${t.startsWith("*")?"":" red"}">${esc(t)}</td>`:'<td class="vsep"></td>'; };
-  const sumRows=rows.map((r,i)=>`<tr><td${r.sp?' class="gj-lbl"':""}>${esc(r.l)}</td><td class="c">${esc(r.m||"")}</td><td class="r${r.neg?" neg":""}">${r.a!=null?F(r.a):""}</td>${note(i)}</tr>`).join("");
+  const notes=lines(g.notes), inc=g.vat==="inc";
+  // 표 줄 구성 — sp = 빈 줄(여백). 줄이 많아지면 뒤쪽 빈 줄부터 뺌
+  const R=[{n:g.work,b:1},{n:"1. 재료비",u:"식",q:1,a:c.mat},{n:"2. 노무비",u:"식",q:1,a:c.lab},{n:"3. 경 비",u:"식",q:1,a:c.exp},{sp:1},{n:"소계",lbl:1,a:c.direct},{sp:1}];
+  c.ind.forEach(x=>R.push({n:`${x.no}. ${x.name}`,s:x.spec,u:"식",q:1,a:x.a,note:x.note}));
+  if(c.ind.length) R.push({n:"소계",lbl:1,a:c.indirect},{sp:1});
+  if(c.cut) R.push({n:"단수정리",u:"식",q:1,a:c.cut},{sp:1});
+  R.push({n:"합계",lbl:1,a:c.total},{sp:1},{n:`${c.vatNo}. 부가가치세`,s:"공사비의 10%",q:inc?"":"별도",a:inc?c.vat:null},{sp:1});
+  // 장 안에 들어가는 줄 수: 기본 행높이(1.62cqw)로 본문+특기사항 18줄. 넘치면 ① 뒤쪽 빈 줄부터 빼고 ② 그래도 넘치면 행 높이를 줄임
+  const nNotes=Math.max(1,notes.length), FIT=18, RH=1.62;
+  for(let i=R.length-1;i>=0&&R.length+nNotes>FIT;i--) if(R[i].sp) R.splice(i,1);
+  const rowH=Math.max(1.1,Math.min(RH,RH*FIT/(R.length+nNotes)));   // cqw
+  const money=a=>a==null?"":(a<0?`<span class="neg">(${F(-a)})</span>`:F(a));
+  const sumRows=R.map(r=>r.sp?'<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>'
+    :`<tr><td class="b${r.lbl?" lbl":""}">${esc(r.n)}</td><td class="c">${esc(r.s||"")}</td><td class="c b">${esc(r.u||"")}</td><td class="c b">${esc(r.q??"")}</td><td></td><td class="r b">${money(r.a)}</td><td class="c b">${esc(r.note||"")}</td></tr>`).join("");
+  const noteRows=(notes.length?notes:[""]).map(t=>{ const i=t.indexOf("|"), a=(i<0?t:t.slice(0,i)).trim(), b=i<0?"":t.slice(i+1).trim();
+    return `<tr class="nt"><td class="${a.startsWith("*")?"":"red"}">${esc(a)}</td><td colspan="6">${esc(b)}</td></tr>`; }).join("");
   const foot=lines(g.foot).map((t,i)=>`<li>${i+1}. ${esc(t)}</li>`).join("");
   return `<div class="pg" aria-label="2 갑지"><div class="gj-in">
     <img class="gj-logo" src="${logo}" alt="${esc(ct?ct.name:"")}"><div class="gj-rule"></div>
@@ -1353,10 +1389,11 @@ function gapjiHtml(){
       <tr><td>${g.valid?`■ 견적유효기간 : &nbsp;${esc(g.valid)}`:""}</td><td class="vsep">${jl("연락처")} : &nbsp; ${esc(ct?ct.mgrTel:"")}${ct&&ct.fax?` &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; FAX &nbsp; : &nbsp; ${esc(ct.fax)}`:""}</td></tr>
     </table>
     <div class="gj-sub"><span>[ 견적내역집계표 ]</span><em>${esc(g.lead||"")}</em></div>
-    <table class="gj-tbl gj-sum${rows.length>11?" tight":""}"><colgroup><col style="width:20%"><col style="width:11%"><col style="width:14%"><col style="width:55%"></colgroup>
-      <tr><th colspan="3">내역 / 금액</th><th class="vsep">특기사항</th></tr>
+    <table class="gj-cost" style="--rh:${rowH.toFixed(3)}cqw"><colgroup><col style="width:24%"><col style="width:16%"><col style="width:9%"><col style="width:9%"><col style="width:14.5%"><col style="width:17.5%"><col style="width:10%"></colgroup>
+      <tr><th><span class="hj"><i>品</i><i>明</i></span></th><th><span class="hj"><i>規</i><i>格</i></span></th><th><span class="hj"><i>單</i><i>位</i></span></th><th><span class="hj"><i>數</i><i>量</i></span></th><th><span class="hj"><i>單</i><i>價</i></span></th><th><span class="hj"><i>金</i><i>額</i></span></th><th><span class="hj"><i>備</i><i>考</i></span></th></tr>
       ${sumRows}
-      <tr class="grand"><td class="fill gj-lbl">총계</td><td class="fill"></td><td class="fill r">${F(c.total)}</td><td class="vsep note">${esc(g.totalNote||"")}</td></tr>
+      <tr class="fin"><td class="c lbl">합계</td><td></td><td></td><td></td><td></td><td class="r">${inc?F(c.total+c.vat):""}</td><td></td></tr>
+      ${noteRows}
     </table>
     <ol class="gj-foot">${foot}</ol>
   </div></div>`;
