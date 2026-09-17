@@ -1361,6 +1361,7 @@ function gapjiHtml(){
   const d=String(S.meta.date||"").split("-"), dateStr=d.length===3?`${d[0]}년 ${d[1]}월 ${d[2]}일`:"";
   const logo=ct&&okImg(ct.logo)?ct.logo:"img/logo-navy.png";
   const notes=lines(g.notes), inc=g.vat==="inc";
+  const gt=inc?c.total+c.vat:c.total;                       // 총금액: 부가세 포함이면 더한 금액
   // 표 줄 구성 — sp = 빈 줄(여백). 줄이 많아지면 뒤쪽 빈 줄부터 뺌
   const R=[{n:g.work,b:1},{n:"1. 재료비",u:"식",q:1,a:c.mat},{n:"2. 노무비",u:"식",q:1,a:c.lab},{n:"3. 경 비",u:"식",q:1,a:c.exp},{sp:1},{n:"소계",lbl:1,a:c.direct},{sp:1}];
   c.ind.forEach(x=>R.push({n:`${x.no}. ${x.name}`,s:x.spec,u:"식",q:1,a:x.a,note:x.note}));
@@ -1383,7 +1384,7 @@ function gapjiHtml(){
     <table class="gj-tbl gj-info"><colgroup><col style="width:45%"><col style="width:55%"></colgroup>
       <tr><td>■ <span class="gj-lbl">발주처</span>: &nbsp;${esc(clientLine)}${clientLine?" 귀하":""}</td><td class="vsep">${jl("상호명")} : &nbsp; ${esc(ct?ct.name:"")}</td></tr>
       <tr><td>■ <span class="gj-lbl">공사명</span>: &nbsp;${esc(S.meta.client||"")}</td><td class="vsep">${jl("사업자번호")} : &nbsp; ${esc(ct?bizFmt(ct.bizno):"")}</td></tr>
-      <tr><td>■ <span class="gj-lbl">총금액</span>: &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ${esc(toKoreanWon(c.total))}</td><td class="vsep gj-stampcell">${jl("대표자")} : &nbsp; ${esc(ct?ct.ceo:"")} &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ( 인 )${ct&&okImg(ct.stamp)?`<img class="gj-stamp" src="${ct.stamp}" alt="">`:""}</td></tr>
+      <tr><td>■ <span class="gj-lbl">총금액</span>: &nbsp;<b>${esc(toKoreanWon(gt))}</b>${gt?` &nbsp;(₩${F(gt)}) &nbsp;${inc?"VAT포함":"VAT별도"}`:""}</td><td class="vsep gj-stampcell">${jl("대표자")} : &nbsp; ${esc(ct?ct.ceo:"")} &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ( 인 )${ct&&okImg(ct.stamp)?`<img class="gj-stamp" src="${ct.stamp}" alt="">`:""}</td></tr>
       <tr><td>■ 대금조건 : &nbsp;${esc(g.pay)}</td><td class="vsep">${jl("주소")} : &nbsp; ${esc(ct?ct.addr:"")}</td></tr>
     </table>
     <div class="gj-sub"><span>[ 견적내역집계표 ]</span><em>${esc(g.lead||"")}</em></div>
