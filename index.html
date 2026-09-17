@@ -362,32 +362,35 @@ tr.hid .ein{opacity:.55}
 .gj-foot li i{font-style:normal;display:inline-block;width:1.7cqw;color:#0b2a4a;font-weight:600}
 
 /* 3 상세내역 — 갑지 집계표와 같은 남색 기조. 행 높이가 고정이라 장 나눔(한 장 줄 수)과 맞물림 */
-.dt{--navy:#0b2a4a;--ink2:#5b6b7c;--hair:#e2e7ed;width:100%;min-width:0;border-collapse:collapse;table-layout:fixed;border:0;border-bottom:.2cqw solid var(--navy)}
-.dt th,.dt td{border:0;border-bottom:.07cqw solid var(--hair);padding:0 .6cqw;height:1.8cqw;font-size:1.02cqw;line-height:1.15;background:transparent;color:#1a2430;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left;font-weight:400;vertical-align:middle}
-.dt th{background:var(--navy);color:#fff;font-weight:600;font-size:.98cqw;height:1.75cqw;border-bottom:0;text-align:center;letter-spacing:.14em}
-.dt tr.h2 th{background:#1d3d5f;font-weight:500;font-size:.9cqw;height:1.5cqw;letter-spacing:.3em}
-.dt th.gl{border-left:.07cqw solid rgba(255,255,255,.28)}
+.dt{width:100%;min-width:0;border-collapse:collapse;table-layout:fixed;border:.1cqw solid #555}
+.dt th,.dt td{border:.07cqw solid #9a9a9a;padding:0 .6cqw;height:1.8cqw;font-size:1.02cqw;line-height:1.15;background:transparent;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left;font-weight:400;vertical-align:middle}
+.dt th{background:#eeeeee;font-weight:700;font-size:.98cqw;height:1.75cqw;text-align:center;letter-spacing:.06em}
+.dt tr.h2 th{font-weight:600;font-size:.9cqw;height:1.5cqw}
 .dt tr:hover{background:transparent}
 .dt td.c{text-align:center}.dt td.r{text-align:right;font-variant-numeric:tabular-nums}
-.dt td.code{text-align:center;color:var(--ink2);font-variant-numeric:tabular-nums}
-.dt td.spec,.dt td.pr,.dt td.note{color:var(--ink2)}
+.dt td.code{text-align:center;font-variant-numeric:tabular-nums}
+.dt td.spec,.dt td.pr,.dt td.note{color:#444}
 .dt td.k{font-weight:600}
-.dt tr.sec td{background:#edf1f6;color:var(--navy);font-weight:700;border-bottom:.08cqw solid #cfd8e3}
-.dt tr.sec td.code{color:var(--navy)}
-.dt tr.sec i{font-style:normal;font-weight:400;color:var(--ink2);margin-left:.8cqw}
-.dt tr.sub td{font-weight:700;background:#f7f9fb;border-top:.08cqw solid #aab8c8;border-bottom:.08cqw solid #aab8c8;color:var(--navy)}
-.dt tr.fin td{background:var(--navy);color:#fff;font-weight:700;font-size:1.12cqw;height:2.4cqw;border-bottom:0}
+.dt tr.sec td{background:#f5f5f5;font-weight:700}
+.dt tr.sec i{font-style:normal;font-weight:400;color:#555;margin-left:.8cqw}
+.dt tr.sub td{font-weight:700}
+.dt tr.fin td{font-weight:700;font-size:1.1cqw;height:2.3cqw;border-top:.2cqw solid #111;background:#eeeeee}
 .dt tr.fin td:first-child{padding-left:1cqw}
-.dt .fl{letter-spacing:.7em}
-.dt .fs{font-weight:400;font-size:.8em;opacity:.82;letter-spacing:.04em}
-.dt tr.empty td{height:6cqw;text-align:center;color:var(--ink2)}
+.dt .fl{letter-spacing:.5em}
+.dt .fs{font-weight:400;font-size:.85em;letter-spacing:.02em}
+.dt tr.empty td{height:6cqw;text-align:center;color:#555}
 /* B형(관공서·건설사 제출용): 칸이 많아 글자·여백을 줄임 */
 .dt.fb th,.dt.fb td{padding:0 .35cqw;font-size:.9cqw}
-.dt.fb tr.h2 th{font-size:.84cqw;letter-spacing:.15em}
+.dt.fb tr.h2 th{font-size:.84cqw}
 /* 공종별 합계표: 줄 수가 적어 조금 넉넉하게 */
 .dt.ds td{height:2.05cqw;font-size:1.08cqw;padding:0 .9cqw}
-.dt.ds td.nm{font-weight:500}
-.dt-pno{position:absolute;right:6.3cqw;bottom:2.2cqw;font-size:.92cqw;color:#5b6b7c;letter-spacing:.06em;font-variant-numeric:tabular-nums}
+/* 상세내역 장 머리: 제목(왼쪽) · 공사명(오른쪽) 한 줄 */
+.dt-in{position:absolute;inset:0;padding:3cqw 6.3cqw 0 6.5cqw;color:#111}
+.dt-head{display:flex;justify-content:space-between;align-items:flex-end;padding:0 .2cqw .7cqw}
+.dt-head b{font-size:1.5cqw;letter-spacing:-.01em}
+.dt-head span{font-size:1.05cqw}
+.dt-head em{font-style:normal;color:#555;font-size:.92cqw;margin-left:1.6cqw}
+.dt-pno{position:absolute;right:6.3cqw;bottom:2.2cqw;font-size:.92cqw;color:#555;letter-spacing:.06em;font-variant-numeric:tabular-nums}
 
 /* 연결 모달 */
 .modal{position:fixed;inset:0;z-index:100;background:rgba(15,19,21,.6);display:flex;align-items:center;justify-content:center;padding:16px}
@@ -1629,7 +1632,7 @@ function detailData(){
   });
 }
 /* 한 장에 들어가는 표 줄 수 (머리줄 제외). 행 높이(.dt td height)를 바꾸면 같이 맞출 것 */
-const DT_PER=27, DS_PER=22;
+const DT_PER=31, DS_PER=26;
 /* 줄 목록을 장 단위로 자름.
    ① 공종 머리줄만 장 끝에 남기지 않음 ② 장이 바뀌면 그 공종 머리줄을 "(계속)"으로 다시 ③ 소계가 혼자 넘어가지 않게 품목 하나를 같이 넘김
    ④ 마지막 장에는 합계 띠(1.5줄) 자리를 남김 */
@@ -1645,7 +1648,11 @@ function paginateDetail(D){
   for(const r of flat){
     if(cur.length>=DT_PER||(r.t==="h"&&cur.length>=DT_PER-1)){
       const carry=[];
-      if(r.t==="s"&&cur.length>2&&cur[cur.length-1].t==="i"&&cur[cur.length-2].t==="i") carry.push(cur.pop());
+      if(r.t==="s"&&cur.length>2&&cur[cur.length-1].t==="i"){
+        carry.push(cur.pop());
+        /* 품목이 하나뿐인 공종이면 머리줄까지 같이 넘김 */
+        if(cur[cur.length-1].t==="h"&&cur.length>1) carry.unshift(cur.pop());
+      }
       carry.push(r); newPage(carry);
     } else cur.push(r);
   }
@@ -1694,20 +1701,17 @@ function detailPagesHtml(){
   sPages.forEach((p,i)=>{
     const last=i===sPages.length-1;
     const body=D.length?p.map(sRow).join(""):`<tr class="empty"><td colspan="${sCols.length}">담긴 내역이 없습니다 — 견적서 탭에서 품목을 담아 주세요.</td></tr>`;
-    out.push({sub:"공종별 합계표",tbl:`<table class="dt ds${B?" fb":""}">${col(sCols)}${sHead}${body}${last&&D.length?sFin:""}</table>`});
+    out.push({sub:"공종별",tbl:`<table class="dt ds${B?" fb":""}">${col(sCols)}${sHead}${body}${last&&D.length?sFin:""}</table>`});
   });
   /* ② 공종별 세부내역 */
   const dPages=paginateDetail(D);
   dPages.forEach((p,i)=>{
     const last=i===dPages.length-1;
-    out.push({sub:"공종별 세부내역",tbl:`<table class="dt${B?" fb":""}">${col(cols)}${head}${p.map(row).join("")}${last?fin:""}</table>`});
+    out.push({sub:"세부내역",tbl:`<table class="dt${B?" fb":""}">${col(cols)}${head}${p.map(row).join("")}${last?fin:""}</table>`});
   });
 
-  const ct=curContractor(), logo=ct&&okImg(ct.logo)?ct.logo:"img/logo-navy.png";
-  return out.map((o,i)=>`<div class="pg" aria-label="3 상세내역 ${i+1}/${out.length}"><div class="gj-in">
-    <img class="gj-logo" src="${logo}" alt="${esc(ct?ct.name:"")}"><div class="gj-rule"></div>
-    <div class="gj-title"><b>상세내역서 / DETAIL</b><span>공사명 &nbsp;: ${esc(S.meta.client||"")}</span></div>
-    <div class="gj-sub"><span>[ ${o.sub} ]</span><em>(단위 : 원)</em></div>
+  return out.map((o,i)=>`<div class="pg" aria-label="3 상세내역 ${i+1}/${out.length}"><div class="dt-in">
+    <div class="dt-head"><b>상세내역서 / ${o.sub}</b><span>공사명 &nbsp;: ${esc(S.meta.client||"")}<em>(단위 : 원)</em></span></div>
     ${o.tbl}
   </div><div class="dt-pno">3 − ${i+1} / ${out.length}</div></div>`);
 }
@@ -1851,46 +1855,45 @@ async function exportXlsx(){
     }
   }
 
-  /* 3·4 상세내역 공통 머리: 제목 + 공사명 / [ 표 이름 ] + (단위 : 원) */
+  /* 3·4 상세내역: 적산처럼 단순한 격자. 1행 = 제목(왼쪽) · 공사명 (단위 : 원)(오른쪽), 2행 = 빈 줄 */
   const head=(ws,nC,sub)=>{
     const half=Math.ceil(nC/2);
     ws.getRow(1).height=26;
-    ws.mergeCells(1,1,1,half); put(ws,1,1,"상세내역서 / DETAIL",{b:1,sz:14});
-    ws.mergeCells(1,half+1,1,nC); put(ws,1,half+1,"공사명 : "+(S.meta.client||""),{al:"right"});
-    line(ws,1,1,nC,"bottom","medium","FF000000");
-    ws.getRow(2).height=22;
-    ws.mergeCells(2,1,2,half); put(ws,2,1,`[ ${sub} ]`,{b:1,color:NAVY});
-    put(ws,2,nC,"(단위 : 원)",{al:"right",color:GREY,sz:9});
+    ws.mergeCells(1,1,1,half); put(ws,1,1,"상세내역서 / "+sub,{b:1,sz:14});
+    ws.mergeCells(1,half+1,1,nC); put(ws,1,half+1,"공사명 : "+(S.meta.client||"")+"    (단위 : 원)",{al:"right"});
+    ws.getRow(2).height=6;
   };
+  const HD="FFEEEEEE", SEC="FFF5F5F5", INK="FF111111", GRID="FF9A9A9A";
+  const grid=(ws,r,nC)=>{ for(let k=1;k<=nC;k++){ const b={style:"thin",color:{argb:GRID}}; ws.getCell(r,k).border={top:b,left:b,bottom:b,right:b}; } };
   const m=v=>v?v:"";
 
   /* 3 공종별 합계표 */
   {
     const cols=B?[9,30,17,17,15,18,14]:[10,44,24,24], nC=cols.length;
-    const ws=sheet("합계표",cols); head(ws,nC,"공종별 합계표");
+    const ws=sheet("합계표",cols); head(ws,nC,"공종별");
     const H=B?["코 드","공 사 명","재 료 비","노 무 비","경 비","합 계","비 고"]:["코 드","공 사 명","금 액","비 고"];
-    H.forEach((h,k)=>put(ws,3,k+1,h,{b:1,color:WHITE,fill:NAVY,al:"center"}));
+    H.forEach((h,k)=>put(ws,3,k+1,h,{b:1,color:INK,fill:HD,al:"center"})); grid(ws,3,nC);
     ws.getRow(3).height=22;
     ws.pageSetup.printTitlesRow="3:3";
     let r=4;
     D.forEach(d=>{
       const v=B?[d.code,d.gong,m(d.am),m(d.al),m(d.ae),m(d.a),""]:[d.code,d.gong,m(d.a),""];
-      v.forEach((x,k)=>put(ws,r,k+1,x,{al:k===0?"center":undefined,color:k===0?GREY:undefined,b:k===nC-2,num:k===0?"0":NUM}));
-      line(ws,r,1,nC,"bottom","hair",HAIR); ws.getRow(r).height=20; r++;
+      v.forEach((x,k)=>put(ws,r,k+1,x,{al:k===0?"center":undefined,b:k===nC-2,num:k===0?"0":NUM}));
+      grid(ws,r,nC); ws.getRow(r).height=20; r++;
     });
     ws.mergeCells(r,1,r,2); ws.getRow(r).height=26;
-    put(ws,r,1,"합   계  (a) 직접공사비",{b:1,color:WHITE,ind:1});
-    (B?[tot.am,tot.al,tot.ae,tot.a]:[tot.a]).forEach((x,k)=>put(ws,r,3+k,x,{b:1,color:WHITE}));
-    rowFill(ws,r,1,nC,NAVY);
+    put(ws,r,1,"합   계  (a) 직접공사비",{b:1,ind:1});
+    (B?[tot.am,tot.al,tot.ae,tot.a]:[tot.a]).forEach((x,k)=>put(ws,r,3+k,x,{b:1}));
+    rowFill(ws,r,1,nC,HD); grid(ws,r,nC); line(ws,r,1,nC,"top","medium",INK);
   }
 
   /* 4 공종별 세부내역 — 머리줄 2단은 인쇄할 때 장마다 반복 */
   {
     const cols=B?[7,24,14,6,7,11,13,11,13,10,12,11,14,12]:[7,30,16,6,7,14,14,13,13,15,13], nC=cols.length;
-    const ws=sheet("세부내역",cols); head(ws,nC,"공종별 세부내역");
+    const ws=sheet("세부내역",cols); head(ws,nC,"세부내역");
     ws.getRow(3).height=20; ws.getRow(4).height=17;
-    rowFill(ws,3,1,nC,NAVY); rowFill(ws,4,1,nC,NAVY);
-    const th=(r,c1,c2,t,r2)=>{ if(c2>c1||(r2&&r2>r)) ws.mergeCells(r,c1,r2||r,c2); put(ws,r,c1,t,{b:1,color:WHITE,fill:NAVY,al:"center",sz:r===4?9:10}); };
+    rowFill(ws,3,1,nC,HD); rowFill(ws,4,1,nC,HD);
+    const th=(r,c1,c2,t,r2)=>{ if(c2>c1||(r2&&r2>r)) ws.mergeCells(r,c1,r2||r,c2); put(ws,r,c1,t,{b:1,color:INK,fill:HD,al:"center",sz:r===4?9:10}); };
     ["공 종","품 목","규 격","단위","수량"].forEach((t,k)=>th(3,k+1,k+1,t,4));
     if(B){
       ["재 료 비","노 무 비","경 비","합 계"].forEach((t,k)=>{ th(3,6+k*2,7+k*2,t); th(4,6+k*2,6+k*2,"단가"); th(4,7+k*2,7+k*2,"금액"); });
@@ -1900,6 +1903,7 @@ async function exportXlsx(){
       th(3,9,10,"계"); th(4,9,9,"단가"); th(4,10,10,"금액");
       th(3,11,11,"비 고",4);
     }
+    grid(ws,3,nC); grid(ws,4,nC);
     ws.pageSetup.printTitlesRow="3:4";
     ws.views=[{showGridLines:false,state:"frozen",ySplit:4}];
     const nums=(x,unit)=>B
@@ -1909,8 +1913,8 @@ async function exportXlsx(){
     const next=h=>{ ws.getRow(r).height=h||18; r++; };
     D.forEach(d=>{
       ws.mergeCells(r,2,r,nC);
-      put(ws,r,1,d.code,{b:1,color:NAVY,al:"center",num:"0"}); put(ws,r,2,d.gong,{b:1,color:NAVY});
-      rowFill(ws,r,1,nC,BAND); line(ws,r,1,nC,"bottom","thin",HAIR); next();
+      put(ws,r,1,d.code,{b:1,al:"center",num:"0"}); put(ws,r,2,d.gong,{b:1});
+      rowFill(ws,r,1,nC,SEC); grid(ws,r,nC); next();
       d.items.forEach(x=>{
         const it=x.r, dec=qtyRule(it.unit).dec;
         const v=[x.code,it.name,it.spec||"",it.unit||"",N(it.qty)||"",...nums(x,true),it.note||""];
@@ -1918,19 +1922,19 @@ async function exportXlsx(){
           const isNum=k>=5&&k<nC-1, pr=isNum&&(B?(k-5)%2===0:k===nC-3);
           put(ws,r,k+1,val,{
             al:k===0||k===3||k===4?"center":undefined,
-            color:(k===0||k===2||pr||k===nC-1)?GREY:undefined,
+            color:(k===2||k===nC-1)?"FF444444":undefined,
             b:k===nC-2, sz:(k===2||k===nC-1)?9:10,
             num:k===0?"0":k===4?(dec?"0."+"0".repeat(dec):"0"):NUM});
         });
-        line(ws,r,1,nC,"bottom","hair",HAIR); next();
+        grid(ws,r,nC); next();
       });
-      ws.mergeCells(r,2,r,5); put(ws,r,2,"[ 소 계 ]  "+d.gong,{b:1,color:NAVY});
-      nums(d,false).forEach((val,k)=>put(ws,r,6+k,val,{b:1,color:NAVY}));
-      rowFill(ws,r,1,nC,SUBF); line(ws,r,1,nC,"top","thin","FFAAB8C8"); line(ws,r,1,nC,"bottom","thin","FFAAB8C8"); next();
+      ws.mergeCells(r,2,r,5); put(ws,r,2,"[ 소 계 ]  "+d.gong,{b:1});
+      nums(d,false).forEach((val,k)=>put(ws,r,6+k,val,{b:1}));
+      grid(ws,r,nC); next();
     });
-    ws.mergeCells(r,1,r,5); put(ws,r,1,"합   계  (a) 직접공사비",{b:1,color:WHITE,ind:1});
-    nums(tot,false).forEach((val,k)=>put(ws,r,6+k,val,{b:1,color:WHITE}));
-    rowFill(ws,r,1,nC,NAVY); next(24);
+    ws.mergeCells(r,1,r,5); put(ws,r,1,"합   계  (a) 직접공사비",{b:1,ind:1});
+    nums(tot,false).forEach((val,k)=>put(ws,r,6+k,val,{b:1}));
+    rowFill(ws,r,1,nC,HD); grid(ws,r,nC); line(ws,r,1,nC,"top","medium",INK); next(24);
   }
 
   const buf=await wb.xlsx.writeBuffer();
