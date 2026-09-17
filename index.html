@@ -613,7 +613,7 @@ tr.hid .ein{opacity:.55}
     <div class="gset-grid two">
       <div class="gind">
         <div class="gind-t">B. 간접공사비 <span class="hint">— A. 직접공사비(재료비·노무비·경비)는 세부견적에서 자동. 비워두면 그 줄은 금액 없이 나옵니다</span></div>
-        <div class="gind-r"><span>4. 디자인, 설계비</span><span class="f">단가 <input type="text" id="gD4" class="num" inputmode="numeric" placeholder="0"> 원</span><input type="text" id="gN4" placeholder="비고"></div>
+        <div class="gind-r"><span>4. 디자인, 설계비</span><span class="f">단가 <input type="text" id="gD4" class="num" inputmode="numeric" placeholder="3000000"> 원</span><input type="text" id="gN4" placeholder="비고"></div>
         <div class="gind-r"><span>5. 안전관리비</span><span class="f">노무비 × <input type="text" id="gP5" class="num pc" inputmode="decimal" placeholder="0"> %</span><input type="text" id="gN5" placeholder="비고"></div>
         <div class="gind-r"><span>6. 일반관리비</span><span class="f">직접공사비(a) × <input type="text" id="gP6" class="num pc" inputmode="decimal" placeholder="0"> %</span><input type="text" id="gN6" placeholder="비고"></div>
         <div class="gind-r"><span>7. 공과잡비</span><span class="f">(노무비 + 일반관리비) × <input type="text" id="gP7" class="num pc" inputmode="decimal" placeholder="0"> %</span><input type="text" id="gN7" placeholder="비고"></div>
@@ -1360,12 +1360,12 @@ $("btnPartySave").addEventListener("click",async()=>{
    B. 간접공사비 4 디자인·설계비(단가) · 5 안전관리비(노무비×%) · 6 일반관리비(a×%) · 7 공과잡비((노무비+일반관리비)×%) · 8 이윤(a×%) → 소계(b)
    단수정리|할인 (만원·10만원·100만원 단위 절사 · 직접입력) → 합계(a+b). 부가가치세 줄 없음 (총금액에 VAT별도 표기) */
 const DEFAULT_G={p1:50,p2:30,p3:"",lead:"아래와 같이 견적합니다. (견적일로부터 1개월간 유효)",
-  d4:"",p5:"",p6:"",p7:"",p8:"",n4:"",n5:"",n6:"",n7:"",n8:"",adjKind:"단수정리",adjMode:"100000",adjAmt:"",
+  d4:"3000000",p5:"",p6:"",p7:"",p8:"",n4:"",n5:"",n6:"",n7:"",n8:"",adjKind:"단수정리",adjMode:"100000",adjAmt:"",
   notes:"",foot:"귀사의 일익 번창하심을 기원합니다.\n본 견적은 견적일로부터 1개월간 유효합니다.",formB:false};
 const GSET={gP1:"p1",gP2:"p2",gP3:"p3",gLead:"lead",gD4:"d4",gP5:"p5",gP6:"p6",gP7:"p7",gP8:"p8",gN4:"n4",gN5:"n5",gN6:"n6",gN7:"n7",gN8:"n8",
   gAdjKind:"adjKind",gAdjMode:"adjMode",gAdjAmt:"adjAmt",gNotes:"notes",gFoot:"foot"};
 const ADJ_LABEL={"10000":"만원 단위 절사","100000":"십만원 단위 절사","1000000":"백만원 단위 절사"};
-const G=()=>{ const g=S.meta.g=Object.assign({},DEFAULT_G,S.meta.g||{}); if(g.notes==="1. 부가세별도금액임"||g.notes==="*부가세별도") g.notes=""; if(g.lead==="아래와 같이 견적합니다.") g.lead=DEFAULT_G.lead; return g; };   // 예전 양식 초안 호환
+const G=()=>{ const g=S.meta.g=Object.assign({},DEFAULT_G,S.meta.g||{}); if(g.notes==="1. 부가세별도금액임"||g.notes==="*부가세별도") g.notes=""; if(g.lead==="아래와 같이 견적합니다.") g.lead=DEFAULT_G.lead; if(!(g.v>=2)){ if(String(g.d4||"")==="") g.d4=DEFAULT_G.d4; g.v=2; } return g; };   // 예전 양식 초안 호환
 const lines=s=>String(s||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
 function calcG(){
   const g=G(), sumOf=k=>S.rows.reduce((a,r)=>a+N(r[k])*N(r.qty),0);
