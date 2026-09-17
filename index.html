@@ -144,6 +144,16 @@ tr.grand td.v{color:var(--accent)}
 .del:hover{color:var(--crit)}
 .margin-pos{color:var(--good)}.margin-neg{color:var(--crit)}
 .savebadge{font-size:11px;color:var(--ink-3)}
+/* 견적 탭 — 적산 | 견적 | 견적이력 토글 + 세 화면 공통 버튼줄 */
+.estbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;padding-top:18px}
+.estbar+.panel{padding-top:14px}
+.seg{display:inline-flex;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:3px;gap:2px}
+.seg button{background:transparent;border:0;border-radius:6px;padding:7px 20px;font-size:13px;font-weight:600;color:var(--ink-2);cursor:pointer}
+.seg button:hover{color:var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
+.estbar .acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.estbar .savebadge{margin-left:auto}
+#histQ{flex:1 1 280px;max-width:420px}
 
 .gantt{overflow-x:auto}
 .gantt table{min-width:760px}
@@ -387,13 +397,11 @@ tr.hid .ein{opacity:.55}
   </div>
   <div class="tabs" role="tablist">
     <button class="tab" role="tab" data-tab="db" aria-selected="true">단가 DB</button>
-    <button class="tab" role="tab" data-tab="doc" aria-selected="false">견적서 <span id="tabDocN" class="count">0</span></button>
+    <button class="tab" role="tab" data-tab="doc" aria-selected="false">견적 <span id="tabDocN" class="count">0</span></button>
     <button class="tab" role="tab" data-tab="sch" aria-selected="false">공정표</button>
-    <button class="tab" role="tab" data-tab="hist" aria-selected="false">견적 이력</button>
     <button class="tab" role="tab" data-tab="mng" aria-selected="false">품목 등록</button>
     <button class="tab" role="tab" data-tab="edit" aria-selected="false">단가 수정</button>
     <button class="tab" role="tab" data-tab="party" aria-selected="false">거래처</button>
-    <button class="tab" role="tab" data-tab="out" aria-selected="false">출력</button>
   </div>
 </div>
 
@@ -423,11 +431,27 @@ tr.hid .ein{opacity:.55}
   <p class="hint" style="margin-top:10px">단가는 구글 시트 <b>단가DB</b>에서 고칩니다. 고친 뒤 ↻ 새로고침. 수량을 넣은 품목만 견적서로 넘어갑니다.</p>
 </section>
 
+<!-- 견적 탭: 적산(panel-doc) · 견적(panel-out) · 견적이력(panel-hist) 을 토글로 오감 -->
+<div class="estbar no-print" id="estBar" hidden>
+  <div class="seg" role="group" aria-label="견적 화면">
+    <button type="button" data-view="doc" aria-pressed="true">적산</button>
+    <button type="button" data-view="out" aria-pressed="false">견적</button>
+    <button type="button" data-view="hist" aria-pressed="false">견적이력</button>
+  </div>
+  <div class="acts">
+    <button class="btn" id="btnSave">구글 시트에 저장</button>
+    <button class="btn sec sm" id="btnXlsx" title="견적서(표지·갑지·합계표·세부내역)를 엑셀로">엑셀</button>
+    <button class="btn sec sm" id="btnPrint" title="견적서(표지·갑지·상세내역)를 인쇄하거나 PDF로 저장">인쇄 / PDF</button>
+    <button class="btn sec sm" id="btnClear">내역 비우기</button>
+  </div>
+  <span class="savebadge" id="saveBadge"></span>
+</div>
+
 <section class="panel" id="panel-doc" hidden>
   <div class="doc">
     <div class="doc-head">
       <img src="img/logo-navy.png" alt="Grid-A 4U" class="doc-logo navy"><img src="img/logo-white.png" alt="" class="doc-logo white">
-      <div class="doc-title">견 적 서</div>
+      <div class="doc-title">적 산 서</div>
       <div class="doc-co" id="docCo"></div>
       <div class="doc-fields">
         <div class="field no-print"><label for="dfContractor">시공사</label><select id="dfContractor" style="flex:1;background:transparent;border:0;font-size:12.5px;min-width:0"></select></div>
@@ -446,13 +470,6 @@ tr.hid .ein{opacity:.55}
         </tr></thead>
         <tbody id="docBody"></tbody>
       </table>
-    </div>
-    <div class="card-pad no-print" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--line)">
-      <button class="btn" id="btnSave">구글 시트에 저장</button>
-      <button class="btn sec sm" id="btnCsv">엑셀(CSV)</button>
-      <button class="btn sec sm" id="btnPrint">인쇄 / PDF</button>
-      <button class="btn sec sm" id="btnClear">내역 비우기</button>
-      <span class="savebadge" id="saveBadge" style="margin-left:auto"></span>
     </div>
   </div>
 </section>
@@ -473,13 +490,15 @@ tr.hid .ein{opacity:.55}
 
 <section class="panel" id="panel-hist" hidden>
   <div class="toolbar">
-    <button class="btn sec sm" id="btnHistRefresh">↻ 이력 불러오기</button>
-    <span class="hint">행을 누르면 그 견적을 불러옵니다. 저장하면 같은 번호로 덮어씁니다.</span>
+    <input type="search" id="histQ" placeholder="견적번호 · 공사명 · 발주처 · 담당 검색" aria-label="견적 이력 검색">
+    <button class="btn sec sm" id="btnHistRefresh">↻ 새로고침</button>
+    <span class="hint" id="histCount"></span>
+    <span class="hint">행을 누르면 그 견적을 불러와 적산 화면으로 갑니다. 저장하면 같은 번호로 덮어씁니다.</span>
   </div>
   <div class="tablewrap">
     <table>
       <thead><tr><th style="width:14%">견적번호</th><th style="width:14%">작성일시</th><th style="width:26%">현장명</th><th style="width:18%">발주처</th><th style="width:8%">품목</th><th style="width:20%">총계 (부가세 별도)</th></tr></thead>
-      <tbody id="histBody"><tr><td colspan="6"><div class="empty-state">↻ 이력 불러오기를 누르세요.</div></td></tr></tbody>
+      <tbody id="histBody"><tr><td colspan="6"><div class="empty-state">불러오는 중…</div></td></tr></tbody>
     </table>
   </div>
 </section>
@@ -638,7 +657,6 @@ tr.hid .ein{opacity:.55}
   <div class="toolbar no-print">
     <label class="hint" for="coverText">표지 문구</label>
     <input type="text" id="coverText" style="flex:1 1 360px">
-    <button class="btn" id="btnPrintDoc">인쇄 / PDF</button>
   </div>
 
   <!-- 갑지 설정 — 견적마다 저장됨 -->
@@ -672,7 +690,7 @@ tr.hid .ein{opacity:.55}
       <label>견적조건 <span class="hint">한 줄에 하나 — 번호는 자동. 갑지 맨 아래에 3줄 × 2칸(1·2·3 | 4·5·6)으로 들어갑니다</span><textarea id="gFoot" rows="6"></textarea></label>
     </div>
   </div>
-  <p class="hint no-print" style="margin:0 0 12px">시공사·발주처·공사명·견적일·내역은 <b>견적서</b> 탭에서 고릅니다. <b>3 상세내역</b>은 공종 순서대로 100·200… 코드가 붙고, 품목이 많으면 여러 장으로 나뉩니다. <b>관공서·건설사 제출용</b>을 체크하면 재료비·노무비·경비를 단가/금액으로 모두 보여 줍니다.</p>
+  <p class="hint no-print" style="margin:0 0 12px">시공사·발주처·공사명·견적일·내역은 <b>적산</b> 화면에서 고릅니다. <b>3 상세내역</b>은 공종 순서대로 100·200… 코드가 붙고, 품목이 많으면 여러 장으로 나뉩니다. <b>관공서·건설사 제출용</b>을 체크하면 재료비·노무비·경비를 단가/금액으로 모두 보여 줍니다.</p>
   <div id="printDoc"></div>
 </section>
 </div>
@@ -935,7 +953,7 @@ $("docBody").addEventListener("input",e=>{
   r.qty=N(e.target.value); renderCartBar(); badge("저장 안 됨");
   clearTimeout(window._dq); window._dq=setTimeout(renderDoc,600);
 });
-$("btnClear").addEventListener("click",()=>{ if(!S.rows.length) return; if(!confirm("내역 "+S.rows.length+"건을 비웁니다.")) return; S.rows=[]; S.sch=[]; renderDoc(); renderCartBar(); });
+$("btnClear").addEventListener("click",()=>{ if(!S.rows.length) return; if(!confirm("내역 "+S.rows.length+"건을 비웁니다.")) return; S.rows=[]; S.sch=[]; renderDoc(); renderCartBar(); if(!$("panel-out").hidden) renderOut(); });
 const FIELD={dfClient:"client",dfOwner:"owner",dfStaff:"staff",dfDate:"date",schStart:"schStart"};
 for(const [id,k] of Object.entries(FIELD)) $(id).addEventListener("input",e=>{ S.meta[k]=e.target.value; persistDraft(); if(id==="schStart") renderSch(); });
 
@@ -966,15 +984,14 @@ function fillMeta(){ $("dfClient").value=S.meta.client||""; $("dfOwner").value=S
 /* ---------- 내보내기 / 인쇄 ---------- */
 function csvCell(v){ const s=String(v??""); return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; }
 function download(name, text){ const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob(["﻿"+text],{type:"text/csv;charset=utf-8"})); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); }
-$("btnCsv").addEventListener("click",()=>{
-  if(!S.rows.length) return;
-  const out=[["공종","품목","규격","단위","수량","재료비","노무비","경비","단가합계","금액","원가"]]; let sup=0;
-  for(const [gong,arr] of Object.entries(groups())) for(const r of arr){ const amt=unitOf(r)*N(r.qty); sup+=amt; out.push([gong,r.name,r.spec,r.unit,r.qty,r.mat,r.lab,r.exp,unitOf(r),amt,N(r.cost)*N(r.qty)]); }
-  const vat=Math.round(sup*N(S.settings["부가세율"]||10)/100);
-  out.push([],["공급가액","","","","","","","","",sup],["부가세","","","","","","","","",vat],["합계","","","","","","","","",sup+vat]);
-  download((S.meta.no||"견적서")+(S.meta.client?"_"+S.meta.client:"")+".csv", out.map(r=>r.map(csvCell).join(",")).join("\r\n"));
+/* 인쇄 / PDF = 견적서 장(표지·갑지·상세내역). 어느 화면에서 눌러도 같음 */
+$("btnPrint").addEventListener("click",()=>{
+  if(!S.rows.length&&!confirm("담긴 내역이 없습니다. 그래도 인쇄할까요?")) return;
+  renderOut(); document.body.classList.add("print-doc");
+  window.addEventListener("afterprint",()=>document.body.classList.remove("print-doc"),{once:true});
+  setTimeout(()=>window.print(),80);
 });
-$("btnPrint").addEventListener("click",()=>{ goTab("doc"); setTimeout(()=>window.print(),100); });
+$("btnXlsx").addEventListener("click",()=>exportXlsx().catch(e=>toast("엑셀 만들기 실패: "+e.message)));
 
 /* ---------- 공정표 ---------- */
 function autoSchedule(){
@@ -997,16 +1014,28 @@ $("schBody").addEventListener("input",e=>{ const tr=e.target.closest("tr[data-sc
 $("btnSchAuto").addEventListener("click",()=>{ S.sch=[]; autoSchedule(); renderSch(); });
 
 /* ---------- 견적 이력 ---------- */
+/* 이력은 한 번 불러와 S.hist 에 두고, 검색은 화면에서 바로 거름 (시트에 다시 묻지 않음).
+   열: 0 견적번호 · 1 작성일시 · 2 현장명 · 3 발주처 · 4 담당 · 5 공급가액 · 10 품목수 · 12 시공사 */
 async function loadHistory(){
   if(!apiReady()) return openConn();
-  $("histBody").innerHTML='<tr><td colspan="6"><div class="empty-state">불러오는 중…</div></td></tr>';
+  const msg=t=>{ $("histBody").innerHTML=`<tr><td colspan="6"><div class="empty-state">${t}</div></td></tr>`; $("histCount").textContent=""; };
+  msg("불러오는 중…");
   try{
-    const j=await apiGet("history"); const rows=(j.rows||[]).slice(1).reverse();
-    if(!rows.length){ $("histBody").innerHTML='<tr><td colspan="6"><div class="empty-state">저장된 견적이 없습니다.</div></td></tr>'; return; }
-    $("histBody").innerHTML=rows.map(r=>`<tr class="hrow" data-no="${esc(r[0])}"><td class="mono">${esc(r[0])}</td><td>${esc(r[1])}</td><td>${esc(r[2])}</td><td>${esc(r[3])}</td><td class="num">${esc(r[10])}</td><td class="num sum">${W(r[5])}</td></tr>`).join("");
-  }catch(e){ $("histBody").innerHTML=`<tr><td colspan="6"><div class="empty-state">불러오기 실패: ${esc(e.message)}</div></td></tr>`; }
+    const j=await apiGet("history"); S.hist=(j.rows||[]).slice(1).reverse();
+    renderHist();
+  }catch(e){ S.hist=null; msg("불러오기 실패: "+esc(e.message)); }
+}
+function renderHist(){
+  const all=S.hist||[], words=$("histQ").value.trim().toLowerCase().split(/ +/).filter(Boolean);
+  const rows=all.filter(r=>{ const t=[r[0],r[1],r[2],r[3],r[4],r[12]].join(" ").toLowerCase(); return words.every(w=>t.includes(w)); });
+  $("histCount").textContent=all.length?(words.length?`${rows.length} / ${all.length}건`:`${all.length}건`):"";
+  if(!all.length){ $("histBody").innerHTML='<tr><td colspan="6"><div class="empty-state">저장된 견적이 없습니다.</div></td></tr>'; return; }
+  if(!rows.length){ $("histBody").innerHTML='<tr><td colspan="6"><div class="empty-state">검색 결과가 없습니다.</div></td></tr>'; return; }
+  const day=v=>{ const d=new Date(v); return isNaN(d)?String(v||""):d.toLocaleDateString("ko-KR")+" "+d.toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"}); };
+  $("histBody").innerHTML=rows.map(r=>`<tr class="hrow" data-no="${esc(r[0])}"><td class="mono">${esc(r[0])}</td><td>${esc(day(r[1]))}</td><td>${esc(r[2])}</td><td>${esc(r[3])}</td><td class="num">${esc(r[10])}</td><td class="num sum">${W(r[5])}</td></tr>`).join("");
 }
 $("btnHistRefresh").addEventListener("click",loadHistory);
+$("histQ").addEventListener("input",renderHist);
 $("histBody").addEventListener("click",async e=>{
   const tr=e.target.closest("tr[data-no]"); if(!tr) return;
   if(S.rows.length && !confirm("현재 작업 중인 견적을 닫고 "+tr.dataset.no+" 을(를) 불러옵니다.")) return;
@@ -1447,6 +1476,14 @@ function payText(g){
   const p=payParts(g), pct=v=>+v.toFixed(2);
   return [["계약금",p.p1],["중도금",p.p2],["잔금",p.p3]].filter(x=>x[1]>0).map(x=>`${x[0]}(${pct(x[1])}%)`).join("/");
 }
+/* 집계표 줄 구성 — sp = 빈 줄(여백). 소계(a)는 3.경비 바로 아래에 붙임. 갑지 화면과 엑셀이 같이 씀 */
+function costRows(c){
+  const R=[{n:"A. 직접공사비",sec:1},{n:"1. 재료비",u:"식",q:1,a:c.mat},{n:"2. 노무비",u:"식",q:1,a:c.lab},{n:"3. 경 비",u:"식",q:1,a:c.exp},{n:"소계(a)",sub:1,a:c.direct},{sp:1},{n:"B. 간접공사비",sec:1}];
+  c.ind.forEach(x=>R.push({n:`${x.no}. ${x.name}`,s:x.spec,u:"식",q:1,p:x.unit,a:x.a,note:x.note}));
+  R.push({n:"소계(b)",sub:1,a:c.indirect},{sp:1});
+  if(c.cut) R.push({n:c.adjKind,adj:1,s:c.adjSpec,u:"식",q:1,a:-c.cut},{sp:1});
+  return R;
+}
 const jl=t=>`<span class="gj-k">${[...t].map(ch=>`<i>${esc(ch)}</i>`).join("")}</span>`;   // 글자를 칸 너비에 고르게 펼침
 function gapjiHtml(){
   const g=G(), c=calcG(), ct=curContractor(), cl=curClient();
@@ -1455,11 +1492,7 @@ function gapjiHtml(){
   const logo=ct&&okImg(ct.logo)?ct.logo:"img/logo-navy.png";
   const notes=[];                                           /* 특기사항은 쓰지 않음 (견적조건으로 대체) */
   const gt=c.total;                                         /* 총금액 = 합계(a+b), 부가세 별도 */
-  /* 표 줄 구성 — sp = 빈 줄(여백). 줄이 많아지면 뒤쪽 빈 줄부터 뺌. 소계(a)는 3.경비 바로 아래에 붙임 */
-  const R=[{n:"A. 직접공사비",sec:1},{n:"1. 재료비",u:"식",q:1,a:c.mat},{n:"2. 노무비",u:"식",q:1,a:c.lab},{n:"3. 경 비",u:"식",q:1,a:c.exp},{n:"소계(a)",sub:1,a:c.direct},{sp:1},{n:"B. 간접공사비",sec:1}];
-  c.ind.forEach(x=>R.push({n:`${x.no}. ${x.name}`,s:x.spec,u:"식",q:1,p:x.unit,a:x.a,note:x.note}));
-  R.push({n:"소계(b)",sub:1,a:c.indirect},{sp:1});
-  if(c.cut) R.push({n:c.adjKind,adj:1,s:c.adjSpec,u:"식",q:1,a:-c.cut},{sp:1});
+  const R=costRows(c);
   // 장 안에 들어가는 줄 수: 기본 행높이(1.62cqw)로 본문+특기사항 18줄. 넘치면 ① 뒤쪽 빈 줄부터 빼고 ② 그래도 넘치면 행 높이를 줄임
   /* 높이 계산 단위: 보통 줄 = 1, 간격 줄(sp) = 0.42 */
   const nNotes=notes.length, FIT=15, RH=1.96;
@@ -1615,6 +1648,235 @@ function detailPagesHtml(){
   </div><div class="dt-pno">3 − ${i+1} / ${out.length}</div></div>`);
 }
 
+/* ---------- 엑셀 = 견적서 (표지 · 갑지 · 합계표 · 세부내역). 서식 있는 xlsx 라 ExcelJS 를 씀 — 누를 때 한 번만 불러옴 ---------- */
+let excelJsP=null;
+function loadExcelJS(){
+  if(window.ExcelJS) return Promise.resolve(window.ExcelJS);
+  return excelJsP||(excelJsP=new Promise((ok,no)=>{
+    const sc=document.createElement("script"); sc.src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js";
+    sc.onload=()=>ok(window.ExcelJS);
+    sc.onerror=()=>{ excelJsP=null; no(new Error("엑셀 모듈을 불러오지 못했습니다 (인터넷 연결 확인)")); };
+    document.head.appendChild(sc);
+  }));
+}
+/* 이미지(파일 주소 · data URL · SVG 무엇이든) → PNG data URL + 크기. 못 읽으면 null (엑셀은 그 이미지 없이 만듦) */
+function imgToPng(src){
+  return new Promise(ok=>{
+    if(!src) return ok(null);
+    const im=new Image();
+    im.onload=()=>{
+      try{
+        const w=im.naturalWidth||400, h=im.naturalHeight||400, cv=document.createElement("canvas");
+        cv.width=w; cv.height=h; cv.getContext("2d").drawImage(im,0,0,w,h);
+        ok({data:cv.toDataURL("image/png"),w,h});
+      }catch(e){ ok(null); }
+    };
+    im.onerror=()=>ok(null);
+    im.src=src;
+  });
+}
+async function exportXlsx(){
+  if(!S.rows.length&&!confirm("담긴 내역이 없습니다. 그래도 엑셀로 만들까요?")) return;
+  toast("엑셀 만드는 중…");
+  const EX=await loadExcelJS();
+  const g=G(), c=calcG(), B=!!g.formB, D=detailData(), ct=curContractor(), cl=curClient();
+  const tot={am:D.reduce((s,d)=>s+d.am,0),al:D.reduce((s,d)=>s+d.al,0),ae:D.reduce((s,d)=>s+d.ae,0),a:D.reduce((s,d)=>s+d.a,0)};
+  const NAVY="FF0B2A4A", BAND="FFEDF1F6", SUBF="FFF7F9FB", GREY="FF5B6B7C", WHITE="FFFFFFFF", HAIR="FFCFD8E3";
+  const FONT="맑은 고딕", NUM="#,##0", NUMNEG="#,##0;[Red](#,##0)";
+  const wb=new EX.Workbook(); wb.creator=ct?ct.name:"Grid-A";
+  const fill=argb=>({type:"pattern",pattern:"solid",fgColor:{argb}});
+  const sheet=(name,widths,onePage)=>{
+    const ws=wb.addWorksheet(name,{views:[{showGridLines:false}],
+      pageSetup:{paperSize:9,orientation:"landscape",fitToPage:true,fitToWidth:1,fitToHeight:onePage?1:0,horizontalCentered:true,
+        margins:{left:.4,right:.4,top:.5,bottom:.5,header:.2,footer:.2}}});
+    ws.columns=widths.map(w=>({width:w}));
+    return ws;
+  };
+  /* 칸 하나 쓰기. o = {b 굵게, sz 크기, color, al 가로정렬, ind 들여쓰기, fill 배경, num 숫자형식, shrink 줄여맞춤} */
+  const put=(ws,r,col,v,o={})=>{
+    const cell=ws.getCell(r,col);
+    cell.value=(v===""||v==null)?null:v;
+    cell.font={name:FONT,size:o.sz||10,bold:!!o.b,color:{argb:o.color||"FF1A2430"}};
+    cell.alignment={vertical:"middle",horizontal:o.al||(typeof v==="number"?"right":"left"),indent:o.ind||0,shrinkToFit:!!o.shrink};
+    if(o.fill) cell.fill=fill(o.fill);
+    if(typeof v==="number") cell.numFmt=o.num||NUM;
+    return cell;
+  };
+  const rowFill=(ws,r,c1,c2,argb)=>{ for(let k=c1;k<=c2;k++) ws.getCell(r,k).fill=fill(argb); };
+  const line=(ws,r,c1,c2,side,style,argb)=>{ for(let k=c1;k<=c2;k++){ const cell=ws.getCell(r,k); cell.border=Object.assign({},cell.border||{},{[side]:{style,color:{argb}}}); } };
+  const addPng=async(ws,src,tl,ext)=>{
+    const im=await imgToPng(src); if(!im) return;
+    const id=wb.addImage({base64:im.data,extension:"png"});
+    ws.addImage(id,{tl,ext:typeof ext==="function"?ext(im):ext,editAs:"oneCell"});
+  };
+  const clientName=(cl&&cl.name)||String(S.meta.owner||"").trim()||"발주처";
+
+  /* 1 표지 */
+  {
+    const ws=sheet("표지",Array(10).fill(13),true);
+    for(let r=1;r<=30;r++) ws.getRow(r).height=18;
+    put(ws,3,2,"CLIENT_"+clientName,{b:1,sz:12,color:"FF333333"});
+    ws.mergeCells(8,3,14,8);
+    if(cl&&okImg(cl.logo)) await addPng(ws,cl.logo,{col:3.3,row:8.2},im=>{ const h=110; return {width:Math.min(420,im.w*h/im.h),height:h}; });
+    else put(ws,8,3,clientName,{b:1,sz:30,color:"FF4A4F52",al:"center"});
+    ws.mergeCells(16,3,17,8);
+    put(ws,16,3,S.meta.coverText||DEFAULT_COVER,{b:1,sz:13,al:"center",fill:"FFD9D9D9"});
+    await addPng(ws,"img/confidential.png",{col:1.2,row:20.5},im=>({width:190,height:190*im.h/im.w}));
+  }
+
+  /* 2 갑지 */
+  {
+    const ws=sheet("갑지",[26,16,8,8,15,18,16],true);
+    const d=String(S.meta.date||"").split("-"), dateStr=d.length===3?`${d[0]}년 ${d[1]}월 ${d[2]}일`:"";
+    const clientLine=[(cl&&cl.name)||String(S.meta.owner||"").trim(), cl&&cl.ceo?"대표 "+cl.ceo:""].filter(Boolean).join(" ");
+    ws.getRow(1).height=42;
+    await addPng(ws,ct&&okImg(ct.logo)?ct.logo:"img/logo-navy.png",{col:0.1,row:0.12},im=>{ const h=40; return {width:Math.min(260,im.w*h/im.h),height:h}; });
+    line(ws,1,1,7,"bottom","medium","FF000000");
+    ws.getRow(2).height=8;
+    ws.getRow(3).height=26;
+    put(ws,3,1,"견적서 / ESTIMATE",{b:1,sz:15});
+    ws.mergeCells(3,5,3,7); put(ws,3,5,"견적일자 : "+dateStr,{al:"right"});
+    const info=[
+      ["■ 발 주 처 :  "+clientLine+(clientLine?" 귀하":""), "상   호   명 :  "+(ct?ct.name:"")],
+      ["■ 공 사 명 :  "+(S.meta.client||""), "사업자번호 :  "+(ct?bizFmt(ct.bizno):"")],
+      ["■ 총 금 액 :  "+toKoreanWon(c.total)+(c.total?`  (₩${F(c.total)})  VAT별도`:""), "대   표   자 :  "+(ct?ct.ceo:"")],
+      ["■ 대금조건 :  "+payText(g), "주          소 :  "+(ct?ct.addr:"")]];
+    info.forEach((x,i)=>{
+      const r=4+i; ws.getRow(r).height=24;
+      ws.mergeCells(r,1,r,3);
+      if(i===2){ ws.mergeCells(r,4,r,6); put(ws,r,7,"( 인 )",{al:"center"}); } else ws.mergeCells(r,4,r,7);
+      put(ws,r,1,x[0],{b:i===2}); put(ws,r,4,x[1],{shrink:1});
+      line(ws,r,1,7,"top","thin","FF000000"); line(ws,r,1,7,"bottom","thin","FF000000"); line(ws,r,4,4,"left","thin","FF000000");
+    });
+    if(ct&&okImg(ct.stamp)) await addPng(ws,ct.stamp,{col:6.3,row:4.25},{width:84,height:84});
+    ws.getRow(8).height=8;
+    ws.getRow(9).height=22;
+    ws.mergeCells(9,1,9,3); put(ws,9,1,"[ 견적내역집계표 ]",{b:1,color:NAVY});
+    ws.mergeCells(9,4,9,7); put(ws,9,4,g.lead||"",{al:"right",color:"FF3C4A58"});
+    let r=10;
+    ["품 명","규 격","단 위","수 량","단 가","금 액","비 고"].forEach((h,k)=>put(ws,r,k+1,h,{b:1,color:WHITE,fill:NAVY,al:"center"}));
+    ws.getRow(r).height=22; r++;
+    for(const x of costRows(c)){
+      if(x.sp){ ws.getRow(r).height=7; r++; continue; }
+      ws.getRow(r).height=20;
+      if(x.sec){ ws.mergeCells(r,1,r,7); put(ws,r,1,x.n,{b:1,color:NAVY}); rowFill(ws,r,1,7,BAND); }
+      else{
+        const col=x.sub?NAVY:undefined;
+        put(ws,r,1,x.n,{b:x.sub||x.adj,color:col,ind:x.sub?3:x.adj?0:1});
+        put(ws,r,2,x.s||"",{al:"center",color:GREY,sz:9});
+        put(ws,r,3,x.u||"",{al:"center"});
+        put(ws,r,4,x.q??"",{al:"center"});
+        put(ws,r,5,x.p||"");
+        put(ws,r,6,x.a==null?"":x.a,{b:1,num:NUMNEG,color:col});
+        put(ws,r,7,x.note||"",{al:"center",color:"FF3C4A58",sz:9});
+        if(x.sub){ rowFill(ws,r,1,7,SUBF); line(ws,r,1,7,"top","thin","FFAAB8C8"); }
+      }
+      line(ws,r,1,7,"bottom","hair",HAIR); r++;
+    }
+    ws.getRow(r).height=28;
+    ws.mergeCells(r,1,r,5); put(ws,r,1,"합   계  (a+b)",{b:1,sz:12,color:WHITE,ind:1});
+    put(ws,r,6,c.total,{b:1,sz:12,color:WHITE});
+    rowFill(ws,r,1,7,NAVY); r+=2;
+    put(ws,r,1,"견적조건",{b:1,color:NAVY}); r++;
+    const conds=lines(g.foot).slice(0,8), nR=Math.max(3,Math.ceil(conds.length/2));
+    for(let i=0;i<nR;i++){
+      ws.mergeCells(r,1,r,3); ws.mergeCells(r,4,r,7); ws.getRow(r).height=18;
+      put(ws,r,1,conds[i]?`${i+1}.  ${conds[i]}`:"",{ind:2});
+      put(ws,r,4,conds[i+nR]?`${i+nR+1}.  ${conds[i+nR]}`:"");
+      line(ws,r,1,7,"bottom","dotted","FF9AA5B1"); r++;
+    }
+  }
+
+  /* 3·4 상세내역 공통 머리: 제목 + 공사명 / [ 표 이름 ] + (단위 : 원) */
+  const head=(ws,nC,sub)=>{
+    const half=Math.ceil(nC/2);
+    ws.getRow(1).height=26;
+    ws.mergeCells(1,1,1,half); put(ws,1,1,"상세내역서 / DETAIL",{b:1,sz:14});
+    ws.mergeCells(1,half+1,1,nC); put(ws,1,half+1,"공사명 : "+(S.meta.client||""),{al:"right"});
+    line(ws,1,1,nC,"bottom","medium","FF000000");
+    ws.getRow(2).height=22;
+    ws.mergeCells(2,1,2,half); put(ws,2,1,`[ ${sub} ]`,{b:1,color:NAVY});
+    put(ws,2,nC,"(단위 : 원)",{al:"right",color:GREY,sz:9});
+  };
+  const m=v=>v?v:"";
+
+  /* 3 공종별 합계표 */
+  {
+    const cols=B?[9,30,17,17,15,18,14]:[10,44,24,24], nC=cols.length;
+    const ws=sheet("합계표",cols); head(ws,nC,"공종별 합계표");
+    const H=B?["코 드","공 사 명","재 료 비","노 무 비","경 비","합 계","비 고"]:["코 드","공 사 명","금 액","비 고"];
+    H.forEach((h,k)=>put(ws,3,k+1,h,{b:1,color:WHITE,fill:NAVY,al:"center"}));
+    ws.getRow(3).height=22;
+    ws.pageSetup.printTitlesRow="3:3";
+    let r=4;
+    D.forEach(d=>{
+      const v=B?[d.code,d.gong,m(d.am),m(d.al),m(d.ae),m(d.a),""]:[d.code,d.gong,m(d.a),""];
+      v.forEach((x,k)=>put(ws,r,k+1,x,{al:k===0?"center":undefined,color:k===0?GREY:undefined,b:k===nC-2,num:k===0?"0":NUM}));
+      line(ws,r,1,nC,"bottom","hair",HAIR); ws.getRow(r).height=20; r++;
+    });
+    ws.mergeCells(r,1,r,2); ws.getRow(r).height=26;
+    put(ws,r,1,"합   계  (a) 직접공사비",{b:1,color:WHITE,ind:1});
+    (B?[tot.am,tot.al,tot.ae,tot.a]:[tot.a]).forEach((x,k)=>put(ws,r,3+k,x,{b:1,color:WHITE}));
+    rowFill(ws,r,1,nC,NAVY);
+  }
+
+  /* 4 공종별 세부내역 — 머리줄 2단은 인쇄할 때 장마다 반복 */
+  {
+    const cols=B?[7,24,14,6,7,11,13,11,13,10,12,11,14,12]:[7,30,16,6,7,14,14,13,13,15,13], nC=cols.length;
+    const ws=sheet("세부내역",cols); head(ws,nC,"공종별 세부내역");
+    ws.getRow(3).height=20; ws.getRow(4).height=17;
+    rowFill(ws,3,1,nC,NAVY); rowFill(ws,4,1,nC,NAVY);
+    const th=(r,c1,c2,t,r2)=>{ if(c2>c1||(r2&&r2>r)) ws.mergeCells(r,c1,r2||r,c2); put(ws,r,c1,t,{b:1,color:WHITE,fill:NAVY,al:"center",sz:r===4?9:10}); };
+    ["공 종","품 목","규 격","단위","수량"].forEach((t,k)=>th(3,k+1,k+1,t,4));
+    if(B){
+      ["재 료 비","노 무 비","경 비","합 계"].forEach((t,k)=>{ th(3,6+k*2,7+k*2,t); th(4,6+k*2,6+k*2,"단가"); th(4,7+k*2,7+k*2,"금액"); });
+      th(3,14,14,"비 고",4);
+    } else {
+      ["재료비","노무비","경 비"].forEach((t,k)=>th(3,6+k,6+k,t,4));
+      th(3,9,10,"계"); th(4,9,9,"단가"); th(4,10,10,"금액");
+      th(3,11,11,"비 고",4);
+    }
+    ws.pageSetup.printTitlesRow="3:4";
+    ws.views=[{showGridLines:false,state:"frozen",ySplit:4}];
+    const nums=(x,unit)=>B
+      ?[unit?m(x.mat):"",m(x.am),unit?m(x.lab):"",m(x.al),unit?m(x.exp):"",m(x.ae),unit?m(x.unit):"",m(x.a)]
+      :[m(x.am),m(x.al),m(x.ae),unit?m(x.unit):"",m(x.a)];
+    let r=5;
+    const next=h=>{ ws.getRow(r).height=h||18; r++; };
+    D.forEach(d=>{
+      ws.mergeCells(r,2,r,nC);
+      put(ws,r,1,d.code,{b:1,color:NAVY,al:"center",num:"0"}); put(ws,r,2,d.gong,{b:1,color:NAVY});
+      rowFill(ws,r,1,nC,BAND); line(ws,r,1,nC,"bottom","thin",HAIR); next();
+      d.items.forEach(x=>{
+        const it=x.r, dec=qtyRule(it.unit).dec;
+        const v=[x.code,it.name,it.spec||"",it.unit||"",N(it.qty)||"",...nums(x,true),it.note||""];
+        v.forEach((val,k)=>{
+          const isNum=k>=5&&k<nC-1, pr=isNum&&(B?(k-5)%2===0:k===nC-3);
+          put(ws,r,k+1,val,{
+            al:k===0||k===3||k===4?"center":undefined,
+            color:(k===0||k===2||pr||k===nC-1)?GREY:undefined,
+            b:k===nC-2, sz:(k===2||k===nC-1)?9:10,
+            num:k===0?"0":k===4?(dec?"0."+"0".repeat(dec):"0"):NUM});
+        });
+        line(ws,r,1,nC,"bottom","hair",HAIR); next();
+      });
+      ws.mergeCells(r,2,r,5); put(ws,r,2,"[ 소 계 ]  "+d.gong,{b:1,color:NAVY});
+      nums(d,false).forEach((val,k)=>put(ws,r,6+k,val,{b:1,color:NAVY}));
+      rowFill(ws,r,1,nC,SUBF); line(ws,r,1,nC,"top","thin","FFAAB8C8"); line(ws,r,1,nC,"bottom","thin","FFAAB8C8"); next();
+    });
+    ws.mergeCells(r,1,r,5); put(ws,r,1,"합   계  (a) 직접공사비",{b:1,color:WHITE,ind:1});
+    nums(tot,false).forEach((val,k)=>put(ws,r,6+k,val,{b:1,color:WHITE}));
+    rowFill(ws,r,1,nC,NAVY); next(24);
+  }
+
+  const buf=await wb.xlsx.writeBuffer();
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([buf],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}));
+  a.download=(`${S.meta.no||"견적서"}${S.meta.client?"_"+S.meta.client:""}${B?"_제출용":""}.xlsx`).replace(/[/:*?"<>|]/g,"_");
+  a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+  toast("엑셀 내려받음 — 표지 · 갑지 · 합계표 · 세부내역");
+}
+
 /* ---------- 출력 (1 표지 · 2 갑지 · 3 상세내역) ---------- */
 function renderOut(){
   const cl=curClient(), clientName=(cl&&cl.name)||String(S.meta.owner||"").trim()||"발주처";
@@ -1635,11 +1897,6 @@ function renderOut(){
 function fitPages(){ document.querySelectorAll(".pgw").forEach(w=>{ const s=w.clientWidth/1123; if(s>0) w.style.setProperty("--pgs",s); }); }
 window.addEventListener("resize",fitPages);
 $("coverText").addEventListener("input",e=>{ S.meta.coverText=e.target.value; persistDraft(); renderOut(); });
-$("btnPrintDoc").addEventListener("click",()=>{
-  renderOut(); document.body.classList.add("print-doc");
-  window.addEventListener("afterprint",()=>document.body.classList.remove("print-doc"),{once:true});
-  setTimeout(()=>window.print(),80);
-});
 
 /* ---------- 수량 칸 키 조작: Enter → 다음 칸, ↑↓ → 단위별 증감 ---------- */
 function qtyKeys(e){
@@ -1669,13 +1926,21 @@ function qtyBlur(e){
 for(const id of ["catBody","docBody"]){ $(id).addEventListener("keydown",qtyKeys); $(id).addEventListener("focusout",qtyBlur); }
 
 /* ---------- 탭 / 부팅 ---------- */
+/* 견적 탭 안의 세 화면: doc = 적산, out = 견적(출력 장), hist = 견적이력. goTab("out") 처럼 부르면 견적 탭 + 그 화면 */
+const EST_VIEWS=["doc","out","hist"];
+let estView="doc";
 document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{
+  const tab=t.dataset.tab;
   document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected",x===t?"true":"false"));
-  ["db","doc","sch","hist","mng","edit","party","out"].forEach(k=>$("panel-"+k).hidden=(k!==t.dataset.tab));
-  if(t.dataset.tab==="doc") renderDoc(); if(t.dataset.tab==="sch") renderSch(); if(t.dataset.tab==="edit") renderEdit();
-  if(t.dataset.tab==="party") renderParty(); if(t.dataset.tab==="out") renderOut();
+  ["db","sch","mng","edit","party"].forEach(k=>$("panel-"+k).hidden=(k!==tab));
+  $("estBar").hidden=(tab!=="doc");
+  EST_VIEWS.forEach(v=>$("panel-"+v).hidden=!(tab==="doc"&&v===estView));
+  document.querySelectorAll("#estBar [data-view]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.view===estView?"true":"false"));
+  if(tab==="doc"){ if(estView==="doc") renderDoc(); if(estView==="out") renderOut(); if(estView==="hist"){ if(S.hist) renderHist(); else loadHistory(); } }
+  if(tab==="sch") renderSch(); if(tab==="edit") renderEdit(); if(tab==="party") renderParty();
 }));
-function goTab(k){ document.querySelector('.tab[data-tab="'+k+'"]').click(); }
+function goTab(k){ if(EST_VIEWS.includes(k)){ estView=k; k="doc"; } document.querySelector('.tab[data-tab="'+k+'"]').click(); }
+document.querySelectorAll("#estBar [data-view]").forEach(b=>b.addEventListener("click",()=>goTab(b.dataset.view)));
 
 (function boot(){
   const d=LS.get("draft",null);
