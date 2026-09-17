@@ -588,7 +588,7 @@ tr.hid .ein{opacity:.55}
           <label>잔금<input type="text" id="gP3" class="num" inputmode="decimal" placeholder="자동"></label>
         </div>
       </div>
-      <label>안내 문구<input type="text" id="gLead" placeholder="아래와 같이 견적합니다."></label>
+      <label>안내 문구<input type="text" id="gLead" placeholder="아래와 같이 견적합니다. (견적일로부터 1개월간 유효)"></label>
       <label>부가가치세<select id="gVat"><option value="sep">별도</option><option value="inc">포함 (10% 더해서 합계)</option></select></label>
       <label>절사 단위<select id="gRound"><option value="0">절사 없음</option><option value="1000">천 단위</option><option value="10000">만 단위</option><option value="100000">십만 단위</option><option value="1000000">백만 단위</option><option value="10000000">천만 단위</option></select></label>
       <label>합계 직접 입력 <span class="hint">(비우면 절사 단위대로 자동 — 차액은 단수정리)</span><input type="text" id="gTotal" class="num" inputmode="numeric" placeholder="예: 215000000"></label>
@@ -1329,11 +1329,11 @@ $("btnPartySave").addEventListener("click",async()=>{
 /* ---------- 2 갑지 ---------- */
 /* 집계표 = 원가계산서 양식. 간접비 줄은 "이름 | 규격 | 금액 | 비고" — 금액 비우면 규격의 식으로 자동, 숫자면 그 값, 그 밖의 글자(제외 등)면 빈칸 */
 const DEFAULT_IND="디자인, 설계비 |  |  | \n안전관리비 | (1+2)*2.48% | 제외 | 제외\n일반관리비 | (1+2)*14% |  | \n공과 잡비 | (2+6)*5.0% |  | ";
-const DEFAULT_G={work:"A.직접 공사비.",p1:50,p2:30,p3:"",valid:"30일",lead:"아래와 같이 견적합니다.",ind:DEFAULT_IND,vat:"sep",round:100000,total:"",
+const DEFAULT_G={work:"A.직접 공사비.",p1:50,p2:30,p3:"",valid:"30일",lead:"아래와 같이 견적합니다. (견적일로부터 1개월간 유효)",ind:DEFAULT_IND,vat:"sep",round:100000,total:"",
   notes:"",foot:"귀사의 일익 번창하심을 기원합니다.\n본 견적은 견적일로부터 1개월간 유효합니다.",formB:false};
 const GSET={gWork:"work",gP1:"p1",gP2:"p2",gP3:"p3",gLead:"lead",gVat:"vat",gRound:"round",gTotal:"total",gInd:"ind",gNotes:"notes",gFoot:"foot"};
 const ROUND_LABEL={1000:"천 단위 절사",10000:"만 단위 절사",100000:"십만 단위 절사",1000000:"백만 단위 절사",10000000:"천만 단위 절사"};
-const G=()=>{ const g=S.meta.g=Object.assign({},DEFAULT_G,S.meta.g||{}); if(g.work==="인테리어 공사") g.work=DEFAULT_G.work; if(g.notes==="1. 부가세별도금액임"||g.notes==="*부가세별도") g.notes=""; return g; };   // 예전 양식 초안 호환
+const G=()=>{ const g=S.meta.g=Object.assign({},DEFAULT_G,S.meta.g||{}); if(g.work==="인테리어 공사") g.work=DEFAULT_G.work; if(g.notes==="1. 부가세별도금액임"||g.notes==="*부가세별도") g.notes=""; if(g.lead==="아래와 같이 견적합니다.") g.lead=DEFAULT_G.lead; return g; };   // 예전 양식 초안 호환
 const lines=s=>String(s||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
 /* 집계: 직접공사비(1 재료비·2 노무비·3 경비 — 견적 품목에서 합산) → 간접비 줄(4~) → 단수정리 → 합계 (부가세 별도) */
 function calcG(){
