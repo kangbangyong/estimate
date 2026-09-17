@@ -315,6 +315,34 @@ tr.hid .ein{opacity:.55}
 .gj-foot li span{flex:1 1 50%;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:1.2cqw}
 .gj-foot li i{font-style:normal;display:inline-block;width:1.7cqw;color:#0b2a4a;font-weight:600}
 
+/* 3 상세내역 — 갑지 집계표와 같은 남색 기조. 행 높이가 고정이라 장 나눔(한 장 줄 수)과 맞물림 */
+.dt{--navy:#0b2a4a;--ink2:#5b6b7c;--hair:#e2e7ed;width:100%;min-width:0;border-collapse:collapse;table-layout:fixed;border:0;border-bottom:.2cqw solid var(--navy)}
+.dt th,.dt td{border:0;border-bottom:.07cqw solid var(--hair);padding:0 .6cqw;height:1.8cqw;font-size:1.02cqw;line-height:1.15;background:transparent;color:#1a2430;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left;font-weight:400;vertical-align:middle}
+.dt th{background:var(--navy);color:#fff;font-weight:600;font-size:.98cqw;height:1.75cqw;border-bottom:0;text-align:center;letter-spacing:.14em}
+.dt tr.h2 th{background:#1d3d5f;font-weight:500;font-size:.9cqw;height:1.5cqw;letter-spacing:.3em}
+.dt th.gl{border-left:.07cqw solid rgba(255,255,255,.28)}
+.dt tr:hover{background:transparent}
+.dt td.c{text-align:center}.dt td.r{text-align:right;font-variant-numeric:tabular-nums}
+.dt td.code{text-align:center;color:var(--ink2);font-variant-numeric:tabular-nums}
+.dt td.spec,.dt td.pr,.dt td.note{color:var(--ink2)}
+.dt td.k{font-weight:600}
+.dt tr.sec td{background:#edf1f6;color:var(--navy);font-weight:700;border-bottom:.08cqw solid #cfd8e3}
+.dt tr.sec td.code{color:var(--navy)}
+.dt tr.sec i{font-style:normal;font-weight:400;color:var(--ink2);margin-left:.8cqw}
+.dt tr.sub td{font-weight:700;background:#f7f9fb;border-top:.08cqw solid #aab8c8;border-bottom:.08cqw solid #aab8c8;color:var(--navy)}
+.dt tr.fin td{background:var(--navy);color:#fff;font-weight:700;font-size:1.12cqw;height:2.4cqw;border-bottom:0}
+.dt tr.fin td:first-child{padding-left:1cqw}
+.dt .fl{letter-spacing:.7em}
+.dt .fs{font-weight:400;font-size:.8em;opacity:.82;letter-spacing:.04em}
+.dt tr.empty td{height:6cqw;text-align:center;color:var(--ink2)}
+/* B형(관공서·건설사 제출용): 칸이 많아 글자·여백을 줄임 */
+.dt.fb th,.dt.fb td{padding:0 .35cqw;font-size:.9cqw}
+.dt.fb tr.h2 th{font-size:.84cqw;letter-spacing:.15em}
+/* 공종별 합계표: 줄 수가 적어 조금 넉넉하게 */
+.dt.ds td{height:2.05cqw;font-size:1.08cqw;padding:0 .9cqw}
+.dt.ds td.nm{font-weight:500}
+.dt-pno{position:absolute;right:6.3cqw;bottom:2.2cqw;font-size:.92cqw;color:#5b6b7c;letter-spacing:.06em;font-variant-numeric:tabular-nums}
+
 /* 연결 모달 */
 .modal{position:fixed;inset:0;z-index:100;background:rgba(15,19,21,.6);display:flex;align-items:center;justify-content:center;padding:16px}
 .modal .card{max-width:520px;width:100%}
@@ -644,7 +672,7 @@ tr.hid .ein{opacity:.55}
       <label>견적조건 <span class="hint">한 줄에 하나 — 번호는 자동. 갑지 맨 아래에 3줄 × 2칸(1·2·3 | 4·5·6)으로 들어갑니다</span><textarea id="gFoot" rows="6"></textarea></label>
     </div>
   </div>
-  <p class="hint no-print" style="margin:0 0 12px">시공사·발주처·공사명·견적일은 <b>견적서</b> 탭에서 고릅니다. 지금은 <b>1 표지 · 2 갑지</b>까지 — 3 상세내역은 이어서 붙습니다.</p>
+  <p class="hint no-print" style="margin:0 0 12px">시공사·발주처·공사명·견적일·내역은 <b>견적서</b> 탭에서 고릅니다. <b>3 상세내역</b>은 공종 순서대로 100·200… 코드가 붙고, 품목이 많으면 여러 장으로 나뉩니다. <b>관공서·건설사 제출용</b>을 체크하면 재료비·노무비·경비를 단가/금액으로 모두 보여 줍니다.</p>
   <div id="printDoc"></div>
 </section>
 </div>
@@ -1489,7 +1517,105 @@ function fillGset(){
 for(const [id,k] of Object.entries(GSET)) $(id).addEventListener("input",e=>{ G()[k]=e.target.value; persistDraft(); renderOut(); badge("저장 안 됨"); });
 $("gFormB").addEventListener("change",e=>{ G().formB=e.target.checked; persistDraft(); renderOut(); });
 
-/* ---------- 출력 (1 표지 · 2 갑지) ---------- */
+/* ---------- 3 상세내역 ---------- */
+/* 공종 코드는 견적서 탭의 공종 순서대로 100·200…, 품목은 그 아래 101·102… (1000번대도 같은 규칙: 1001·1002).
+   금액은 반올림하지 않고 더한 뒤 표시할 때만 반올림 → 합계가 갑지의 재료비·노무비·경비와 똑같이 맞음 */
+function detailData(){
+  return Object.entries(groups()).map(([gong,arr],gi)=>{
+    const code=(gi+1)*100;
+    const items=arr.map((r,j)=>{
+      const q=N(r.qty), mat=N(r.mat), lab=N(r.lab), exp=N(r.exp);
+      return {code:code+j+1,r,mat,lab,exp,unit:mat+lab+exp,am:mat*q,al:lab*q,ae:exp*q,a:(mat+lab+exp)*q};
+    });
+    const t=k=>items.reduce((s,x)=>s+x[k],0);
+    return {code,gong,items,am:t("am"),al:t("al"),ae:t("ae"),a:t("a")};
+  });
+}
+/* 한 장에 들어가는 표 줄 수 (머리줄 제외). 행 높이(.dt td height)를 바꾸면 같이 맞출 것 */
+const DT_PER=27, DS_PER=22;
+/* 줄 목록을 장 단위로 자름.
+   ① 공종 머리줄만 장 끝에 남기지 않음 ② 장이 바뀌면 그 공종 머리줄을 "(계속)"으로 다시 ③ 소계가 혼자 넘어가지 않게 품목 하나를 같이 넘김
+   ④ 마지막 장에는 합계 띠(1.5줄) 자리를 남김 */
+function paginateDetail(D){
+  const flat=[];
+  D.forEach(d=>{ flat.push({t:"h",d}); d.items.forEach(x=>flat.push({t:"i",d,x})); flat.push({t:"s",d}); });
+  const pages=[]; let cur=[];
+  const newPage=carry=>{
+    pages.push(cur); cur=[];
+    if(carry.length&&carry[0].t!=="h") cur.push({t:"h",d:carry[0].d,cont:1});
+    cur.push(...carry);
+  };
+  for(const r of flat){
+    if(cur.length>=DT_PER||(r.t==="h"&&cur.length>=DT_PER-1)){
+      const carry=[];
+      if(r.t==="s"&&cur.length>2&&cur[cur.length-1].t==="i"&&cur[cur.length-2].t==="i") carry.push(cur.pop());
+      carry.push(r); newPage(carry);
+    } else cur.push(r);
+  }
+  if(cur.length>DT_PER-2){
+    const carry=[]; let k=2;
+    while(k-->0&&cur.length>1&&cur[cur.length-1].t!=="h") carry.unshift(cur.pop());
+    if(cur.length&&cur[cur.length-1].t==="h") carry.unshift(cur.pop());
+    newPage(carry);
+  }
+  if(cur.length) pages.push(cur);
+  return pages.filter(p=>p.length);
+}
+function detailPagesHtml(){
+  const B=!!G().formB, D=detailData(), m=v=>v?F(v):"";
+  const tot={am:D.reduce((s,d)=>s+d.am,0),al:D.reduce((s,d)=>s+d.al,0),ae:D.reduce((s,d)=>s+d.ae,0),a:D.reduce((s,d)=>s+d.a,0)};
+  const col=ws=>`<colgroup>${ws.map(w=>`<col style="width:${w}%">`).join("")}</colgroup>`;
+  const cols=B?[6,13,9,4,5,6.5,7.5,6.5,7.5,5.5,6.5,6.5,8,8.5]:[6,19,10,5,6,9,9,9,8.5,10,8.5];
+  const nC=cols.length;
+  /* 머리줄 2단: A형은 계만 단가/금액, B형은 재료비·노무비·경비·합계 전부 단가/금액 */
+  const head=B
+    ?`<tr><th rowspan="2">공 종</th><th rowspan="2">품 목</th><th rowspan="2">규 격</th><th rowspan="2">단위</th><th rowspan="2">수량</th><th colspan="2" class="gl">재 료 비</th><th colspan="2" class="gl">노 무 비</th><th colspan="2" class="gl">경 비</th><th colspan="2" class="gl">합 계</th><th rowspan="2" class="gl">비 고</th></tr>
+      <tr class="h2"><th class="gl">단가</th><th>금액</th><th class="gl">단가</th><th>금액</th><th class="gl">단가</th><th>금액</th><th class="gl">단가</th><th>금액</th></tr>`
+    :`<tr><th rowspan="2">공 종</th><th rowspan="2">품 목</th><th rowspan="2">규 격</th><th rowspan="2">단위</th><th rowspan="2">수량</th><th rowspan="2" class="gl">재료비</th><th rowspan="2">노무비</th><th rowspan="2">경 비</th><th colspan="2" class="gl">계</th><th rowspan="2" class="gl">비 고</th></tr>
+      <tr class="h2"><th class="gl">단가</th><th>금액</th></tr>`;
+  const nums=(x,unit)=>B
+    ?`<td class="r pr">${m(unit&&x.mat)}</td><td class="r">${m(x.am)}</td><td class="r pr">${m(unit&&x.lab)}</td><td class="r">${m(x.al)}</td><td class="r pr">${m(unit&&x.exp)}</td><td class="r">${m(x.ae)}</td><td class="r pr">${m(unit&&x.unit)}</td><td class="r k">${m(x.a)}</td>`
+    :`<td class="r">${m(x.am)}</td><td class="r">${m(x.al)}</td><td class="r">${m(x.ae)}</td><td class="r pr">${m(unit&&x.unit)}</td><td class="r k">${m(x.a)}</td>`;
+  const row=e=>{
+    if(e.t==="h") return `<tr class="sec"><td class="code">${e.d.code}</td><td colspan="${nC-1}">${esc(e.d.gong)}${e.cont?"<i>(계속)</i>":""}</td></tr>`;
+    if(e.t==="s") return `<tr class="sub"><td></td><td colspan="4">[ 소 계 ] &nbsp;${esc(e.d.gong)}</td>${nums(e.d,false)}<td></td></tr>`;
+    const x=e.x, r=x.r;
+    return `<tr><td class="code">${x.code}</td><td>${esc(r.name)}</td><td class="spec">${esc(r.spec||"")}</td><td class="c">${esc(r.unit||"")}</td><td class="c">${esc(fmtQty(r.qty,r.unit))}</td>${nums(x,true)}<td class="note">${esc(r.note||"")}</td></tr>`;
+  };
+  const fin=`<tr class="fin"><td colspan="5"><span class="fl">합계</span><span class="fs">(a) 직접공사비</span></td>${nums(tot,false)}<td></td></tr>`;
+
+  /* ① 공종별 합계표 */
+  const sCols=B?[8,26,14,14,12,15,11]:[12,43,25,20];
+  const sHead=B?`<tr><th>코 드</th><th>공 사 명</th><th class="gl">재 료 비</th><th>노 무 비</th><th>경 비</th><th class="gl">합 계</th><th class="gl">비 고</th></tr>`
+               :`<tr><th>코 드</th><th>공 사 명</th><th class="gl">금 액</th><th class="gl">비 고</th></tr>`;
+  const sRow=d=>`<tr><td class="code">${d.code}</td><td class="nm">${esc(d.gong)}</td>${B?`<td class="r">${m(d.am)}</td><td class="r">${m(d.al)}</td><td class="r">${m(d.ae)}</td>`:""}<td class="r k">${m(d.a)}</td><td></td></tr>`;
+  const sFin=`<tr class="fin"><td colspan="2"><span class="fl">합계</span><span class="fs">(a) 직접공사비</span></td>${B?`<td class="r">${m(tot.am)}</td><td class="r">${m(tot.al)}</td><td class="r">${m(tot.ae)}</td>`:""}<td class="r">${m(tot.a)}</td><td></td></tr>`;
+  const sPages=[];
+  for(let i=0;i<Math.max(1,D.length);i+=DS_PER) sPages.push(D.slice(i,i+DS_PER));
+  if(sPages.length>1&&sPages[sPages.length-1].length>DS_PER-2) sPages.push([]);
+  const out=[];
+  sPages.forEach((p,i)=>{
+    const last=i===sPages.length-1;
+    const body=D.length?p.map(sRow).join(""):`<tr class="empty"><td colspan="${sCols.length}">담긴 내역이 없습니다 — 견적서 탭에서 품목을 담아 주세요.</td></tr>`;
+    out.push({sub:"공종별 합계표",tbl:`<table class="dt ds${B?" fb":""}">${col(sCols)}${sHead}${body}${last&&D.length?sFin:""}</table>`});
+  });
+  /* ② 공종별 세부내역 */
+  const dPages=paginateDetail(D);
+  dPages.forEach((p,i)=>{
+    const last=i===dPages.length-1;
+    out.push({sub:"공종별 세부내역",tbl:`<table class="dt${B?" fb":""}">${col(cols)}${head}${p.map(row).join("")}${last?fin:""}</table>`});
+  });
+
+  const ct=curContractor(), logo=ct&&okImg(ct.logo)?ct.logo:"img/logo-navy.png";
+  return out.map((o,i)=>`<div class="pg" aria-label="3 상세내역 ${i+1}/${out.length}"><div class="gj-in">
+    <img class="gj-logo" src="${logo}" alt="${esc(ct?ct.name:"")}"><div class="gj-rule"></div>
+    <div class="gj-title"><b>상세내역서 / DETAIL</b><span>공사명 &nbsp;: ${esc(S.meta.client||"")}</span></div>
+    <div class="gj-sub"><span>[ ${o.sub} ]</span><em>(단위 : 원)</em></div>
+    ${o.tbl}
+  </div><div class="dt-pno">3 − ${i+1} / ${out.length}</div></div>`);
+}
+
+/* ---------- 출력 (1 표지 · 2 갑지 · 3 상세내역) ---------- */
 function renderOut(){
   const cl=curClient(), clientName=(cl&&cl.name)||String(S.meta.owner||"").trim()||"발주처";
   const text=S.meta.coverText||DEFAULT_COVER;
@@ -1502,7 +1628,7 @@ function renderOut(){
     <img class="cv-conf" src="img/confidential.png" alt="CONFIDENCIAL">
   </div>`;
   fillGset();
-  $("printDoc").innerHTML=[cover,gapjiHtml()].map(p=>`<div class="pgw">${p}</div>`).join("");
+  $("printDoc").innerHTML=[cover,gapjiHtml(),...detailPagesHtml()].map(p=>`<div class="pgw">${p}</div>`).join("");
   fitPages();
 }
 /* 장을 보이는 자리 너비에 맞춰 축소 */
