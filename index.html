@@ -17,7 +17,8 @@
   --good:#2E6B4F; --warn:#8A6410; --crit:#9B3524;
   --head:#22282B; --head-ink:#EDEFEA;
   --ln:block; --lw:none;                 /* 견적서 로고: 밝은 화면엔 남색, 어두운 화면엔 흰색 */
-  --ht-line:#B9C6E6; --ht-strong:#3F5FA8; --ht-side:#D7E0F7; --ht-label:#EEF2FC;   /* 세금계산서 양식 */
+  --ht-line:#B9C6E6; --ht-strong:#3F5FA8; --ht-side:#D7E0F7; --ht-label:#EEF2FC;   /* 세금계산서 양식 — 공급받는자(블루) */
+  --hr-line:#EBB4B4; --hr-strong:#C0392B; --hr-side:#F9D7D7; --hr-label:#FDF0F0;   /* 공급자(레드) */
   --shadow:0 1px 2px rgba(23,28,25,.06),0 6px 20px rgba(23,28,25,.05);
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
@@ -30,6 +31,7 @@
   --head:#0F1315; --head-ink:#E7EBE6;
   --ln:none; --lw:block;
   --ht-line:#3A4663; --ht-strong:#8FA8E8; --ht-side:#262F45; --ht-label:#202738;
+  --hr-line:#5E3535; --hr-strong:#EE8F84; --hr-side:#3F2626; --hr-label:#2E1F1F; --seg-ink:#14181A;
   --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.3);
 }}
 :root[data-theme="dark"]{
@@ -42,6 +44,7 @@
   --head:#0F1315; --head-ink:#E7EBE6;
   --ln:none; --lw:block;
   --ht-line:#3A4663; --ht-strong:#8FA8E8; --ht-side:#262F45; --ht-label:#202738;
+  --hr-line:#5E3535; --hr-strong:#EE8F84; --hr-side:#3F2626; --hr-label:#2E1F1F; --seg-ink:#14181A;
   --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.3);
 }
 *{box-sizing:border-box}
@@ -185,7 +188,10 @@ tr.hid .ein{opacity:.55}
 .segb{background:var(--surface);border:0;padding:7px 14px;font-size:12.5px;font-weight:600;color:var(--ink-2)}
 .segb + .segb{border-left:1px solid var(--line)}
 .segb.on{background:var(--accent);color:#fff}
+.segb.on[data-t="contractor"]{background:var(--hr-strong);color:var(--seg-ink,#fff)}
+.segb.on[data-t="client"]{background:var(--ht-strong);color:var(--seg-ink,#fff)}
 .ht{display:flex;border:1px solid var(--ht-line);border-top:2px solid var(--ht-strong);background:var(--surface);border-radius:2px;overflow:hidden}
+.ht.red{--ht-line:var(--hr-line);--ht-strong:var(--hr-strong);--ht-side:var(--hr-side);--ht-label:var(--hr-label)}   /* 시공사 = 공급자 */
 .ht-side{flex:none;width:44px;display:flex;align-items:center;justify-content:center;text-align:center;background:var(--ht-side);color:var(--ht-strong);font-weight:700;font-size:13px;line-height:1.9;border-right:1px solid var(--ht-line)}
 .ht-grid{flex:1;display:grid;grid-template-columns:110px minmax(0,1fr) 110px minmax(0,1fr)}
 .ht-l{background:var(--ht-label);border-bottom:1px solid var(--ht-line);border-right:1px solid var(--ht-line);padding:10px 12px;font-size:12.5px;font-weight:600;display:flex;align-items:center}
@@ -1168,6 +1174,7 @@ $("dfOwner").addEventListener("input",e=>{ const hit=S.parties.clients.find(p=>p
 function renderParty(){
   const isC=PT==="contractor", list=ptList();
   $("ptContractor").classList.toggle("on",isC); $("ptClient").classList.toggle("on",!isC);
+  $("htForm").classList.toggle("red",isC);        // 시공사(공급자)=레드, 발주처(공급받는자)=블루 — 홈택스와 같은 구분
   $("htSide").innerHTML=isC?"공<br>급<br>자":"공<br>급<br>받<br>는<br>자";
   $("pStampL").hidden=!isC; $("pStampF").hidden=!isC;
   $("partyCount").textContent=(isC?"시공사 ":"발주처 ")+list.length+"곳";
