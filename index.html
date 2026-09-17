@@ -619,7 +619,7 @@ tr.hid .ein{opacity:.55}
         <div class="gind-r"><span>7. 공과잡비</span><span class="f">(노무비 + 일반관리비) × <input type="text" id="gP7" class="num pc" inputmode="decimal" placeholder="5"> %</span><input type="text" id="gN7" placeholder="비고"></div>
         <div class="gind-r"><span>8. 이윤</span><span class="f">직접공사비(a) × <input type="text" id="gP8" class="num pc" inputmode="decimal" placeholder="7"> %</span><input type="text" id="gN8" placeholder="비고"></div>
         <div class="gind-r adj"><span><select id="gAdjKind"><option>단수정리</option><option>할인</option></select></span>
-          <span class="f"><select id="gAdjMode"><option value="none">없음</option><option value="10000">만원 단위 절사</option><option value="100000">십만원 단위 절사</option><option value="1000000">백만원 단위 절사</option><option value="manual">직접입력</option></select>
+          <span class="f"><select id="gAdjMode"><option value="none">없음</option><option value="100000">십만 단위 절사</option><option value="1000000">백만 단위 절사</option><option value="10000000">천만 단위 절사</option><option value="manual">직접입력</option></select>
             <input type="text" id="gAdjAmt" class="num" inputmode="numeric" placeholder="빼는 금액" hidden></span>
           <em class="hint" id="gAdjHint"></em></div>
       </div>
@@ -1364,8 +1364,8 @@ const DEFAULT_G={p1:50,p2:30,p3:"",lead:"아래와 같이 견적합니다. (견�
   notes:"",foot:"귀사의 일익 번창하심을 기원합니다.\n본 견적은 견적일로부터 1개월간 유효합니다.",formB:false};
 const GSET={gP1:"p1",gP2:"p2",gP3:"p3",gLead:"lead",gD4:"d4",gP5:"p5",gP6:"p6",gP7:"p7",gP8:"p8",gN4:"n4",gN5:"n5",gN6:"n6",gN7:"n7",gN8:"n8",
   gAdjKind:"adjKind",gAdjMode:"adjMode",gAdjAmt:"adjAmt",gNotes:"notes",gFoot:"foot"};
-const ADJ_LABEL={"10000":"만원 단위 절사","100000":"십만원 단위 절사","1000000":"백만원 단위 절사"};
-const G=()=>{ const g=S.meta.g=Object.assign({},DEFAULT_G,S.meta.g||{}); if(g.notes==="1. 부가세별도금액임"||g.notes==="*부가세별도") g.notes=""; if(g.lead==="아래와 같이 견적합니다.") g.lead=DEFAULT_G.lead; if(!(g.v>=3)){ for(const k of ["d4","p5","p6","p7","p8"]) if(String(g[k]??"")==="") g[k]=DEFAULT_G[k]; g.v=3; } return g; };   // 예전 양식 초안 호환
+const ADJ_LABEL={"100000":"십만 단위 절사","1000000":"백만 단위 절사","10000000":"천만 단위 절사"};
+const G=()=>{ const g=S.meta.g=Object.assign({},DEFAULT_G,S.meta.g||{}); if(g.notes==="1. 부가세별도금액임"||g.notes==="*부가세별도") g.notes=""; if(g.lead==="아래와 같이 견적합니다.") g.lead=DEFAULT_G.lead; if(!(g.v>=3)){ for(const k of ["d4","p5","p6","p7","p8"]) if(String(g[k]??"")==="") g[k]=DEFAULT_G[k]; g.v=3; } if(g.adjMode==="10000") g.adjMode="100000"; return g; };   // 예전 양식 초안 호환
 const lines=s=>String(s||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
 function calcG(){
   const g=G(), sumOf=k=>S.rows.reduce((a,r)=>a+N(r[k])*N(r.qty),0);
@@ -1382,8 +1382,8 @@ function calcG(){
   const b=ind.reduce((s,x)=>s+(x.a||0),0), sub=a+b;                               // 소계(b), a+b
   const mode=String(g.adjMode||"none"), unit=/^\d+$/.test(mode)?+mode:0;
   let cut=0;                                                                      // 빼는 금액 (양수)
-  /* "십만원 단위 절사" = 십만원 자리까지 버림 (백만원 미만을 0으로). 그래서 고른 단위의 10배로 내림 */
-  if(unit>0){ const step=unit*10; cut=sub-Math.floor(sub/step)*step; } else if(mode==="manual") cut=Math.min(sub,Math.max(0,N(g.adjAmt)));
+  /* "십만 단위 절사" = 십만 미만을 버림 (120,128,000 → 120,100,000). 백만·천만도 같은 방식 */
+  if(unit>0) cut=sub-Math.floor(sub/unit)*unit; else if(mode==="manual") cut=Math.min(sub,Math.max(0,N(g.adjAmt)));
   return {mat,lab,exp,direct:a,ind,indirect:b,sub,cut,total:sub-cut,adjKind:g.adjKind||"단수정리",adjSpec:ADJ_LABEL[mode]||""};
 }
 /* 70000000 → 칠천만원정 */
