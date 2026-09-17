@@ -27,7 +27,7 @@ const SS = () => SpreadsheetApp.getActiveSpreadsheet();
 const SCHEMA = {
   '단가DB':   ['대공종','공종','품목명','규격','단위','재료비','노무비','경비','단가합계','원가','사용'],
   '견적이력': ['견적번호','작성일시','현장명','발주처','담당','공급가액','부가세','합계','원가합계','마진','품목수','비고','시공사','발주처사업자번호','메타'],
-  '시공사':   ['사업자등록번호','상호','성명','사업장주소','업태','종목','이메일','담당자성명','담당자연락처','로고이미지','도장이미지'],
+  '시공사':   ['사업자등록번호','상호','성명','사업장주소','업태','종목','이메일','담당자성명','담당자연락처','로고이미지','도장이미지','FAX'],
   '발주처':   ['사업자등록번호','상호','성명','사업장주소','업태','종목','이메일','담당자성명','담당자연락처','로고이미지'],
   '견적상세': ['견적번호','순번','공종','품목명','규격','단위','수량','재료비','노무비','경비','단가합계','금액','원가'],
   '설정':     ['항목','값']
@@ -184,7 +184,7 @@ function readEstimate(no) {
 
 /* ---------------- 거래처 (시공사 · 발주처) ---------------- */
 const PARTY_KEYS = { '사업자등록번호':'bizno','상호':'name','성명':'ceo','사업장주소':'addr','업태':'uptae','종목':'jongmok',
-                     '이메일':'email','담당자성명':'mgr','담당자연락처':'mgrTel','로고이미지':'logo','도장이미지':'stamp' };
+                     '이메일':'email','담당자성명':'mgr','담당자연락처':'mgrTel','로고이미지':'logo','도장이미지':'stamp','FAX':'fax' };
 
 function bizDigits(v) { return String(v == null ? '' : v).replace(/\D/g, ''); }
 function bizFormat(v) { const d = bizDigits(v); return d.length === 10 ? d.slice(0,3) + '-' + d.slice(3,5) + '-' + d.slice(5) : String(v || '').trim(); }
@@ -290,9 +290,14 @@ function saveEstimate(est) {
       det.getRange(det.getLastRow() + 1, 1, detRows.length, detRows[0].length).setValues(detRows);
     }
 
-    const rate  = num(readSettings()['부가세율'] || 10) / 100;
-    const vat   = Math.round(sup * rate);
-    const total = sup + vat;
+    // 갑지 총계(경비·이윤·일반관리비·별도공사·절사 반영, 부가세 별도)가 오면 그걸 공급가액으로 기록합니다.
+    // 없으면 예전처럼 품목 합계를 공급가액으로.
+    const rate   = num(readSettings()['부가세율'] || 10) / 100;
+    const supply = est.grandTotal != null && num(est.grandTotal) > 0 ? num(est.grandTotal) : sup;
+    const vat    = Math.round(supply * rate);
+    const total  = supply + vat;
+    const net    = sup;          // 순공사비 (품목 합계) — 마진 계산은 이 기준
+    sup = supply;
 
     // 메타: 시공사·발주처 선택, 표지 문구, 집계 비율, 제출 양식 등 견적서 머리 전체 (이미지는 넣지 않음)
     const metaJson = JSON.stringify(est.meta || {});
