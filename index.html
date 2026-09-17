@@ -220,6 +220,11 @@ tr.hid .ein{opacity:.55}
 .gset{margin-bottom:12px}
 .gset-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px 12px;margin-top:10px}
 .gset-grid.two{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+/* 갑지 설정 2단: 왼쪽 칸의 입력들은 전부 같은 폭 (비고 칸 끝 = 견적조건 상자 끝) */
+.gset2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px 28px;margin-top:10px;align-items:start}
+.gcol{display:flex;flex-direction:column;gap:16px;min-width:0}
+.gcol label.chk{align-self:flex-start}
+@media (max-width:860px){.gset2{grid-template-columns:1fr}}
 .gset label{display:flex;flex-direction:column;gap:4px;font-size:11.5px;color:var(--ink-2);font-weight:500}
 .gset label.chk{flex-direction:row;align-items:center;gap:7px;align-self:center;font-size:12.5px;cursor:pointer;flex-wrap:wrap}
 .gset input[type=text],.gset select,.gset textarea{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:7px 9px;font-size:12.5px;width:100%}
@@ -607,19 +612,17 @@ tr.hid .ein{opacity:.55}
   <!-- 갑지 설정 — 견적마다 저장됨 -->
   <div class="card card-pad no-print gset">
     <div class="eyebrow">2 갑지 설정</div>
-    <div class="gset-grid">
-      <div class="gpay">
+    <div class="gset2">
+      <div class="gcol">
+        <div class="gpay">
         <span class="gpay-t">대금조건 % <em id="gPaySum" class="hint"></em></span>
         <div class="trio">
-          <label>계약금<input type="text" id="gP1" class="num" inputmode="decimal" placeholder="50"></label>
-          <label>중도금<input type="text" id="gP2" class="num" inputmode="decimal" placeholder="30"></label>
-          <label>잔금<input type="text" id="gP3" class="num" inputmode="decimal" placeholder="자동"></label>
+        <label>계약금<input type="text" id="gP1" class="num" inputmode="decimal" placeholder="50"></label>
+        <label>중도금<input type="text" id="gP2" class="num" inputmode="decimal" placeholder="30"></label>
+        <label>잔금<input type="text" id="gP3" class="num" inputmode="decimal" placeholder="자동"></label>
         </div>
-      </div>
-      <label>안내 문구<input type="text" id="gLead" placeholder="아래와 같이 견적합니다. (견적일로부터 1개월간 유효)"></label>
-    </div>
-    <div class="gset-grid two">
-      <div class="gind">
+        </div>
+        <div class="gind">
         <div class="gind-t">B. 간접공사비 <span class="hint">— A. 직접공사비(재료비·노무비·경비)는 세부견적에서 자동. 비워두면 그 줄은 금액 없이 나옵니다</span></div>
         <div class="gind-r"><span>4. 디자인, 설계비</span><span class="f">단가 <input type="text" id="gD4" class="num" inputmode="numeric" placeholder="3000000"> 원</span><input type="text" id="gN4" placeholder="비고"></div>
         <div class="gind-r"><span>5. 안전관리비</span><span class="f">노무비 × <input type="text" id="gP5" class="num pc" inputmode="decimal" placeholder="4.57"> %</span><input type="text" id="gN5" placeholder="비고"></div>
@@ -627,15 +630,16 @@ tr.hid .ein{opacity:.55}
         <div class="gind-r"><span>7. 공과잡비</span><span class="f">(노무비 + 일반관리비) × <input type="text" id="gP7" class="num pc" inputmode="decimal" placeholder="5"> %</span><input type="text" id="gN7" placeholder="비고"></div>
         <div class="gind-r"><span>8. 이윤</span><span class="f">직접공사비(a) × <input type="text" id="gP8" class="num pc" inputmode="decimal" placeholder="7"> %</span><input type="text" id="gN8" placeholder="비고"></div>
         <div class="gind-r adj"><span><select id="gAdjKind"><option>단수정리</option><option>할인</option></select></span>
-          <span class="f"><select id="gAdjMode"><option value="none">없음</option><option value="100000">십만 단위 절사</option><option value="1000000">백만 단위 절사</option><option value="10000000">천만 단위 절사</option><option value="manual">직접입력</option></select>
-            <input type="text" id="gAdjAmt" class="num" inputmode="numeric" placeholder="빼는 금액" hidden></span>
-          <em class="hint" id="gAdjHint"></em></div>
+        <span class="f"><select id="gAdjMode"><option value="none">없음</option><option value="100000">십만 단위 절사</option><option value="1000000">백만 단위 절사</option><option value="10000000">천만 단위 절사</option><option value="manual">직접입력</option></select>
+        <input type="text" id="gAdjAmt" class="num" inputmode="numeric" placeholder="빼는 금액" hidden></span>
+        <em class="hint" id="gAdjHint"></em></div>
+        </div>
+        <label>견적조건 <span class="hint">한 줄에 하나 — 번호는 자동. 갑지 맨 아래에 3줄 × 2칸(1·2·3 | 4·5·6)으로 들어갑니다</span><textarea id="gFoot" rows="6"></textarea></label>
       </div>
-      
-    </div>
-    <div class="gset-grid two">
-      <label>견적조건 <span class="hint">한 줄에 하나 — 번호는 자동. 갑지 맨 아래에 3줄 × 2칸(1·2·3 | 4·5·6)으로 들어갑니다</span><textarea id="gFoot" rows="6"></textarea></label>
-      <label class="chk"><input type="checkbox" id="gFormB"> 관공서·건설사 제출용 <span class="hint">(3 상세내역을 재료비·노무비·경비·합계 전부 단가/금액으로)</span></label>
+      <div class="gcol">
+        <label>안내 문구<input type="text" id="gLead" placeholder="아래와 같이 견적합니다. (견적일로부터 1개월간 유효)"></label>
+        <label class="chk"><input type="checkbox" id="gFormB"> 관공서·건설사 제출용 <span class="hint">(3 상세내역을 재료비·노무비·경비·합계 전부 단가/금액으로)</span></label>
+      </div>
     </div>
   </div>
   <p class="hint no-print" style="margin:0 0 12px">시공사·발주처·공사명·견적일은 <b>견적서</b> 탭에서 고릅니다. 지금은 <b>1 표지 · 2 갑지</b>까지 — 3 상세내역은 이어서 붙습니다.</p>
