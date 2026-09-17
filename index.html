@@ -243,7 +243,9 @@ tr.hid .ein{opacity:.55}
 .gj-k i{font-style:normal}
 .gj-stampcell{position:relative;overflow:visible!important}
 .gj-stamp{position:absolute;left:23.2cqw;top:-2.3cqw;width:9.2cqw;height:auto;pointer-events:none}
-.gj-sub{font-weight:700;letter-spacing:.42em;padding:.75cqw 1.4cqw .55cqw;font-size:1.02cqw}
+.gj-sub{display:flex;justify-content:space-between;align-items:baseline;padding:.75cqw 1.4cqw .55cqw;font-size:1.02cqw}
+.gj-sub span{font-weight:700;letter-spacing:.42em}
+.gj-sub em{font-style:normal;font-weight:500;font-size:1.06cqw;letter-spacing:.02em;padding-right:1.6cqw}
 .gj-sum th{text-align:center;font-weight:700;letter-spacing:.9em;border-top:.14cqw solid #000}
 .gj-sum td.c{text-align:center}.gj-sum td.r{text-align:right;font-variant-numeric:tabular-nums}
 .gj-sum .neg{color:#e11}
@@ -557,6 +559,8 @@ tr.hid .ein{opacity:.55}
     <div class="gset-grid">
       <label>공사 구분<input type="text" id="gWork" placeholder="인테리어 공사"></label>
       <label>대금조건<input type="text" id="gPay" placeholder="계약금(50%)/중도금(30%)/잔금(20%)"></label>
+      <label>견적유효기간<input type="text" id="gValid" placeholder="30일"></label>
+      <label>안내 문구<input type="text" id="gLead" placeholder="아래와 같이 견적합니다."></label>
       <label>경비 %<input type="text" id="gExp" class="num" inputmode="decimal"></label>
       <label>이윤 %<input type="text" id="gProfit" class="num" inputmode="decimal"></label>
       <label>일반관리비+공과잡비 %<input type="text" id="gAdmin" class="num" inputmode="decimal"></label>
@@ -1298,9 +1302,9 @@ $("btnPartySave").addEventListener("click",async()=>{
 });
 
 /* ---------- 2 갑지 ---------- */
-const DEFAULT_G={work:"인테리어 공사",pay:"계약금(50%)/중도금(30%)/잔금(20%)",exp:5,profit:20,admin:6,round:100000,total:"",totalNote:"",
+const DEFAULT_G={work:"인테리어 공사",pay:"계약금(50%)/중도금(30%)/잔금(20%)",valid:"30일",lead:"아래와 같이 견적합니다.",exp:5,profit:20,admin:6,round:100000,total:"",totalNote:"",
   extras:"",notes:"*부가세별도",foot:"귀사의 일익 번창하심을 기원합니다.\n본 견적은 견적일로부터 1개월간 유효합니다.",formB:false};
-const GSET={gWork:"work",gPay:"pay",gExp:"exp",gProfit:"profit",gAdmin:"admin",gRound:"round",gTotal:"total",gTotalNote:"totalNote",gExtras:"extras",gNotes:"notes",gFoot:"foot"};
+const GSET={gWork:"work",gPay:"pay",gValid:"valid",gLead:"lead",gExp:"exp",gProfit:"profit",gAdmin:"admin",gRound:"round",gTotal:"total",gTotalNote:"totalNote",gExtras:"extras",gNotes:"notes",gFoot:"foot"};
 const ROUND_LABEL={1000:"천 단위 절사",10000:"만 단위 절사",100000:"십만 단위 절사",1000000:"백만 단위 절사",10000000:"천만 단위 절사"};
 const G=()=>(S.meta.g=Object.assign({},DEFAULT_G,S.meta.g||{}));
 const lines=s=>String(s||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
@@ -1346,9 +1350,9 @@ function gapjiHtml(){
       <tr><td>■ <span class="gj-lbl">공사명</span>: &nbsp;${esc(S.meta.client||"")}</td><td class="vsep">${jl("사업자번호")} : &nbsp; ${esc(ct?bizFmt(ct.bizno):"")}</td></tr>
       <tr><td>■ <span class="gj-lbl">총금액</span>: &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ${esc(toKoreanWon(c.total))}</td><td class="vsep gj-stampcell">${jl("대표자")} : &nbsp; ${esc(ct?ct.ceo:"")} &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ( 인 )${ct&&okImg(ct.stamp)?`<img class="gj-stamp" src="${ct.stamp}" alt="">`:""}</td></tr>
       <tr><td>■ 대금조건 : &nbsp;${esc(g.pay)}</td><td class="vsep">${jl("주소")} : &nbsp; ${esc(ct?ct.addr:"")}</td></tr>
-      <tr><td></td><td class="vsep">${jl("연락처")} : &nbsp; ${esc(ct?ct.mgrTel:"")}${ct&&ct.fax?` &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; FAX &nbsp; : &nbsp; ${esc(ct.fax)}`:""}</td></tr>
+      <tr><td>${g.valid?`■ 견적유효기간 : &nbsp;${esc(g.valid)}`:""}</td><td class="vsep">${jl("연락처")} : &nbsp; ${esc(ct?ct.mgrTel:"")}${ct&&ct.fax?` &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; FAX &nbsp; : &nbsp; ${esc(ct.fax)}`:""}</td></tr>
     </table>
-    <div class="gj-sub">[ 견적내역집계표 ]</div>
+    <div class="gj-sub"><span>[ 견적내역집계표 ]</span><em>${esc(g.lead||"")}</em></div>
     <table class="gj-tbl gj-sum${rows.length>11?" tight":""}"><colgroup><col style="width:20%"><col style="width:11%"><col style="width:14%"><col style="width:55%"></colgroup>
       <tr><th colspan="3">내역 / 금액</th><th class="vsep">특기사항</th></tr>
       ${sumRows}
