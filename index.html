@@ -127,6 +127,28 @@ tr.gong:hover > td{background:var(--surface-2)}
 .cartbar .meta{font-size:12px;color:#9AA49C;margin-right:auto}
 .cartbar .meta b{color:var(--head-ink)}
 
+/* 적산 — 밖으로 나가지 않는 물량 작업용. 엑셀처럼 단순한 격자, 색·장식 없음 */
+.xl-meta{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border:1px solid var(--line);border-bottom:0;background:var(--surface)}
+.xl-meta .field{border:0;border-right:1px solid var(--line);padding:0 8px;height:34px}
+.xl-meta .field:last-child{border-right:0}
+.xl-meta select{flex:1;min-width:0;background:transparent;border:0;font-size:12.5px}
+@media (max-width:900px){.xl-meta{grid-template-columns:repeat(2,minmax(0,1fr))}.xl-meta .field{border-bottom:1px solid var(--line)}}
+.xl-wrap{overflow-x:auto;border:1px solid var(--line);background:var(--surface)}
+table.xl{min-width:900px;table-layout:fixed;border-collapse:collapse;border-style:hidden;font-size:12.5px;font-variant-numeric:tabular-nums}
+table.xl th,table.xl td{border:1px solid var(--line);padding:0 8px;height:28px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right;color:var(--ink);font-weight:400}
+table.xl thead th{background:var(--surface-2);color:var(--ink-2);font-size:12px;font-weight:600;text-align:center}
+table.xl td.t{text-align:left}
+table.xl td.c{text-align:center}
+table.xl td.sp{text-align:left;color:var(--ink-2)}
+table.xl td.z{color:var(--ink-3)}
+table.xl tbody tr:hover{background:transparent}
+table.xl tr.grp td{background:var(--surface-2);font-weight:600;text-align:left}
+table.xl tr.tot td{font-weight:600}
+table.xl tr.grand td{font-weight:700;border-top:2px solid var(--ink)}
+table.xl td.q{padding:0;background:var(--accent-soft)}
+table.xl .qty{display:block;width:100%;height:27px;border:0;border-radius:0;background:transparent;padding:0 8px;text-align:right;font-size:12.5px;color:var(--ink)}
+table.xl .qty:focus{outline:2px solid var(--accent);outline-offset:-2px;background:var(--surface)}
+table.xl td.x{padding:0;text-align:center}
 .doc{background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);overflow:hidden}
 .doc-head{padding:18px 20px;border-bottom:2px solid var(--ink)}
 .doc-title{font-size:20px;font-weight:700;letter-spacing:.22em;text-align:center;margin-bottom:14px}
@@ -448,29 +470,19 @@ tr.hid .ein{opacity:.55}
 </div>
 
 <section class="panel" id="panel-doc" hidden>
-  <div class="doc">
-    <div class="doc-head">
-      <img src="img/logo-navy.png" alt="Grid-A 4U" class="doc-logo navy"><img src="img/logo-white.png" alt="" class="doc-logo white">
-      <div class="doc-title">적 산 서</div>
-      <div class="doc-co" id="docCo"></div>
-      <div class="doc-fields">
-        <div class="field no-print"><label for="dfContractor">시공사</label><select id="dfContractor" style="flex:1;background:transparent;border:0;font-size:12.5px;min-width:0"></select></div>
-        <div class="field"><label for="dfClient">공사명</label><input id="dfClient" placeholder="○○ 인테리어공사"></div>
-        <div class="field"><label for="dfOwner">발주처</label><input id="dfOwner" list="clientList" placeholder="상호로 조회 — 거래처 탭에 등록된 곳"><datalist id="clientList"></datalist></div>
-        <div class="field"><label for="dfStaff">담당</label><input id="dfStaff" placeholder="작성자"></div>
-        <div class="field"><label for="dfDate">견적일</label><input id="dfDate" type="date"></div>
-      </div>
-    </div>
-    <div class="tablewrap" style="border:0;border-radius:0;box-shadow:none">
-      <table>
-        <thead><tr>
-          <th style="width:30%">품목</th><th style="width:7%">단위</th><th style="width:8%">수량</th>
-          <th style="width:11%">재료비</th><th style="width:11%">노무비</th><th style="width:9%">경비</th>
-          <th style="width:13%">금액</th><th style="width:8%" class="no-print">원가</th><th style="width:3%" class="no-print"></th>
-        </tr></thead>
-        <tbody id="docBody"></tbody>
-      </table>
-    </div>
+  <div class="xl-meta">
+    <div class="field"><label for="dfContractor">시공사</label><select id="dfContractor"></select></div>
+    <div class="field"><label for="dfClient">공사명</label><input id="dfClient" placeholder="○○ 인테리어공사"></div>
+    <div class="field"><label for="dfOwner">발주처</label><input id="dfOwner" list="clientList" placeholder="거래처 상호"><datalist id="clientList"></datalist></div>
+    <div class="field"><label for="dfStaff">담당</label><input id="dfStaff" placeholder="작성자"></div>
+    <div class="field"><label for="dfDate">견적일</label><input id="dfDate" type="date"></div>
+  </div>
+  <div class="xl-wrap">
+    <table class="xl">
+      <colgroup><col style="width:22%"><col style="width:16%"><col style="width:6%"><col style="width:8%"><col style="width:10%"><col style="width:10%"><col style="width:7%"><col style="width:11%"><col style="width:7%"><col style="width:3%"></colgroup>
+      <thead><tr><th>품목</th><th>규격</th><th>단위</th><th>수량</th><th>재료비</th><th>노무비</th><th>경비</th><th>금액</th><th>원가</th><th></th></tr></thead>
+      <tbody id="docBody"></tbody>
+    </table>
   </div>
 </section>
 
@@ -915,32 +927,33 @@ function renderCo(){
   // 선택한 시공사 정보가 견적서 머리에 찍힘 (없으면 설정 시트의 회사 정보)
   const c=(typeof curContractor==="function"&&S.parties)?curContractor():null, s=S.settings||{};
   const name=c?c.name:s["회사명"], addr=c?c.addr:s["주소"], biz=c?bizFmt(c.bizno):s["사업자등록번호"], tel=c?[c.mgr,c.mgrTel].filter(Boolean).join(" "):s["연락처"];
-  $("docCo").innerHTML = name ? `<div><b>${esc(name)}</b>${c&&c.ceo?" · 대표 "+esc(c.ceo):""}<br>${esc(addr||"")}</div><div style="text-align:right">${biz?"사업자등록번호 "+esc(biz)+"<br>":""}${esc(tel||"")}</div>` : "";
+  if($("docCo")) $("docCo").innerHTML = name ? `<div><b>${esc(name)}</b>${c&&c.ceo?" · 대표 "+esc(c.ceo):""}<br>${esc(addr||"")}</div><div style="text-align:right">${biz?"사업자등록번호 "+esc(biz)+"<br>":""}${esc(tel||"")}</div>` : "";
   const logo=c&&typeof okImg==="function"&&okImg(c.logo)?c.logo:null;
   document.querySelectorAll(".doc-logo").forEach(el=>{ el.src = logo || (el.classList.contains("white")?"img/logo-white.png":"img/logo-navy.png"); });
 }
 function renderDoc(){
   const body=$("docBody"), g=groups();
-  if(!S.rows.length){ body.innerHTML='<tr><td colspan="9"><div class="empty-state">담긴 내역이 없습니다.</div></td></tr>'; return; }
-  let h="", sup=0, cost=0;
+  if(!S.rows.length){ body.innerHTML='<tr><td colspan="10" class="c" style="height:80px;color:var(--ink-3)">담긴 내역이 없습니다 — 단가 DB에서 수량을 넣고 내역담기</td></tr>'; return; }
+  const m=v=>v?F(v):"";
+  const sums=t=>`<td>${m(t.mat)}</td><td>${m(t.lab)}</td><td>${m(t.exp)}</td><td>${m(t.amt)}</td><td class="z">${m(t.cost)}</td><td></td>`;
+  const all={mat:0,lab:0,exp:0,amt:0,cost:0};
+  let h="";
   for(const [gong,arr] of Object.entries(g)){
-    let gs=0; h+=`<tr class="grp"><td colspan="9">${esc(gong)}</td></tr>`;
+    const t={mat:0,lab:0,exp:0,amt:0,cost:0};
+    h+=`<tr class="grp"><td colspan="10">${esc(gong)}</td></tr>`;
     arr.forEach(r=>{
-      const amt=unitOf(r)*N(r.qty); gs+=amt; cost+=N(r.cost)*N(r.qty);
-      h+=`<tr data-row="${esc(r.key)}"><td><div class="item-name" style="padding-left:12px"><b>${esc(r.name)}</b><span class="item-meta">${esc(r.spec||"")}</span></div></td>
-        <td>${esc(r.unit||"")}</td><td><input class="qty num" type="text" inputmode="decimal" value="${fmtQty(r.qty,r.unit)}" ${qtyAttr(r.unit)} aria-label="${esc(r.name)} 수량"></td>
-        <td class="num c-mat">${r.mat?F(r.mat*r.qty):"–"}</td><td class="num c-lab">${r.lab?F(r.lab*r.qty):"–"}</td><td class="num c-exp">${r.exp?F(r.exp*r.qty):"–"}</td>
-        <td class="num sum">${F(amt)}</td><td class="num no-print" style="color:var(--ink-3)">${r.cost?F(r.cost*r.qty):"–"}</td>
-        <td class="no-print"><button class="del" data-del="${esc(r.key)}" aria-label="행 삭제">×</button></td></tr>`;
+      const q=N(r.qty), x={mat:N(r.mat)*q,lab:N(r.lab)*q,exp:N(r.exp)*q,amt:unitOf(r)*q,cost:N(r.cost)*q};
+      for(const k in t){ t[k]+=x[k]; all[k]+=x[k]; }
+      h+=`<tr data-row="${esc(r.key)}"><td class="t" title="${esc(r.name)}">${esc(r.name)}</td><td class="sp" title="${esc(r.spec||"")}">${esc(r.spec||"")}</td><td class="c">${esc(r.unit||"")}</td>
+        <td class="q"><input class="qty" type="text" inputmode="decimal" value="${fmtQty(r.qty,r.unit)}" ${qtyAttr(r.unit)} aria-label="${esc(r.name)} 수량"></td>
+        <td>${m(x.mat)}</td><td>${m(x.lab)}</td><td>${m(x.exp)}</td><td>${m(x.amt)}</td><td class="z">${m(x.cost)}</td>
+        <td class="x"><button class="del" data-del="${esc(r.key)}" aria-label="행 삭제">×</button></td></tr>`;
     });
-    sup+=gs; h+=`<tr class="tot"><td colspan="6">${esc(gong)} 소계</td><td class="num">${W(gs)}</td><td colspan="2" class="no-print"></td></tr>`;
+    h+=`<tr class="tot"><td class="t" colspan="4">${esc(gong)} 소계</td>${sums(t)}</tr>`;
   }
-  const rate=N(S.settings["부가세율"]||10)/100, vat=Math.round(sup*rate), grand=sup+vat, margin=sup-cost, mr=sup?margin/sup*100:0;
-  h+=`<tr class="tot"><td colspan="6">공급가액 합계</td><td class="num">${W(sup)}</td><td colspan="2" class="no-print"></td></tr>
-      <tr class="tot"><td colspan="6">부가세 (${rate*100}%)</td><td class="num">${W(vat)}</td><td colspan="2" class="no-print"></td></tr>
-      <tr class="grand"><td colspan="6">합계 금액</td><td class="num v">${W(grand)}</td><td colspan="2" class="no-print"></td></tr>
-      <tr class="no-print"><td colspan="6" style="color:var(--ink-3);font-size:11.5px">원가 합계 ${W(cost)} · 예상 마진</td>
-        <td class="num ${margin>=0?"margin-pos":"margin-neg"}">${W(margin)}</td><td class="num ${margin>=0?"margin-pos":"margin-neg"}">${mr.toFixed(1)}%</td><td></td></tr>`;
+  const margin=all.amt-all.cost, mr=all.amt?margin/all.amt*100:0;
+  h+=`<tr class="grand"><td class="t" colspan="4">합계 (직접공사비)</td>${sums(all)}</tr>`;
+  if(all.cost) h+=`<tr><td class="t z" colspan="7">원가 대비 예상 마진</td><td class="${margin>=0?"margin-pos":"margin-neg"}">${F(margin)}</td><td class="${margin>=0?"margin-pos":"margin-neg"}">${mr.toFixed(1)}%</td><td></td></tr>`;
   // 다시 그려도 커서가 있던 수량 칸으로 돌아가게
   const act=document.activeElement, key=act&&act.classList&&act.classList.contains("qty")?act.closest("tr[data-row]")?.dataset.row:null;
   body.innerHTML=h;
