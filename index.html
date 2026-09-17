@@ -244,27 +244,27 @@ tr.hid .ein{opacity:.55}
 .trio label{flex:1;min-width:0;font-size:10.5px!important;color:var(--ink-3)!important;gap:2px!important}
 
 /* 2 갑지 — 가로 A4, cqw 기준 */
-.gj-in{position:absolute;inset:0;padding:2.4cqw 6.3cqw 0 6.5cqw;font-size:1.06cqw;line-height:1.35;color:#111}
+.gj-in{position:absolute;inset:0;padding:2.4cqw 6.3cqw 0 6.5cqw;font-size:1.12cqw;line-height:1.35;color:#111}
 .gj-logo{position:absolute;left:7.2cqw;top:2.5cqw;height:3.9cqw;width:auto;max-width:30cqw;object-fit:contain;object-position:left center}
 .gj-rule{position:absolute;left:6.5cqw;right:6.3cqw;top:7.2cqw;border-top:.24cqw solid #000}
 .gj-title{display:flex;justify-content:space-between;align-items:flex-end;margin-top:5.7cqw;padding:0 .4cqw .6cqw}
 .gj-title b{font-size:1.62cqw;letter-spacing:-.01em}
-.gj-title span{font-size:1cqw;padding-right:3cqw}
+.gj-title span{font-size:1.08cqw;padding-right:.4cqw}
 .gj-tbl{width:100%;min-width:0;border-collapse:collapse;table-layout:fixed}
-.gj-info td{padding-top:.5cqw!important;padding-bottom:.5cqw!important}
+.gj-info td{padding-top:.64cqw!important;padding-bottom:.64cqw!important}
 .gj-sum.tight td,.gj-sum.tight th{padding-top:.14cqw;padding-bottom:.14cqw}   /* 행이 많을 때 (별도공사·특기사항이 길 때) */
-.gj-tbl td,.gj-tbl th{border:0;border-top:.09cqw solid #000;border-bottom:.09cqw solid #000;padding:.3cqw .5cqw;text-align:left;font-size:1.06cqw;background:transparent;color:#111;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.35}
+.gj-tbl td,.gj-tbl th{border:0;border-top:.09cqw solid #000;border-bottom:.09cqw solid #000;padding:.3cqw .5cqw;text-align:left;font-size:1.12cqw;background:transparent;color:#111;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.35}
 .gj-tbl tr:hover{background:transparent}
 .gj-tbl .vsep{border-left:.12cqw solid #000}
 .gj-lbl{letter-spacing:.32em}
 .gj-k{display:inline-flex;justify-content:space-between;width:8.6cqw;vertical-align:bottom}
 .gj-k i{font-style:normal}
 .gj-stampcell{position:relative;overflow:visible!important}
-.gj-seal{position:relative;display:inline-block}
+.gj-seal{position:absolute;left:62%;top:50%;transform:translateY(-50%);white-space:nowrap}
 .gj-stamp{position:absolute;left:50%;top:50%;width:9.2cqw;max-width:none;height:auto;transform:translate(-46%,-50%);pointer-events:none;opacity:.92}
-.gj-sub{display:flex;justify-content:space-between;align-items:baseline;padding:.75cqw 1.4cqw .55cqw;font-size:1.02cqw}
-.gj-sub span{font-weight:700;letter-spacing:.42em}
-.gj-sub em{font-style:normal;font-weight:500;font-size:1.06cqw;letter-spacing:.02em;padding-right:1.6cqw}
+.gj-sub{display:flex;justify-content:space-between;align-items:baseline;padding:1.05cqw .4cqw .6cqw;font-size:1.08cqw}
+.gj-sub span{font-weight:700;letter-spacing:.28em;color:#0b2a4a}
+.gj-sub em{font-style:normal;font-weight:400;font-size:1.06cqw;color:#3c4a58;padding-right:0}
 .gj-sum th{text-align:center;font-weight:700;letter-spacing:.9em;border-top:.14cqw solid #000}
 .gj-sum td.c{text-align:center}.gj-sum td.r{text-align:right;font-variant-numeric:tabular-nums}
 .gj-sum .neg{color:#e11}
@@ -273,33 +273,36 @@ tr.hid .ein{opacity:.55}
 .gj-sum tr.grand td.fill{background:#fbd4b4}
 /* 집계표 — Grid-A 남색 기조. 세로줄·겹선·점선 없이 옅은 가로줄만. 구역(A·B)은 옅은 띠, 소계는 살짝 강조, 합계(a+b)는 남색 띠 */
 .gj-cost{--navy:#0b2a4a;--ink2:#5b6b7c;--hair:#e2e7ed;width:100%;min-width:0;border-collapse:collapse;table-layout:fixed;border:0;border-bottom:.2cqw solid var(--navy)}
-.gj-cost td,.gj-cost th{border:0;border-bottom:.07cqw solid var(--hair);padding:0 .9cqw;height:var(--rh,2.1cqw);font-size:min(1.24cqw,calc(var(--rh,2.1cqw)*.6));line-height:1.15;background:transparent;color:#1a2430;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left;font-weight:400;vertical-align:middle}
-.gj-cost th{background:var(--navy);color:#fff;font-weight:600;font-size:1.12cqw;height:2.45cqw;border-bottom:0;text-align:center;letter-spacing:.25em}
+.gj-cost td,.gj-cost th{border:0;border-bottom:.07cqw solid var(--hair);padding:0 .9cqw;height:var(--rh,1.96cqw);font-size:min(1.12cqw,calc(var(--rh,1.96cqw)*.6));line-height:1.15;background:transparent;color:#1a2430;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left;font-weight:400;vertical-align:middle}
+.gj-cost th{background:var(--navy);color:#fff;font-weight:600;font-size:1.04cqw;height:2.3cqw;border-bottom:0;text-align:center;letter-spacing:.25em}
 .gj-cost tr:hover{background:transparent}
 .gj-cost td.c{text-align:center}.gj-cost td.r{text-align:right;font-variant-numeric:tabular-nums}
-.gj-cost td.b{font-weight:600}
-.gj-cost td.spec{color:var(--ink2);font-size:min(1.08cqw,calc(var(--rh,2.1cqw)*.53))}
-.gj-cost td.note{color:#3c4a58;font-size:min(1.12cqw,calc(var(--rh,2.1cqw)*.55))}
+.gj-cost td.b{font-weight:500}
+.gj-cost td.spec{color:var(--ink2);font-size:min(1.02cqw,calc(var(--rh,1.96cqw)*.54))}
+.gj-cost td.note{color:#3c4a58;font-size:min(1.06cqw,calc(var(--rh,1.96cqw)*.56))}
 /* 들여쓰기: A·B = 0칸, 항목(1~8) = 1칸, 소계 = 2칸 */
 .gj-cost td:first-child{padding-left:2.7cqw}
 .gj-cost tr.sec td{background:#edf1f6;color:var(--navy);font-weight:700;border-bottom:.08cqw solid #cfd8e3;letter-spacing:.02em}
 .gj-cost tr.sec td:first-child{padding-left:1cqw}
 .gj-cost tr.sub td{font-weight:700;background:#f7f9fb;border-top:.08cqw solid #aab8c8;border-bottom:.08cqw solid #aab8c8;color:var(--navy)}
 .gj-cost tr.sub td:first-child{padding-left:4.4cqw}
-.gj-cost tr.gap td{height:calc(var(--rh,2.1cqw)*.42);border-bottom:0;padding:0}
-.gj-cost tr.adj td{font-weight:600}
+.gj-cost tr.gap td{height:calc(var(--rh,1.96cqw)*.42);border-bottom:0;padding:0}
+.gj-cost tr.adj td{font-weight:400}
+.gj-cost tr.adj td:first-child,.gj-cost tr.adj td.b{font-weight:600}
 .gj-cost tr.adj td:first-child{padding-left:1cqw}
 .gj-cost .neg{color:#d2232a}
-.gj-cost tr.fin td{background:var(--navy);color:#fff;font-weight:700;font-size:1.42cqw;height:3cqw;border-bottom:0}
-.gj-cost tr.fin td:first-child{padding-left:1cqw;letter-spacing:.35em}
+.gj-cost tr.fin td{background:var(--navy);color:#fff;font-weight:700;font-size:1.3cqw;height:2.8cqw;border-bottom:0}
+.gj-cost tr.fin td:first-child{padding-left:1cqw}
+.gj-cost .fl{letter-spacing:.7em}
+.gj-cost .fs{font-weight:400;font-size:.8em;opacity:.82;letter-spacing:.04em}
 .gj-cost tr.nt td{border-bottom:.06cqw solid var(--hair);font-size:1.12cqw}
 .gj-cost tr.nt td:first-child{padding-left:1cqw}
 .gj-cost tr.nt td.red{color:#d2232a;font-weight:700}
 .hj{display:flex;justify-content:space-around;padding:0 14%}.hj i{font-style:normal}
-.gj-cond{margin-top:.75cqw}
-.gj-cond>b{display:block;font-size:1.08cqw;font-weight:700;color:#0b2a4a;letter-spacing:.18em;padding-left:1cqw;margin-bottom:.15cqw}
-.gj-foot{margin:0 0 0 3.4cqw;padding:0;list-style:none;font-size:1.08cqw}
-.gj-foot li{display:flex;border-bottom:.08cqw dotted #9aa5b1;padding:.12cqw 0;height:1.56cqw;line-height:1.3cqw}
+.gj-cond{margin-top:1.25cqw}
+.gj-cond>b{display:block;font-size:1.12cqw;font-weight:700;color:#0b2a4a;letter-spacing:.28em;padding-left:.4cqw;margin-bottom:.3cqw}
+.gj-foot{margin:0 0 0 2.7cqw;padding:0;list-style:none;font-size:1.1cqw}
+.gj-foot li{display:flex;border-bottom:.08cqw dotted #9aa5b1;padding:.16cqw 0;height:1.78cqw;line-height:1.46cqw}
 .gj-foot li span{flex:1 1 50%;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:1.2cqw}
 .gj-foot li i{font-style:normal;display:inline-block;width:1.7cqw;color:#0b2a4a;font-weight:600}
 
@@ -628,7 +631,7 @@ tr.hid .ein{opacity:.55}
             <input type="text" id="gAdjAmt" class="num" inputmode="numeric" placeholder="빼는 금액" hidden></span>
           <em class="hint" id="gAdjHint"></em></div>
       </div>
-      <label>특기사항 <span class="hint">표 맨 아래 줄 — 한 줄에 하나. <b>빨강 글 | 검정 글</b> 로 나누면 두 칸에 들어감. <b>*</b> 로 시작하면 앞칸도 검정</span><textarea id="gNotes" rows="6"></textarea></label>
+      
     </div>
     <div class="gset-grid two">
       <label>견적조건 <span class="hint">한 줄에 하나 — 번호는 자동. 갑지 맨 아래에 3줄 × 2칸(1·2·3 | 4·5·6)으로 들어갑니다</span><textarea id="gFoot" rows="6"></textarea></label>
@@ -1368,7 +1371,7 @@ const DEFAULT_G={p1:50,p2:30,p3:"",lead:"아래와 같이 견적합니다. (견�
   d4:"3000000",p5:"4.57",p6:"6",p7:"5",p8:"7",n4:"",n5:"",n6:"",n7:"",n8:"",adjKind:"단수정리",adjMode:"100000",adjAmt:"",
   notes:"",foot:"V.A.T(10%) / 용전 및 용수 / 내역 외 공사 별도\n붙박이가구를 제외한 가구등 별도",formB:false};
 const GSET={gP1:"p1",gP2:"p2",gP3:"p3",gLead:"lead",gD4:"d4",gP5:"p5",gP6:"p6",gP7:"p7",gP8:"p8",gN4:"n4",gN5:"n5",gN6:"n6",gN7:"n7",gN8:"n8",
-  gAdjKind:"adjKind",gAdjMode:"adjMode",gAdjAmt:"adjAmt",gNotes:"notes",gFoot:"foot"};
+  gAdjKind:"adjKind",gAdjMode:"adjMode",gAdjAmt:"adjAmt",gFoot:"foot"};
 const ADJ_LABEL={"100000":"십만 단위 절사","1000000":"백만 단위 절사","10000000":"천만 단위 절사"};
 const G=()=>{ const g=S.meta.g=Object.assign({},DEFAULT_G,S.meta.g||{}); if(g.notes==="1. 부가세별도금액임"||g.notes==="*부가세별도") g.notes=""; if(g.lead==="아래와 같이 견적합니다.") g.lead=DEFAULT_G.lead; if(!(g.v>=3)){ for(const k of ["d4","p5","p6","p7","p8"]) if(String(g[k]??"")==="") g[k]=DEFAULT_G[k]; g.v=3; } if(g.adjMode==="10000") g.adjMode="100000"; if(String(g.foot||"").indexOf("귀사의 일익 번창")===0) g.foot=DEFAULT_G.foot; return g; };   // 예전 양식 초안 호환
 const lines=s=>String(s||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
@@ -1416,7 +1419,7 @@ function gapjiHtml(){
   const clientLine=[(cl&&cl.name)||String(S.meta.owner||"").trim(), cl&&cl.ceo?"대표 "+cl.ceo:""].filter(Boolean).join(" ");
   const d=String(S.meta.date||"").split("-"), dateStr=d.length===3?`${d[0]}년 ${d[1]}월 ${d[2]}일`:"";
   const logo=ct&&okImg(ct.logo)?ct.logo:"img/logo-navy.png";
-  const notes=lines(g.notes);
+  const notes=[];                                           /* 특기사항은 쓰지 않음 (견적조건으로 대체) */
   const gt=c.total;                                         /* 총금액 = 합계(a+b), 부가세 별도 */
   /* 표 줄 구성 — sp = 빈 줄(여백). 줄이 많아지면 뒤쪽 빈 줄부터 뺌. 소계(a)는 3.경비 바로 아래에 붙임 */
   const R=[{n:"A. 직접공사비",sec:1},{n:"1. 재료비",u:"식",q:1,a:c.mat},{n:"2. 노무비",u:"식",q:1,a:c.lab},{n:"3. 경 비",u:"식",q:1,a:c.exp},{n:"소계(a)",sub:1,a:c.direct},{sp:1},{n:"B. 간접공사비",sec:1}];
@@ -1425,7 +1428,7 @@ function gapjiHtml(){
   if(c.cut) R.push({n:c.adjKind,adj:1,s:c.adjSpec,u:"식",q:1,a:-c.cut},{sp:1});
   // 장 안에 들어가는 줄 수: 기본 행높이(1.62cqw)로 본문+특기사항 18줄. 넘치면 ① 뒤쪽 빈 줄부터 빼고 ② 그래도 넘치면 행 높이를 줄임
   /* 높이 계산 단위: 보통 줄 = 1, 간격 줄(sp) = 0.42 */
-  const nNotes=notes.length, FIT=15, RH=2.12;
+  const nNotes=notes.length, FIT=15, RH=1.96;
   const units=()=>R.reduce((t,r)=>t+(r.sp?0.42:1),0)+nNotes;
   for(let i=R.length-1;i>=0&&units()>FIT;i--) if(R[i].sp) R.splice(i,1);
   const rowH=Math.max(1.1,Math.min(RH,RH*FIT/units()));   /* cqw */
@@ -1456,7 +1459,7 @@ function gapjiHtml(){
     <table class="gj-cost" style="--rh:${rowH.toFixed(3)}cqw"><colgroup><col style="width:24%"><col style="width:16%"><col style="width:9%"><col style="width:9%"><col style="width:14.5%"><col style="width:17.5%"><col style="width:10%"></colgroup>
       <tr><th>품 명</th><th>규 격</th><th>단 위</th><th>수 량</th><th>단 가</th><th>금 액</th><th>비 고</th></tr>
       ${sumRows}
-      <tr class="fin"><td colspan="5">합계 (a+b)</td><td class="r">${F(c.total)}</td><td></td></tr>
+      <tr class="fin"><td colspan="5"><span class="fl">합계</span><span class="fs">(a+b)</span></td><td class="r">${F(c.total)}</td><td></td></tr>
       ${noteRows}
     </table>
     <div class="gj-cond"><b>견적조건</b><ol class="gj-foot">${foot}</ol></div>
