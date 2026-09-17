@@ -224,6 +224,11 @@ tr.hid .ein{opacity:.55}
 .gset label.chk{flex-direction:row;align-items:center;gap:7px;align-self:center;font-size:12.5px;cursor:pointer;flex-wrap:wrap}
 .gset input[type=text],.gset select,.gset textarea{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:7px 9px;font-size:12.5px;width:100%}
 .gset textarea{resize:vertical;line-height:1.5}
+.gpay{display:flex;flex-direction:column;gap:4px;font-size:11.5px;color:var(--ink-2);font-weight:500}
+.gpay-t em{font-style:normal;margin-left:6px}
+.gpay-t em.bad{color:var(--crit);font-weight:600}
+.trio{display:flex;gap:6px}
+.trio label{flex:1;min-width:0;font-size:10.5px!important;color:var(--ink-3)!important;gap:2px!important}
 
 /* 2 갑지 — 가로 A4, cqw 기준 */
 .gj-in{position:absolute;inset:0;padding:5.2cqw 6.3cqw 0 6.5cqw;font-size:1.06cqw;line-height:1.35;color:#111}
@@ -575,7 +580,14 @@ tr.hid .ein{opacity:.55}
     <div class="eyebrow">2 갑지 설정</div>
     <div class="gset-grid">
       <label>구분 제목<input type="text" id="gWork" placeholder="A.직접 공사비."></label>
-      <label>대금조건<input type="text" id="gPay" placeholder="계약금(50%)/중도금(30%)/잔금(20%)"></label>
+      <div class="gpay">
+        <span class="gpay-t">대금조건 % <em id="gPaySum" class="hint"></em></span>
+        <div class="trio">
+          <label>계약금<input type="text" id="gP1" class="num" inputmode="decimal" placeholder="50"></label>
+          <label>중도금<input type="text" id="gP2" class="num" inputmode="decimal" placeholder="30"></label>
+          <label>잔금<input type="text" id="gP3" class="num" inputmode="decimal" placeholder="자동"></label>
+        </div>
+      </div>
       <label>안내 문구<input type="text" id="gLead" placeholder="아래와 같이 견적합니다."></label>
       <label>부가가치세<select id="gVat"><option value="sep">별도</option><option value="inc">포함 (10% 더해서 합계)</option></select></label>
       <label>절사 단위<select id="gRound"><option value="0">절사 없음</option><option value="1000">천 단위</option><option value="10000">만 단위</option><option value="100000">십만 단위</option><option value="1000000">백만 단위</option><option value="10000000">천만 단위</option></select></label>
@@ -1317,9 +1329,9 @@ $("btnPartySave").addEventListener("click",async()=>{
 /* ---------- 2 갑지 ---------- */
 /* 집계표 = 원가계산서 양식. 간접비 줄은 "이름 | 규격 | 금액 | 비고" — 금액 비우면 규격의 식으로 자동, 숫자면 그 값, 그 밖의 글자(제외 등)면 빈칸 */
 const DEFAULT_IND="디자인, 설계비 |  |  | \n안전관리비 | (1+2)*2.48% | 제외 | 제외\n일반관리비 | (1+2)*14% |  | \n공과 잡비 | (2+6)*5.0% |  | ";
-const DEFAULT_G={work:"A.직접 공사비.",pay:"계약금(50%)/중도금(30%)/잔금(20%)",valid:"30일",lead:"아래와 같이 견적합니다.",ind:DEFAULT_IND,vat:"sep",round:100000,total:"",
+const DEFAULT_G={work:"A.직접 공사비.",p1:50,p2:30,p3:"",valid:"30일",lead:"아래와 같이 견적합니다.",ind:DEFAULT_IND,vat:"sep",round:100000,total:"",
   notes:"",foot:"귀사의 일익 번창하심을 기원합니다.\n본 견적은 견적일로부터 1개월간 유효합니다.",formB:false};
-const GSET={gWork:"work",gPay:"pay",gLead:"lead",gVat:"vat",gRound:"round",gTotal:"total",gInd:"ind",gNotes:"notes",gFoot:"foot"};
+const GSET={gWork:"work",gP1:"p1",gP2:"p2",gP3:"p3",gLead:"lead",gVat:"vat",gRound:"round",gTotal:"total",gInd:"ind",gNotes:"notes",gFoot:"foot"};
 const ROUND_LABEL={1000:"천 단위 절사",10000:"만 단위 절사",100000:"십만 단위 절사",1000000:"백만 단위 절사",10000000:"천만 단위 절사"};
 const G=()=>{ const g=S.meta.g=Object.assign({},DEFAULT_G,S.meta.g||{}); if(g.work==="인테리어 공사") g.work=DEFAULT_G.work; if(g.notes==="1. 부가세별도금액임"||g.notes==="*부가세별도") g.notes=""; return g; };   // 예전 양식 초안 호환
 const lines=s=>String(s||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
@@ -1354,6 +1366,15 @@ function toKoreanWon(n){
     gi++; }
   return out+"원정";
 }
+/* 대금조건: 숫자(%)만 받아 문구를 만듦. 잔금을 비우면 100 − 계약금 − 중도금 */
+function payParts(g){
+  const p1=N(g.p1), p2=N(g.p2), auto=String(g.p3??"").trim()==="", p3=auto?Math.max(0,100-p1-p2):N(g.p3);
+  return {p1,p2,p3,auto,sum:p1+p2+p3};
+}
+function payText(g){
+  const p=payParts(g), pct=v=>+v.toFixed(2);
+  return [["계약금",p.p1],["중도금",p.p2],["잔금",p.p3]].filter(x=>x[1]>0).map(x=>`${x[0]}(${pct(x[1])}%)`).join("/");
+}
 const jl=t=>`<span class="gj-k">${[...t].map(ch=>`<i>${esc(ch)}</i>`).join("")}</span>`;   // 글자를 칸 너비에 고르게 펼침
 function gapjiHtml(){
   const g=G(), c=calcG(), ct=curContractor(), cl=curClient();
@@ -1385,7 +1406,7 @@ function gapjiHtml(){
       <tr><td>■ <span class="gj-lbl">발주처</span>: &nbsp;${esc(clientLine)}${clientLine?" 귀하":""}</td><td class="vsep">${jl("상호명")} : &nbsp; ${esc(ct?ct.name:"")}</td></tr>
       <tr><td>■ <span class="gj-lbl">공사명</span>: &nbsp;${esc(S.meta.client||"")}</td><td class="vsep">${jl("사업자번호")} : &nbsp; ${esc(ct?bizFmt(ct.bizno):"")}</td></tr>
       <tr><td>■ <span class="gj-lbl">총금액</span>: &nbsp;<b>${esc(toKoreanWon(gt))}</b>${gt?` &nbsp;(₩${F(gt)}) &nbsp;${inc?"VAT포함":"VAT별도"}`:""}</td><td class="vsep gj-stampcell">${jl("대표자")} : &nbsp; ${esc(ct?ct.ceo:"")} &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ( 인 )${ct&&okImg(ct.stamp)?`<img class="gj-stamp" src="${ct.stamp}" alt="">`:""}</td></tr>
-      <tr><td>■ 대금조건 : &nbsp;${esc(g.pay)}</td><td class="vsep">${jl("주소")} : &nbsp; ${esc(ct?ct.addr:"")}</td></tr>
+      <tr><td>■ 대금조건 : &nbsp;${esc(payText(g))}</td><td class="vsep">${jl("주소")} : &nbsp; ${esc(ct?ct.addr:"")}</td></tr>
     </table>
     <div class="gj-sub"><span>[ 견적내역집계표 ]</span><em>${esc(g.lead||"")}</em></div>
     <table class="gj-cost" style="--rh:${rowH.toFixed(3)}cqw"><colgroup><col style="width:24%"><col style="width:16%"><col style="width:9%"><col style="width:9%"><col style="width:14.5%"><col style="width:17.5%"><col style="width:10%"></colgroup>
@@ -1402,6 +1423,11 @@ function fillGset(){
   const g=G();
   for(const [id,k] of Object.entries(GSET)){ const el=$(id); if(document.activeElement!==el) el.value=g[k]??""; }
   $("gFormB").checked=!!g.formB;
+  // 대금조건: 잔금 자동값 안내 + 합계 검사
+  const p=payParts(g), el=$("gPaySum");
+  $("gP3").placeholder=p.auto?`자동 ${+p.p3.toFixed(2)}`:"자동";
+  el.textContent=Math.abs(p.sum-100)<0.005?"→ "+payText(g):`합계 ${+p.sum.toFixed(2)}% — 100%가 아닙니다`;
+  el.classList.toggle("bad",Math.abs(p.sum-100)>=0.005);
 }
 for(const [id,k] of Object.entries(GSET)) $(id).addEventListener("input",e=>{ G()[k]=e.target.value; persistDraft(); renderOut(); badge("저장 안 됨"); });
 $("gFormB").addEventListener("change",e=>{ G().formB=e.target.checked; persistDraft(); renderOut(); });
