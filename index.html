@@ -1689,11 +1689,11 @@ function detailPagesHtml(){
   const fin=`<tr class="fin"><td colspan="5"><span class="fl">합계</span><span class="fs">(a) 직접공사비</span></td>${nums(tot,false)}<td></td></tr>`;
 
   /* ① 공종별 합계표 */
-  const sCols=B?[8,26,14,14,12,15,11]:[12,43,25,20];
-  const sHead=B?`<tr><th>코 드</th><th>공 사 명</th><th class="gl">재 료 비</th><th>노 무 비</th><th>경 비</th><th class="gl">합 계</th><th class="gl">비 고</th></tr>`
-               :`<tr><th>코 드</th><th>공 사 명</th><th class="gl">금 액</th><th class="gl">비 고</th></tr>`;
-  const sRow=d=>`<tr><td class="code">${d.code}</td><td class="nm">${esc(d.gong)}</td>${B?`<td class="r">${m(d.am)}</td><td class="r">${m(d.al)}</td><td class="r">${m(d.ae)}</td>`:""}<td class="r k">${m(d.a)}</td><td></td></tr>`;
-  const sFin=`<tr class="fin"><td colspan="2"><span class="fl">합계</span><span class="fs">(a) 직접공사비</span></td>${B?`<td class="r">${m(tot.am)}</td><td class="r">${m(tot.al)}</td><td class="r">${m(tot.ae)}</td>`:""}<td class="r">${m(tot.a)}</td><td></td></tr>`;
+  /* 공종별 합계표는 A형·B형 같은 모양: NO(1부터) · 공종 · 자재비 · 인건비 · 경비 · 금액 · 비고 */
+  const sCols=[6,30,14,14,11,15,10];
+  const sHead=`<tr><th>NO</th><th>공 종</th><th>자 재 비</th><th>인 건 비</th><th>경 비</th><th>금 액</th><th>비 고</th></tr>`;
+  const sRow=d=>`<tr><td class="code">${d.code/100}</td><td class="nm">${esc(d.gong)}</td><td class="r">${m(d.am)}</td><td class="r">${m(d.al)}</td><td class="r">${m(d.ae)}</td><td class="r k">${m(d.a)}</td><td></td></tr>`;
+  const sFin=`<tr class="fin"><td colspan="2"><span class="fl">합계</span><span class="fs">(a) 직접공사비</span></td><td class="r">${m(tot.am)}</td><td class="r">${m(tot.al)}</td><td class="r">${m(tot.ae)}</td><td class="r">${m(tot.a)}</td><td></td></tr>`;
   const sPages=[];
   for(let i=0;i<Math.max(1,D.length);i+=DS_PER) sPages.push(D.slice(i,i+DS_PER));
   if(sPages.length>1&&sPages[sPages.length-1].length>DS_PER-2) sPages.push([]);
@@ -1701,7 +1701,7 @@ function detailPagesHtml(){
   sPages.forEach((p,i)=>{
     const last=i===sPages.length-1;
     const body=D.length?p.map(sRow).join(""):`<tr class="empty"><td colspan="${sCols.length}">담긴 내역이 없습니다 — 견적서 탭에서 품목을 담아 주세요.</td></tr>`;
-    out.push({sub:"공종별",tbl:`<table class="dt ds${B?" fb":""}">${col(sCols)}${sHead}${body}${last&&D.length?sFin:""}</table>`});
+    out.push({sub:"공종별",tbl:`<table class="dt ds">${col(sCols)}${sHead}${body}${last&&D.length?sFin:""}</table>`});
   });
   /* ② 공종별 세부내역 */
   const dPages=paginateDetail(D);
@@ -1869,21 +1869,21 @@ async function exportXlsx(){
 
   /* 3 공종별 합계표 */
   {
-    const cols=B?[9,30,17,17,15,18,14]:[10,44,24,24], nC=cols.length;
+    const cols=[7,32,17,17,15,18,14], nC=cols.length;
     const ws=sheet("합계표",cols); head(ws,nC,"공종별");
-    const H=B?["코 드","공 사 명","재 료 비","노 무 비","경 비","합 계","비 고"]:["코 드","공 사 명","금 액","비 고"];
+    const H=["NO","공 종","자 재 비","인 건 비","경 비","금 액","비 고"];
     H.forEach((h,k)=>put(ws,3,k+1,h,{b:1,color:INK,fill:HD,al:"center"})); grid(ws,3,nC);
     ws.getRow(3).height=22;
     ws.pageSetup.printTitlesRow="3:3";
     let r=4;
     D.forEach(d=>{
-      const v=B?[d.code,d.gong,m(d.am),m(d.al),m(d.ae),m(d.a),""]:[d.code,d.gong,m(d.a),""];
+      const v=[d.code/100,d.gong,m(d.am),m(d.al),m(d.ae),m(d.a),""];
       v.forEach((x,k)=>put(ws,r,k+1,x,{al:k===0?"center":undefined,b:k===nC-2,num:k===0?"0":NUM}));
       grid(ws,r,nC); ws.getRow(r).height=20; r++;
     });
     ws.mergeCells(r,1,r,2); ws.getRow(r).height=26;
     put(ws,r,1,"합   계  (a) 직접공사비",{b:1,ind:1});
-    (B?[tot.am,tot.al,tot.ae,tot.a]:[tot.a]).forEach((x,k)=>put(ws,r,3+k,x,{b:1}));
+    [tot.am,tot.al,tot.ae,tot.a].forEach((x,k)=>put(ws,r,3+k,x,{b:1}));
     rowFill(ws,r,1,nC,HD); grid(ws,r,nC); line(ws,r,1,nC,"top","medium",INK);
   }
 
