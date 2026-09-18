@@ -1673,9 +1673,9 @@ function detailPagesHtml(){
   const nC=cols.length;
   /* 머리줄 2단: A형은 계만 단가/금액, B형은 자재비·인건비·경비·합계 전부 단가/금액 */
   const head=B
-    ?`<tr><th rowspan="2">공 종</th><th rowspan="2">품 목</th><th rowspan="2">규 격</th><th rowspan="2">단위</th><th rowspan="2">수량</th><th colspan="2" class="gl">재 료 비</th><th colspan="2" class="gl">인 건 비</th><th colspan="2" class="gl">경 비</th><th colspan="2" class="gl">합 계</th><th rowspan="2" class="gl">비 고</th></tr>
+    ?`<tr><th rowspan="2">공 종</th><th rowspan="2">작업내용</th><th rowspan="2">규 격</th><th rowspan="2">단위</th><th rowspan="2">수량</th><th colspan="2" class="gl">재 료 비</th><th colspan="2" class="gl">인 건 비</th><th colspan="2" class="gl">경 비</th><th colspan="2" class="gl">합 계</th><th rowspan="2" class="gl">비 고</th></tr>
       <tr class="h2"><th class="gl">단가</th><th>금액</th><th class="gl">단가</th><th>금액</th><th class="gl">단가</th><th>금액</th><th class="gl">단가</th><th>금액</th></tr>`
-    :`<tr><th rowspan="2">공 종</th><th rowspan="2">품 목</th><th rowspan="2">규 격</th><th rowspan="2">단위</th><th rowspan="2">수량</th><th rowspan="2" class="gl">자재비</th><th rowspan="2">인건비</th><th rowspan="2">경 비</th><th colspan="2" class="gl">계</th><th rowspan="2" class="gl">비 고</th></tr>
+    :`<tr><th rowspan="2">공 종</th><th rowspan="2">작업내용</th><th rowspan="2">규 격</th><th rowspan="2">단위</th><th rowspan="2">수량</th><th rowspan="2" class="gl">자재비</th><th rowspan="2">인건비</th><th rowspan="2">경 비</th><th colspan="2" class="gl">계</th><th rowspan="2" class="gl">비 고</th></tr>
       <tr class="h2"><th class="gl">단가</th><th>금액</th></tr>`;
   const nums=(x,unit)=>B
     ?`<td class="r pr">${m(unit&&x.mat)}</td><td class="r">${m(x.am)}</td><td class="r pr">${m(unit&&x.lab)}</td><td class="r">${m(x.al)}</td><td class="r pr">${m(unit&&x.exp)}</td><td class="r">${m(x.ae)}</td><td class="r pr">${m(unit&&x.unit)}</td><td class="r k">${m(x.a)}</td>`
@@ -1894,7 +1894,7 @@ async function exportXlsx(){
     ws.getRow(3).height=20; ws.getRow(4).height=17;
     rowFill(ws,3,1,nC,HD); rowFill(ws,4,1,nC,HD);
     const th=(r,c1,c2,t,r2)=>{ if(c2>c1||(r2&&r2>r)) ws.mergeCells(r,c1,r2||r,c2); put(ws,r,c1,t,{b:1,color:INK,fill:HD,al:"center",sz:r===4?9:10}); };
-    ["공 종","품 목","규 격","단위","수량"].forEach((t,k)=>th(3,k+1,k+1,t,4));
+    ["공 종","작업내용","규 격","단위","수량"].forEach((t,k)=>th(3,k+1,k+1,t,4));
     if(B){
       ["재 료 비","인 건 비","경 비","합 계"].forEach((t,k)=>{ th(3,6+k*2,7+k*2,t); th(4,6+k*2,6+k*2,"단가"); th(4,7+k*2,7+k*2,"금액"); });
       th(3,14,14,"비 고",4);
