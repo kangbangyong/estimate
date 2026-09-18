@@ -149,7 +149,7 @@ table.xl td.q{padding:0;background:var(--accent-soft)}
 table.xl .qty{display:block;width:100%;height:27px;border:0;border-radius:0;background:transparent;padding:0 8px;text-align:right;font-size:12.5px;color:var(--ink)}
 table.xl .qty:focus{outline:2px solid var(--accent);outline-offset:-2px;background:var(--surface)}
 table.xl td.x{padding:0;text-align:center}
-/* 단가 조정 — 자재비·노무비·경비 칸은 단가 입력칸. DB와 다르면 굵게+색 */
+/* 단가 조정 — 자재비·인건비·경비 칸은 단가 입력칸. DB와 다르면 굵게+색 */
 table.xl{min-width:1040px}
 table.xl td.pi{padding:0}
 table.xl .pin{display:block;width:100%;height:27px;border:0;background:transparent;padding:0 8px;text-align:right;font-size:12.5px;color:var(--ink);font-variant-numeric:tabular-nums}
@@ -461,7 +461,7 @@ tr.hid .ein{opacity:.55}
     <table>
       <thead><tr>
         <th style="width:34%">품목명</th><th style="width:7%">단위</th><th style="width:10%">자재비</th>
-        <th style="width:10%">노무비</th><th style="width:9%">경비</th><th style="width:11%">단가합계</th>
+        <th style="width:10%">인건비</th><th style="width:9%">경비</th><th style="width:11%">단가합계</th>
         <th style="width:9%">수량</th><th style="width:10%">소계</th>
       </tr></thead>
       <tbody id="catBody"></tbody>
@@ -497,7 +497,7 @@ tr.hid .ein{opacity:.55}
   <div class="xl-wrap">
     <table class="xl">
       <colgroup><col style="width:19%"><col style="width:12%"><col style="width:5%"><col style="width:7%"><col style="width:8.5%"><col style="width:8.5%"><col style="width:7%"><col style="width:8.5%"><col style="width:9.5%"><col style="width:6.5%"><col style="width:15.5%"><col style="width:3%"></colgroup>
-      <thead><tr><th>품목</th><th>규격</th><th>단위</th><th>수량</th><th>자재비</th><th>노무비</th><th>경비</th><th>단가</th><th>금액</th><th>원가</th><th>조정</th><th></th></tr></thead>
+      <thead><tr><th>품목</th><th>규격</th><th>단위</th><th>수량</th><th>자재비</th><th>인건비</th><th>경비</th><th>단가</th><th>금액</th><th>원가</th><th>조정</th><th></th></tr></thead>
       <tbody id="docBody"></tbody>
     </table>
   </div>
@@ -570,7 +570,7 @@ tr.hid .ein{opacity:.55}
       <h3 style="font-size:15px;margin:6px 0 8px">엑셀에서 복사 → 붙여넣기</h3>
       <div class="cols">
         <div><b>품목명</b>필수</div><div><b>규격</b></div><div><b>단위</b></div>
-        <div><b>자재비</b></div><div><b>노무비</b></div><div><b>경비</b></div><div><b>단가합계</b>검산용</div>
+        <div><b>자재비</b></div><div><b>인건비</b></div><div><b>경비</b></div><div><b>단가합계</b>검산용</div>
       </div>
       <div class="toolbar"><select id="impGong" aria-label="공종 지정"></select></div>
       <textarea class="paste" id="impText" placeholder="합판 12mm&#9;1220×2440&#9;장&#9;28000&#9;9000&#9;0"></textarea>
@@ -590,7 +590,7 @@ tr.hid .ein{opacity:.55}
       </div>
       <div class="toolbar">
         <input type="text" id="adMat" placeholder="자재비" class="num" style="width:88px">
-        <input type="text" id="adLab" placeholder="노무비" class="num" style="width:88px">
+        <input type="text" id="adLab" placeholder="인건비" class="num" style="width:88px">
         <input type="text" id="adExp" placeholder="경비" class="num" style="width:88px">
         <input type="text" id="adCost" placeholder="원가" class="num" style="width:88px">
       </div>
@@ -615,7 +615,7 @@ tr.hid .ein{opacity:.55}
     <table>
       <thead><tr>
         <th style="width:26%">품목명</th><th style="width:20%">규격</th><th style="width:6%">단위</th>
-        <th style="width:10%">자재비</th><th style="width:10%">노무비</th><th style="width:9%">경비</th><th style="width:9%">원가</th><th style="width:10%"></th>
+        <th style="width:10%">자재비</th><th style="width:10%">인건비</th><th style="width:9%">경비</th><th style="width:9%">원가</th><th style="width:10%"></th>
       </tr></thead>
       <tbody id="editBody"></tbody>
     </table>
@@ -705,11 +705,11 @@ tr.hid .ein{opacity:.55}
         <label class="chk"><input type="checkbox" id="gFormB"> 관공서·건설사 제출용</label>
       </div>
       <div class="gind">
-      <div class="gind-t">B. 간접공사비 <span class="hint">— A. 직접공사비(자재비·노무비·경비)는 세부견적에서 자동. 비워두면 그 줄은 금액 없이 나옵니다</span></div>
+      <div class="gind-t">B. 간접공사비 <span class="hint">— A. 직접공사비(자재비·인건비·경비)는 세부견적에서 자동. 비워두면 그 줄은 금액 없이 나옵니다</span></div>
       <div class="gind-r"><span>4. 디자인, 설계비</span><span class="fx">단가</span><input type="text" id="gD4" class="num" inputmode="numeric" placeholder="3000000"><span class="un">원</span><input type="text" id="gN4" placeholder="비고"></div>
-      <div class="gind-r"><span>5. 안전관리비</span><span class="fx">노무비 ×</span><input type="text" id="gP5" class="num" inputmode="decimal" placeholder="4.57"><span class="un">%</span><input type="text" id="gN5" placeholder="비고"></div>
+      <div class="gind-r"><span>5. 안전관리비</span><span class="fx">인건비 ×</span><input type="text" id="gP5" class="num" inputmode="decimal" placeholder="4.57"><span class="un">%</span><input type="text" id="gN5" placeholder="비고"></div>
       <div class="gind-r"><span>6. 일반관리비</span><span class="fx">직접공사비(a) ×</span><input type="text" id="gP6" class="num" inputmode="decimal" placeholder="6"><span class="un">%</span><input type="text" id="gN6" placeholder="비고"></div>
-      <div class="gind-r"><span>7. 공과잡비</span><span class="fx">(노무비 + 일반관리비) ×</span><input type="text" id="gP7" class="num" inputmode="decimal" placeholder="8"><span class="un">%</span><input type="text" id="gN7" placeholder="비고"></div>
+      <div class="gind-r"><span>7. 공과잡비</span><span class="fx">(인건비 + 일반관리비) ×</span><input type="text" id="gP7" class="num" inputmode="decimal" placeholder="8"><span class="un">%</span><input type="text" id="gN7" placeholder="비고"></div>
       <div class="gind-r"><span>8. 이윤</span><span class="fx">직접공사비(a) ×</span><input type="text" id="gP8" class="num" inputmode="decimal" placeholder="7"><span class="un">%</span><input type="text" id="gN8" placeholder="비고"></div>
       <div class="gind-r adj"><span><select id="gAdjKind"><option>단수정리</option><option>할인</option></select></span>
       <span class="fx"><select id="gAdjMode"><option value="none">없음</option><option value="100000">십만 단위 절사</option><option value="1000000">백만 단위 절사</option><option value="10000000">천만 단위 절사</option><option value="manual">직접입력</option></select></span>
@@ -719,7 +719,7 @@ tr.hid .ein{opacity:.55}
       <label>견적조건 <span class="hint">한 줄에 하나 — 번호는 자동. 갑지 맨 아래에 3줄 × 2칸(1·2·3 | 4·5·6)으로 들어갑니다</span><textarea id="gFoot" rows="6"></textarea></label>
     </div>
   </div>
-  <p class="hint no-print" style="margin:0 0 12px">시공사·발주처·공사명·견적일·내역은 <b>적산</b> 화면에서 고릅니다. <b>3 상세내역</b>은 공종 순서대로 100·200… 코드가 붙고, 품목이 많으면 여러 장으로 나뉩니다. <b>관공서·건설사 제출용</b>을 체크하면 자재비·노무비·경비를 단가/금액으로 모두 보여 줍니다.</p>
+  <p class="hint no-print" style="margin:0 0 12px">시공사·발주처·공사명·견적일·내역은 <b>적산</b> 화면에서 고릅니다. <b>3 상세내역</b>은 공종 순서대로 100·200… 코드가 붙고, 품목이 많으면 여러 장으로 나뉩니다. <b>관공서·건설사 제출용</b>을 체크하면 자재비·인건비·경비를 단가/금액으로 모두 보여 줍니다.</p>
   <div id="printDoc"></div>
 </section>
 </div>
@@ -948,7 +948,7 @@ function renderCo(){
   const logo=c&&typeof okImg==="function"&&okImg(c.logo)?c.logo:null;
   document.querySelectorAll(".doc-logo").forEach(el=>{ el.src = logo || (el.classList.contains("white")?"img/logo-white.png":"img/logo-navy.png"); });
 }
-/* 단가 조정: r.o = 조정 전 원래 단가(자재비·노무비·경비). 처음 조정할 때 단가 DB에서 찾아 기억 (없으면 그때 값).
+/* 단가 조정: r.o = 조정 전 원래 단가(자재비·인건비·경비). 처음 조정할 때 단가 DB에서 찾아 기억 (없으면 그때 값).
    ▲▼ = 원래 단가 × (1 ± n%) 로 세 칸을 같이 다시 계산. ORIGIN = 단가 DB 숫자로 되돌림 */
 const PK=["mat","lab","exp"];
 function dbOrig(r){
@@ -982,7 +982,7 @@ function renderDoc(){
     arr.forEach(r=>{
       const q=N(r.qty), x={amt:unitOf(r)*q,cost:N(r.cost)*q};
       for(const k in t){ t[k]+=x[k]; all[k]+=x[k]; }
-      const pi=k=>`<td class="pi${isChg(r,k)?" chg":""}"${isChg(r,k)?` title="단가 DB ${F(r.o[k])}"`:""}><input class="pin" data-f="${k}" type="text" inputmode="numeric" value="${m(N(r[k]))}" aria-label="${esc(r.name)} ${k==="mat"?"자재비":k==="lab"?"노무비":"경비"} 단가"></td>`;
+      const pi=k=>`<td class="pi${isChg(r,k)?" chg":""}"${isChg(r,k)?` title="단가 DB ${F(r.o[k])}"`:""}><input class="pin" data-f="${k}" type="text" inputmode="numeric" value="${m(N(r[k]))}" aria-label="${esc(r.name)} ${k==="mat"?"자재비":k==="lab"?"인건비":"경비"} 단가"></td>`;
       const p=adjPct(r);
       h+=`<tr data-row="${esc(r.key)}"><td class="t" title="${esc(r.name)}">${esc(r.name)}</td><td class="sp" title="${esc(r.spec||"")}">${esc(r.spec||"")}</td><td class="c">${esc(r.unit||"")}</td>
         <td class="q"><input class="qty" type="text" inputmode="decimal" value="${fmtQty(r.qty,r.unit)}" ${qtyAttr(r.unit)} aria-label="${esc(r.name)} 수량"></td>
@@ -1177,8 +1177,8 @@ $("btnAdd").addEventListener("click",async()=>{
 });
 
 /* ---------- 단가표 내려받기 (비어 있으면 양식, 있으면 백업) ---------- */
-/* 양식 열: 대공종·공종·품목명·규격·단위·자재비·노무비·경비·단가합계. 백업(전체 내려받기)에는 원가·사용 도 붙임 */
-const FORM_HEAD=["대공종","공종","품목명","규격","단위","자재비","노무비","경비","단가합계"];
+/* 양식 열: 대공종·공종·품목명·규격·단위·자재비·인건비·경비·단가합계. 백업(전체 내려받기)에는 원가·사용 도 붙임 */
+const FORM_HEAD=["대공종","공종","품목명","규격","단위","자재비","인건비","경비","단가합계"];
 const BACKUP_HEAD=[...FORM_HEAD,"원가","사용"];
 function dlCatalog(head, rows, name, fmt){
   if(fmt==="csv" || typeof XLSX==="undefined"){
@@ -1222,7 +1222,7 @@ $("btnFormXlsx").addEventListener("click",()=>{
 $("btnFormCsv").addEventListener("click", ()=>{ dlCatalog(FORM_HEAD,[],"단가표_양식","csv");  toast("빈 양식(csv) 내려받음"); });
 
 /* ---------- 엑셀 업로드 ---------- */
-const FIELDS=[["name","품목명",true],["spec","규격",false],["unit","단위",false],["mat","자재비",false],["lab","노무비",false],["exp","경비",false],["total","단가합계",false],["cost","원가",false],["gong","공종 열",false],["dae","대공종 열",false]];
+const FIELDS=[["name","품목명",true],["spec","규격",false],["unit","단위",false],["mat","자재비",false],["lab","인건비",false],["exp","경비",false],["total","단가합계",false],["cost","원가",false],["gong","공종 열",false],["dae","대공종 열",false]];
 const HINTS={name:/품목|품명|명칭|자재명|공종명|규격품명/,spec:/규격|사양|크기|치수/,unit:/단위|unit/i,mat:/재료|자재비/,lab:/노무|인건|노임/,exp:/경비|기타비/,total:/단가합계|합계단가|단가$|합계/,cost:/원가|매입|도매|구매/,gong:/^(?!.*대공종).*(공종|중공종|세부공종|분류)/,dae:/대공종|대분류/};
 let XL=null;
 function cleanLabel(t){ return String(t??"").replace(/[　\s]+/g," ").replace(/^[\s▾▸▶►■□◆◇●○•·\-–—\d.)\]]+/,"").replace(/\s*\d+\s*(개|건|항목)\s*$/,"").trim(); }
@@ -1264,13 +1264,13 @@ function xlRowsParsed(){
 function renderPrev(){
   const rows=xlRowsParsed(), el=$("xlPrev");
   if(!rows.length){ el.innerHTML='<div class="empty-state" style="padding:20px">읽을 행이 없습니다. 시작 행과 품목명 열을 확인하세요.</div>'; $("xlStatus").innerHTML=""; return; }
-  el.innerHTML=`<table><thead><tr><th style="text-align:left">공종</th><th style="text-align:left">품목명</th><th style="text-align:left">규격</th><th>단위</th><th>자재비</th><th>노무비</th><th>경비</th><th>원가</th></tr></thead><tbody>`
+  el.innerHTML=`<table><thead><tr><th style="text-align:left">공종</th><th style="text-align:left">품목명</th><th style="text-align:left">규격</th><th>단위</th><th>자재비</th><th>인건비</th><th>경비</th><th>원가</th></tr></thead><tbody>`
     +rows.slice(0,6).map(r=>`<tr><td style="text-align:left;color:var(--ink-3)">${esc(r.gong)}</td><td style="text-align:left">${esc(r.name)}</td><td style="text-align:left;color:var(--ink-3)">${esc(r.spec)}</td><td>${esc(r.unit)}</td><td class="num c-mat">${r.mat?F(r.mat):"–"}</td><td class="num c-lab">${r.lab?F(r.lab):"–"}</td><td class="num c-exp">${r.exp?F(r.exp):"–"}</td><td class="num" style="color:var(--ink-3)">${r.cost?F(r.cost):"–"}</td></tr>`).join("")+`</tbody></table>`;
   const dist={}; for(const r of rows) dist[r.gong]=(dist[r.gong]||0)+1; const keys=Object.keys(dist);
   const unknown=keys.filter(k=>!GONG2DAE.has(k)), noDae=rows.filter(r=>!GONG2DAE.has(r.gong)&&!r.dae).length;
   const notes=[];
   if(XL.onlyTotal) notes.push(`단가합계만 있는 <b>${XL.onlyTotal}건</b>은 자재비로 넣음`);
-  if(XL.mismatch)  notes.push(`재료+노무+경비 ≠ 단가합계 <b>${XL.mismatch}건</b> (구성값 기준으로 들어감)`);
+  if(XL.mismatch)  notes.push(`자재+인건+경비 ≠ 단가합계 <b>${XL.mismatch}건</b> (구성값 기준으로 들어감)`);
   if(unknown.length) notes.push(`목록에 없는 공종 ${unknown.length}개: ${unknown.slice(0,4).map(esc).join(", ")}${unknown.length>4?" …":""}${noDae?` — 대공종 열이 없어 <b>${noDae}건</b>은 '미분류'로`:""}`);
   $("xlStatus").innerHTML=`<div class="status ok"><b>${rows.length.toLocaleString("ko-KR")}건</b> 인식 · ${keys.length>1?`<b>${keys.length}개 공종</b>: `+keys.slice(0,5).map(k=>`${esc(k)} ${dist[k]}`).join(", ")+(keys.length>5?` 외 ${keys.length-5}`:""):"전부 <b>"+esc(keys[0])+"</b>"} — 확인 후 등록하세요.${notes.length?"<br>"+notes.join(" · "):""}</div>`;
 }
@@ -1345,7 +1345,7 @@ function renderEdit(){
         <td><input class="ein" data-f="spec" value="${esc(i.spec||"")}" placeholder="규격" aria-label="규격"></td>
         <td><input class="ein xs" data-f="unit" value="${esc(i.unit||"")}" aria-label="단위"></td>
         <td><input class="ein num r" data-f="mat" inputmode="numeric" value="${i.mat||""}" placeholder="0" aria-label="자재비"></td>
-        <td><input class="ein num r" data-f="lab" inputmode="numeric" value="${i.lab||""}" placeholder="0" aria-label="노무비"></td>
+        <td><input class="ein num r" data-f="lab" inputmode="numeric" value="${i.lab||""}" placeholder="0" aria-label="인건비"></td>
         <td><input class="ein num r" data-f="exp" inputmode="numeric" value="${i.exp||""}" placeholder="0" aria-label="경비"></td>
         <td><input class="ein num r" data-f="cost" inputmode="numeric" value="${i.cost||""}" placeholder="0" aria-label="원가"></td>
         <td style="white-space:nowrap"><button class="btn sm" data-save disabled>저장</button> <button class="btn sec sm" data-hide title="${hid?"견적 화면에 다시 보이기":"견적 화면에서 숨기기"}">${hid?"보이기":"숨김"}</button></td></tr>`;
@@ -1494,8 +1494,8 @@ $("btnPartySave").addEventListener("click",async()=>{
 
 /* ---------- 2 갑지 ---------- */
 /* 집계표 = 원가계산서 양식, 구조 고정:
-   A. 직접공사비 1 자재비 · 2 노무비 · 3 경비 (세부견적에서 자동) → 소계(a)
-   B. 간접공사비 4 디자인·설계비(단가) · 5 안전관리비(노무비×%) · 6 일반관리비(a×%) · 7 공과잡비((노무비+일반관리비)×%) · 8 이윤(a×%) → 소계(b)
+   A. 직접공사비 1 자재비 · 2 인건비 · 3 경비 (세부견적에서 자동) → 소계(a)
+   B. 간접공사비 4 디자인·설계비(단가) · 5 안전관리비(인건비×%) · 6 일반관리비(a×%) · 7 공과잡비((인건비+일반관리비)×%) · 8 이윤(a×%) → 소계(b)
    단수정리|할인 (만원·10만원·100만원 단위 절사 · 직접입력) → 합계(a+b). 부가가치세 줄 없음 (총금액에 VAT별도 표기) */
 const DEFAULT_G={p1:50,p2:30,p3:"",lead:"아래와 같이 견적합니다. (견적일로부터 1개월간 유효)",
   d4:"3000000",p5:"4.57",p6:"6",p7:"8",p8:"7",n4:"",n5:"",n6:"",n7:"",n8:"",adjKind:"단수정리",adjMode:"100000",adjAmt:"",
@@ -1545,7 +1545,7 @@ function payText(g){
 }
 /* 집계표 줄 구성 — sp = 빈 줄(여백). 소계(a)는 3.경비 바로 아래에 붙임. 갑지 화면과 엑셀이 같이 씀 */
 function costRows(c){
-  const R=[{n:"A. 직접공사비",sec:1},{n:"1. 자재비",u:"식",q:1,a:c.mat},{n:"2. 노무비",u:"식",q:1,a:c.lab},{n:"3. 경 비",u:"식",q:1,a:c.exp},{n:"소계(a)",sub:1,a:c.direct},{sp:1},{n:"B. 간접공사비",sec:1}];
+  const R=[{n:"A. 직접공사비",sec:1},{n:"1. 자재비",u:"식",q:1,a:c.mat},{n:"2. 인건비",u:"식",q:1,a:c.lab},{n:"3. 경 비",u:"식",q:1,a:c.exp},{n:"소계(a)",sub:1,a:c.direct},{sp:1},{n:"B. 간접공사비",sec:1}];
   c.ind.forEach(x=>R.push({n:`${x.no}. ${x.name}`,s:x.spec,u:"식",q:1,p:x.unit,a:x.a,note:x.note}));
   R.push({n:"소계(b)",sub:1,a:c.indirect},{sp:1});
   if(c.cut) R.push({n:c.adjKind,adj:1,s:c.adjSpec,u:"식",q:1,a:-c.cut},{sp:1});
@@ -1619,7 +1619,7 @@ $("gFormB").addEventListener("change",e=>{ G().formB=e.target.checked; persistDr
 
 /* ---------- 3 상세내역 ---------- */
 /* 공종 코드는 견적서 탭의 공종 순서대로 100·200…, 품목은 그 아래 101·102… (1000번대도 같은 규칙: 1001·1002).
-   금액은 반올림하지 않고 더한 뒤 표시할 때만 반올림 → 합계가 갑지의 자재비·노무비·경비와 똑같이 맞음 */
+   금액은 반올림하지 않고 더한 뒤 표시할 때만 반올림 → 합계가 갑지의 자재비·인건비·경비와 똑같이 맞음 */
 function detailData(){
   return Object.entries(groups()).map(([gong,arr],gi)=>{
     const code=(gi+1)*100;
@@ -1671,11 +1671,11 @@ function detailPagesHtml(){
   const col=ws=>`<colgroup>${ws.map(w=>`<col style="width:${w}%">`).join("")}</colgroup>`;
   const cols=B?[6,13,9,4,5,6.5,7.5,6.5,7.5,5.5,6.5,6.5,8,8.5]:[6,19,10,5,6,9,9,9,8.5,10,8.5];
   const nC=cols.length;
-  /* 머리줄 2단: A형은 계만 단가/금액, B형은 자재비·노무비·경비·합계 전부 단가/금액 */
+  /* 머리줄 2단: A형은 계만 단가/금액, B형은 자재비·인건비·경비·합계 전부 단가/금액 */
   const head=B
-    ?`<tr><th rowspan="2">공 종</th><th rowspan="2">품 목</th><th rowspan="2">규 격</th><th rowspan="2">단위</th><th rowspan="2">수량</th><th colspan="2" class="gl">재 료 비</th><th colspan="2" class="gl">노 무 비</th><th colspan="2" class="gl">경 비</th><th colspan="2" class="gl">합 계</th><th rowspan="2" class="gl">비 고</th></tr>
+    ?`<tr><th rowspan="2">공 종</th><th rowspan="2">품 목</th><th rowspan="2">규 격</th><th rowspan="2">단위</th><th rowspan="2">수량</th><th colspan="2" class="gl">재 료 비</th><th colspan="2" class="gl">인 건 비</th><th colspan="2" class="gl">경 비</th><th colspan="2" class="gl">합 계</th><th rowspan="2" class="gl">비 고</th></tr>
       <tr class="h2"><th class="gl">단가</th><th>금액</th><th class="gl">단가</th><th>금액</th><th class="gl">단가</th><th>금액</th><th class="gl">단가</th><th>금액</th></tr>`
-    :`<tr><th rowspan="2">공 종</th><th rowspan="2">품 목</th><th rowspan="2">규 격</th><th rowspan="2">단위</th><th rowspan="2">수량</th><th rowspan="2" class="gl">자재비</th><th rowspan="2">노무비</th><th rowspan="2">경 비</th><th colspan="2" class="gl">계</th><th rowspan="2" class="gl">비 고</th></tr>
+    :`<tr><th rowspan="2">공 종</th><th rowspan="2">품 목</th><th rowspan="2">규 격</th><th rowspan="2">단위</th><th rowspan="2">수량</th><th rowspan="2" class="gl">자재비</th><th rowspan="2">인건비</th><th rowspan="2">경 비</th><th colspan="2" class="gl">계</th><th rowspan="2" class="gl">비 고</th></tr>
       <tr class="h2"><th class="gl">단가</th><th>금액</th></tr>`;
   const nums=(x,unit)=>B
     ?`<td class="r pr">${m(unit&&x.mat)}</td><td class="r">${m(x.am)}</td><td class="r pr">${m(unit&&x.lab)}</td><td class="r">${m(x.al)}</td><td class="r pr">${m(unit&&x.exp)}</td><td class="r">${m(x.ae)}</td><td class="r pr">${m(unit&&x.unit)}</td><td class="r k">${m(x.a)}</td>`
@@ -1896,10 +1896,10 @@ async function exportXlsx(){
     const th=(r,c1,c2,t,r2)=>{ if(c2>c1||(r2&&r2>r)) ws.mergeCells(r,c1,r2||r,c2); put(ws,r,c1,t,{b:1,color:INK,fill:HD,al:"center",sz:r===4?9:10}); };
     ["공 종","품 목","규 격","단위","수량"].forEach((t,k)=>th(3,k+1,k+1,t,4));
     if(B){
-      ["재 료 비","노 무 비","경 비","합 계"].forEach((t,k)=>{ th(3,6+k*2,7+k*2,t); th(4,6+k*2,6+k*2,"단가"); th(4,7+k*2,7+k*2,"금액"); });
+      ["재 료 비","인 건 비","경 비","합 계"].forEach((t,k)=>{ th(3,6+k*2,7+k*2,t); th(4,6+k*2,6+k*2,"단가"); th(4,7+k*2,7+k*2,"금액"); });
       th(3,14,14,"비 고",4);
     } else {
-      ["자재비","노무비","경 비"].forEach((t,k)=>th(3,6+k,6+k,t,4));
+      ["자재비","인건비","경 비"].forEach((t,k)=>th(3,6+k,6+k,t,4));
       th(3,9,10,"계"); th(4,9,9,"단가"); th(4,10,10,"금액");
       th(3,11,11,"비 고",4);
     }
