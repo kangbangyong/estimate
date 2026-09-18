@@ -229,6 +229,13 @@ tr.hrow{cursor:pointer}
 .ein.r{text-align:right;min-width:86px}
 tr.hid .ein{opacity:.55}
 select.ein{min-width:104px;padding:4px 5px}
+/* 단가 수정 페이지 넘기기 */
+.pager{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-2)}
+.pager:empty{display:none}
+.pager button{background:var(--surface);border:1px solid var(--line);border-radius:5px;color:var(--ink);padding:4px 9px;font-size:12px}
+.pager button:disabled{opacity:.4}
+.pager b{font-weight:600;color:var(--ink)}
+.warn{color:var(--crit);font-size:12px;font-weight:600}
 tr.neu .ein{border-color:var(--accent)}
 .cpy{background:transparent;border:1px solid var(--line);border-radius:5px;color:var(--ink-2);padding:3px 6px;font-size:11px;line-height:1}
 .cpy:hover{border-color:var(--accent);color:var(--accent)}
@@ -616,6 +623,8 @@ tr.neu .ein{border-color:var(--accent)}
     <button class="btn sec sm" id="btnEditRefresh">↻ 새로고침</button>
     <button class="btn sec sm" id="btnCleanDup" title="값이 하나도 없는데 같은 이름의 품목이 따로 있는 행을 숨깁니다">빈 중복 숨기기</button>
     <button class="btn sec sm" id="btnToInterior" hidden></button>
+    <span class="pager" id="ePager"></span>
+    <span class="warn" id="eWarn" hidden></span>
     <span class="hint" id="editCount"></span>
   </div>
   <div class="tablewrap">
@@ -628,6 +637,7 @@ tr.neu .ein{border-color:var(--accent)}
       <tbody id="editBody"></tbody>
     </table>
   </div>
+  <div class="pager" id="ePager2" style="margin-top:10px"></div>
   <p class="hint" style="margin-top:10px">맨 왼쪽 <b>복사</b>를 누르면 그 줄이 하나 더 생깁니다 — 대공종·공종만 바꿔 저장하면 같은 작업내용을 여러 공종에 둘 수 있습니다. 고치고 <b>저장</b>(또는 Enter) — 시트 단가DB의 그 행이 바로 바뀝니다. <b>숨김</b>은 지우는 게 아니라 견적 화면에서만 빼는 것(시트 J열 '사용'이 N). 완전 삭제는 시트에서 행을 지우세요.</p>
 </section>
 
@@ -884,12 +894,20 @@ function renderAll(){ fillSelects(); renderCat(); renderCartBar(); renderCo(); i
 
 function fillSelects(){
   const daes=[...new Set(S.items.map(i=>daeOf(i)))].sort((a,b)=>Object.keys(TREE).indexOf(a)-Object.keys(TREE).indexOf(b));
-  const cur=$("fDae").value;
+  /* 처음 열 때는 실내건축(인테리어) 부터 보여 준다 (그 뒤로는 마지막에 고른 대공종을 기억) */
+  let want=null;
+  if(!S.daeInit&&daes.length){
+    S.daeInit=true;
+    const pref=LS.get("dae",null);
+    want=pref!=null?pref:(daes.includes(INTERIOR)?INTERIOR:"");
+    if(want&&!daes.includes(want)) want="";
+  }
+  const cur=want!=null?want:$("fDae").value;
   $("fDae").innerHTML='<option value="">대공종 전체</option>'+daes.map(d=>`<option${d===cur?" selected":""}>${esc(d)}</option>`).join("");
   syncGong();
   const opts=Object.entries(TREE).map(([d,gs])=>`<optgroup label="${esc(d)}">${gs.map(g=>`<option${g==="수장공사"?" selected":""}>${esc(g)}</option>`).join("")}</optgroup>`).join("");
   for(const id of ["impGong","adGong","xlGong"]) if(!$(id).options.length) $(id).innerHTML=opts;
-  const curE=$("eDae").value;
+  const curE=want!=null?want:$("eDae").value;
   $("eDae").innerHTML='<option value="">대공종 전체</option>'+daes.map(d=>`<option${d===curE?" selected":""}>${esc(d)}</option>`).join("");
   syncEGong();
 }
@@ -957,7 +975,7 @@ $("catBody").addEventListener("input",e=>{
   if(v==="") delete S.pick[i.id]; else S.pick[i.id]=v;
   tr.querySelector(".rowsum").textContent=v?F(unitOf(i)*N(v)):""; renderCartBar();
 });
-["fDae","fGong","fQ"].forEach(id=>$(id).addEventListener("input",()=>{ if(id==="fDae") syncGong(); renderCat(); }));
+["fDae","fGong","fQ"].forEach(id=>$(id).addEventListener("input",()=>{ if(id==="fDae"){ syncGong(); LS.set("dae",$("fDae").value); } renderCat(); }));
 $("btnExpand").addEventListener("click",()=>{ for(const i of S.items){ const d=daeOf(i); S.open["d:"+d]=true; S.open["g:"+d+"/"+(i.gong||"(공종 없음)")]=true; } renderCat(); });
 $("btnCollapse").addEventListener("click",()=>{ S.open={}; renderCat(); });
 $("btnRefresh").addEventListener("click",()=>loadCatalog(true));
@@ -1374,7 +1392,8 @@ $("btnConnTest").addEventListener("click",async()=>{
 /* ---------- 단가 수정 ---------- */
 /* 복사(맨 왼쪽)로 만든 줄은 시트에 바로 쓰지 않고 표에만 둔다 — 대공종·공종을 고쳐 저장을 누를 때 단가DB 끝에 추가됨
    (같은 공종·작업내용·규격이 이미 있으면 시트가 거절하므로, 공종을 바꿔야 들어간다) */
-let NEWSEQ = 0;
+let NEWSEQ = 0, ePage = 1;
+const EPP = 100;                  /* 단가 수정 한 페이지에 보여 줄 줄 수 */
 S.newRows = [];
 const editRows = () => [...S.items, ...S.newRows];
 const daeOptions = cur => {
@@ -1384,16 +1403,32 @@ const daeOptions = cur => {
 const gongOptions = (dae,cur) => [...new Set([...(TREE[dae]||ALL_GONG), cur].filter(Boolean))].map(g=>`<option${g===cur?" selected":""}>${esc(g)}</option>`).join("");
 /* 건축에 섞여 있는 실내건축 줄 (공종이 실내건축공사 · 이름이 (주거시설)·(상업업무시설) 로 시작) */
 const interiorStrays = () => S.items.filter(i=>daeOf(i)!==INTERIOR&&(String(i.gong||"").trim()==="실내건축공사"||/^ *\((주거시설|상업업무시설)\)/.test(String(i.name||""))));
+/* 시트에는 단가합계가 있는데 자재비·인건비·경비가 전부 0 → 배포된 Apps Script 가 열 이름을 못 읽는 상태.
+   이때 저장하면 시트가 0으로 덮이므로 쓰기를 막는다 */
+const brokenRows = () => S.items.filter(i=>N(i.total)>0&&!(N(i.mat)+N(i.lab)+N(i.exp)));
+function priceGuard(){
+  const n=brokenRows().length;
+  if(!n) return false;
+  toast(`단가를 못 읽었습니다 (${n}줄). Apps Script를 새 버전으로 배포하고 ↻ 새로고침 한 뒤에 저장하세요.`);
+  return true;
+}
 function syncStrayBtn(){
   const n=interiorStrays().length, b=$("btnToInterior");
   b.hidden=!n; b.textContent=`실내건축 ${n}줄 → ${INTERIOR} 로 옮기기`;
 }
 function renderEdit(){
+  const bn=brokenRows().length, w=$("eWarn");
+  w.hidden=!bn; w.textContent=bn?`⚠ 단가를 못 읽은 줄 ${bn}개 — Apps Script 새 버전 배포 후 ↻ 새로고침 (그 전에는 저장이 막힙니다)`:"";
   const q=$("eQ").value.trim().toLowerCase(), dae=$("eDae").value, sel=parseGongSel($("eGong").value), showH=$("eHidden").checked, body=$("editBody");
   const gName=i=>String(i.gong||"").trim()||"(공종 없음)";
   syncDupGong(); syncStrayBtn();
-  const list=editRows().filter(i=>i.isNew||((showH||i.use!==false)&&(!dae||daeOf(i)===dae)&&(!sel.dae||daeOf(i)===sel.dae)&&(!sel.gong||gName(i)===sel.gong)&&(!q||(i.name+" "+(i.spec||"")).toLowerCase().includes(q))));
-  $("editCount").textContent=list.filter(i=>!i.isNew).length.toLocaleString("ko-KR")+"개";
+  const all=S.items.filter(i=>(showH||i.use!==false)&&(!dae||daeOf(i)===dae)&&(!sel.dae||daeOf(i)===sel.dae)&&(!sel.gong||gName(i)===sel.gong)&&(!q||(i.name+" "+(i.spec||"")).toLowerCase().includes(q)));
+  $("editCount").textContent=all.length.toLocaleString("ko-KR")+"개";
+  /* 2천 줄이 넘으면 화면이 버거워서 100개씩 나눠 본다. 복사로 만든 줄은 어느 페이지에서나 보임 */
+  const pages=Math.max(1,Math.ceil(all.length/EPP));
+  if(ePage>pages) ePage=pages;
+  const list=[...all.slice((ePage-1)*EPP,ePage*EPP),...S.newRows];
+  renderPager(all.length,pages);
   if(!list.length){ body.innerHTML='<tr><td colspan="11"><div class="empty-state">'+(S.items.length?"조건에 맞는 품목이 없습니다.":"단가 DB가 비어 있습니다.")+'</div></td></tr>'; return; }
   /* 대공종 → 공종 → 품목 */
   const tree={}; for(const i of list){ const d=daeOf(i); (tree[d] ??= {}); (tree[d][gName(i)] ??= []).push(i); }
@@ -1425,6 +1460,19 @@ function renderEdit(){
   }
   body.innerHTML=h;
 }
+/* 페이지 넘기기 줄 — 도구줄과 표 아래 두 곳에 같은 걸 그림 */
+function renderPager(total,pages){
+  const h=pages<2?"":`<button ${ePage<=1?"disabled":""} data-pg="prev">‹ 이전</button>
+    <span><b>${ePage}</b> / ${pages} 페이지</span>
+    <button ${ePage>=pages?"disabled":""} data-pg="next">다음 ›</button>
+    <span class="hint">${total.toLocaleString("ko-KR")}개 중 ${((ePage-1)*EPP+1).toLocaleString("ko-KR")}–${Math.min(total,ePage*EPP).toLocaleString("ko-KR")}</span>`;
+  $("ePager").innerHTML=h; $("ePager2").innerHTML=h;
+}
+for(const id of ["ePager","ePager2"]) $(id).addEventListener("click",e=>{
+  const b=e.target.closest("[data-pg]"); if(!b) return;
+  ePage+=b.dataset.pg==="next"?1:-1; if(ePage<1) ePage=1;
+  renderEdit(); $("panel-edit").scrollIntoView({block:"start"});
+});
 function rowPatch(tr){
   const patch={};
   tr.querySelectorAll(".ein").forEach(el=>{ const f=el.dataset.f; patch[f]=["mat","lab","exp","cost"].includes(f)?N(el.value):el.value.trim(); });
@@ -1433,6 +1481,7 @@ function rowPatch(tr){
 async function saveItem(tr, patch){
   const id=tr.dataset.eid, i=S.items.find(x=>x.id===id); if(!i) return;
   if(!apiReady()) return openConn();
+  if(priceGuard()) return;
   const item={id, prevName:i.name, dae:i.dae||"", gong:i.gong, name:i.name, spec:i.spec, unit:i.unit, mat:i.mat, lab:i.lab, exp:i.exp, cost:i.cost, use:i.use!==false, ...patch};
   const btn=tr.querySelector("[data-save]"); btn.disabled=true; btn.textContent="저장 중";
   try{
@@ -1445,6 +1494,7 @@ async function saveItem(tr, patch){
 /* 복사로 만든 줄을 시트 단가DB 끝에 추가 */
 async function addNewRow(tr, patch){
   if(!apiReady()) return openConn();
+  if(priceGuard()) return;
   const item=fillDae({dae:patch.dae||"",gong:patch.gong,name:patch.name,spec:patch.spec,unit:patch.unit||"식",mat:patch.mat,lab:patch.lab,exp:patch.exp,cost:patch.cost});
   const btn=tr.querySelector("[data-save]"); btn.disabled=true; btn.textContent="저장 중";
   try{
@@ -1489,8 +1539,8 @@ $("editBody").addEventListener("click",e=>{
     const i=S.items.find(x=>x.id===id); saveItem(tr,{use:i.use===false});
   }
 });
-["eQ","eGong","eHidden"].forEach(id=>$(id).addEventListener("input",renderEdit));
-$("eDae").addEventListener("input",()=>{ syncEGong(); renderEdit(); });
+["eQ","eGong","eHidden"].forEach(id=>$(id).addEventListener("input",()=>{ ePage=1; renderEdit(); }));
+$("eDae").addEventListener("input",()=>{ ePage=1; syncEGong(); LS.set("dae",$("eDae").value); renderEdit(); });
 /* 값이 하나도 없는데 같은 이름(공종+품목명)에 값 있는 행이 따로 있으면 → 숨김 */
 $("btnCleanDup").addEventListener("click",async()=>{
   if(!apiReady()) return openConn();
@@ -1508,15 +1558,18 @@ $("btnCleanDup").addEventListener("click",async()=>{
 $("btnToInterior").addEventListener("click",async()=>{
   if(!apiReady()) return openConn();
   const rows=interiorStrays(); if(!rows.length) return;
+  if(brokenRows().length) toast("단가를 못 읽은 줄이 있지만, 이 이동은 대공종만 바꾸므로 단가는 그대로 둡니다.");
   const list=rows.slice(0,12).map(i=>"· "+(i.gong||"")+" > "+i.name).join("\n")+(rows.length>12?"\n… 외 "+(rows.length-12)+"줄":"");
   if(!confirm(`${rows.length}줄의 대공종을 '${INTERIOR}' 로 옮깁니다.\n공종과 품목명은 그대로 둡니다 (공종은 단가 수정에서 직접 고치세요).\n\n${list}`)) return;
-  let n=0;
-  for(const i of rows){
-    try{ await apiPost("updateItem",{item:updPayload(i,{...i,dae:INTERIOR},i.use!==false)}); i.dae=INTERIOR; n++; }
-    catch(e){ toast("실패: "+i.name+" — "+e.message); break; }
+  /* 대공종만 바꾸는 요청 — 단가는 시트 값을 그대로 둔다 (updateItem 은 줄 전체를 다시 써서 0으로 덮은 적이 있음) */
+  try{
+    const j=await apiPost("setDae",{ids:rows.map(i=>i.id),dae:INTERIOR});
+    for(const i of rows) i.dae=INTERIOR;
+    LS.set("catalog",{at:Date.now(),items:S.items,settings:S.settings});
+    toast((j.changed||rows.length)+"줄을 "+INTERIOR+" 로 옮겼습니다"); fillSelects(); renderEdit(); renderCat();
+  }catch(e){
+    toast(/알 수 없는 요청/.test(e.message)?"Apps Script를 새 버전으로 배포해야 합니다 (배포 관리 → 새 버전)":"실패: "+e.message);
   }
-  LS.set("catalog",{at:Date.now(),items:S.items,settings:S.settings});
-  toast(n+"줄을 "+INTERIOR+" 로 옮겼습니다"); fillSelects(); renderEdit(); renderCat();
 });
 $("btnEditRefresh").addEventListener("click",async()=>{ await loadCatalog(true); fillSelects(); renderEdit(); });
 

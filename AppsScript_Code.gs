@@ -115,9 +115,16 @@ function readCatalog() {
   if (!sh || sh.getLastRow() < 2) return [];
   const v = sh.getDataRange().getValues();
   const head = v[0].map(String);
-  // 열 이름은 자재비·인건비. 예전 시트(재료비·노무비)도 그대로 읽습니다
-  const ALIAS = { '자재비': '재료비', '인건비': '노무비' };
-  const at = name => { const i = head.indexOf(name); return i >= 0 ? i : (ALIAS[name] ? head.indexOf(ALIAS[name]) : -1); };
+  // 열 이름 별칭 — 어느 쪽 이름이든 읽습니다 (자재비↔재료비, 인건비↔노무비, 작업명↔품목명)
+  const ALIAS = { '자재비': ['재료비'], '재료비': ['자재비'], '인건비': ['노무비'], '노무비': ['인건비'],
+                  '품목명': ['작업명', '작업내용'], '작업명': ['품목명'] };
+  const at = name => {
+    let i = head.indexOf(name);
+    if (i >= 0) return i;
+    const alt = ALIAS[name] || [];
+    for (let k = 0; k < alt.length; k++) { i = head.indexOf(alt[k]); if (i >= 0) return i; }
+    return -1;
+  };
   const items = [];
   for (let r = 1; r < v.length; r++) {
     const row = v[r];
@@ -134,7 +141,8 @@ function readCatalog() {
       mat:  num(row[at('자재비')]),
       lab:  num(row[at('인건비')]),
       exp:  num(row[at('경비')]),
-      cost: num(row[at('원가')])
+      cost: num(row[at('원가')]),
+      total: num(row[at('단가합계')])      // 화면에서 자재비·인건비를 제대로 읽었는지 검사하는 데만 씀
     });
   }
   return items;
@@ -254,6 +262,7 @@ function doPost(e) {
       case 'save':      return json(saveEstimate(body.estimate || {}));
       case 'addItems':  return json(addItems(body.items || []));
       case 'updateItem': return json(updateItem(body.item || {}));
+      case 'setDae':    return json(setDae(body.ids || [], body.dae || ''));
       case 'saveParty':  return json(saveParty(body.type, body.party || {}));
       default:          return json({ ok: false, error: '알 수 없는 요청입니다: ' + body.action });
     }
@@ -380,6 +389,26 @@ function updateItem(it) {
     db.getRange(row, 10).setValue(num(it.cost));                  // J 원가
     db.getRange(row, 11).setValue(it.use === false ? 'N' : '');   // K 사용
     return { ok: true, id: it.id };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/** 대공종(A열)만 바꿉니다. 단가·품목명은 건드리지 않습니다 — 화면이 잘못된 값을 들고 있어도 안전하게. */
+function setDae(ids, dae) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const db = SS().getSheetByName('단가DB');
+    let n = 0;
+    ids.forEach(function (id) {
+      const row = parseInt(String(id || '').replace(/^r/, ''), 10);
+      if (!row || row < 2) return;
+      if (!String(db.getRange(row, 3).getValue() || '').trim()) return;   // 빈 행은 건너뜀
+      db.getRange(row, 1).setValue(String(dae || ''));
+      n++;
+    });
+    return { ok: true, changed: n };
   } finally {
     lock.releaseLock();
   }
