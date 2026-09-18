@@ -894,14 +894,9 @@ function renderAll(){ fillSelects(); renderCat(); renderCartBar(); renderCo(); i
 
 function fillSelects(){
   const daes=[...new Set(S.items.map(i=>daeOf(i)))].sort((a,b)=>Object.keys(TREE).indexOf(a)-Object.keys(TREE).indexOf(b));
-  /* 처음 열 때는 실내건축(인테리어) 부터 보여 준다 (그 뒤로는 마지막에 고른 대공종을 기억) */
+  /* 단가 DB · 단가 수정은 항상 실내건축(인테리어) 로 시작. 화면에서 바꾸면 그 자리에서만 유지되고, 다시 열면 또 실내건축부터 */
   let want=null;
-  if(!S.daeInit&&daes.length){
-    S.daeInit=true;
-    const pref=LS.get("dae",null);
-    want=pref!=null?pref:(daes.includes(INTERIOR)?INTERIOR:"");
-    if(want&&!daes.includes(want)) want="";
-  }
+  if(!S.daeInit&&daes.length){ S.daeInit=true; want=daes.includes(INTERIOR)?INTERIOR:""; }
   const cur=want!=null?want:$("fDae").value;
   $("fDae").innerHTML='<option value="">대공종 전체</option>'+daes.map(d=>`<option${d===cur?" selected":""}>${esc(d)}</option>`).join("");
   syncGong();
@@ -975,7 +970,7 @@ $("catBody").addEventListener("input",e=>{
   if(v==="") delete S.pick[i.id]; else S.pick[i.id]=v;
   tr.querySelector(".rowsum").textContent=v?F(unitOf(i)*N(v)):""; renderCartBar();
 });
-["fDae","fGong","fQ"].forEach(id=>$(id).addEventListener("input",()=>{ if(id==="fDae"){ syncGong(); LS.set("dae",$("fDae").value); } renderCat(); }));
+["fDae","fGong","fQ"].forEach(id=>$(id).addEventListener("input",()=>{ if(id==="fDae") syncGong(); renderCat(); }));
 $("btnExpand").addEventListener("click",()=>{ for(const i of S.items){ const d=daeOf(i); S.open["d:"+d]=true; S.open["g:"+d+"/"+(i.gong||"(공종 없음)")]=true; } renderCat(); });
 $("btnCollapse").addEventListener("click",()=>{ S.open={}; renderCat(); });
 $("btnRefresh").addEventListener("click",()=>loadCatalog(true));
@@ -1540,7 +1535,7 @@ $("editBody").addEventListener("click",e=>{
   }
 });
 ["eQ","eGong","eHidden"].forEach(id=>$(id).addEventListener("input",()=>{ ePage=1; renderEdit(); }));
-$("eDae").addEventListener("input",()=>{ ePage=1; syncEGong(); LS.set("dae",$("eDae").value); renderEdit(); });
+$("eDae").addEventListener("input",()=>{ ePage=1; syncEGong(); renderEdit(); });
 /* 값이 하나도 없는데 같은 이름(공종+품목명)에 값 있는 행이 따로 있으면 → 숨김 */
 $("btnCleanDup").addEventListener("click",async()=>{
   if(!apiReady()) return openConn();
