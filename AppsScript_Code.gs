@@ -25,11 +25,11 @@ const SS = () => SpreadsheetApp.getActiveSpreadsheet();
    1. 최초 1회 — 시트 만들기
    ================================================================ */
 const SCHEMA = {
-  '단가DB':   ['대공종','공종','품목명','규격','단위','재료비','노무비','경비','단가합계','원가','사용'],
+  '단가DB':   ['대공종','공종','품목명','규격','단위','자재비','인건비','경비','단가합계','원가','사용'],
   '견적이력': ['견적번호','작성일시','현장명','발주처','담당','공급가액','부가세','합계','원가합계','마진','품목수','비고','시공사','발주처사업자번호','메타'],
   '시공사':   ['사업자등록번호','상호','성명','사업장주소','업태','종목','이메일','담당자성명','담당자연락처','로고이미지','도장이미지','FAX'],
   '발주처':   ['사업자등록번호','상호','성명','사업장주소','업태','종목','이메일','담당자성명','담당자연락처','로고이미지'],
-  '견적상세': ['견적번호','순번','공종','품목명','규격','단위','수량','재료비','노무비','경비','단가합계','금액','원가'],
+  '견적상세': ['견적번호','순번','공종','품목명','규격','단위','수량','자재비','인건비','경비','단가합계','금액','원가'],
   '설정':     ['항목','값']
 };
 
@@ -69,7 +69,7 @@ function 초기화() {
       db.getRange(2, 9, keep.length, 1).clearContent();  // I열은 완전히 비워야 배열수식이 퍼짐
     }
   }
-  // 단가합계 = 재료비 + 노무비 + 경비 — 배열수식 한 칸으로 (빈 행을 만들지 않음)
+  // 단가합계 = 자재비 + 인건비 + 경비 — 배열수식 한 칸으로 (빈 행을 만들지 않음)
   db.getRange('I2').setFormula('=ARRAYFORMULA(IF(C2:C="","",F2:F+G2:G+H2:H))');
   db.getRange('F2:J2000').setNumberFormat('#,##0');
   db.setColumnWidth(1, 70); db.setColumnWidth(2, 150); db.setColumnWidth(3, 240); db.setColumnWidth(4, 180);
@@ -115,7 +115,9 @@ function readCatalog() {
   if (!sh || sh.getLastRow() < 2) return [];
   const v = sh.getDataRange().getValues();
   const head = v[0].map(String);
-  const at = name => head.indexOf(name);
+  // 열 이름은 자재비·인건비. 예전 시트(재료비·노무비)도 그대로 읽습니다
+  const ALIAS = { '자재비': '재료비', '인건비': '노무비' };
+  const at = name => { const i = head.indexOf(name); return i >= 0 ? i : (ALIAS[name] ? head.indexOf(ALIAS[name]) : -1); };
   const items = [];
   for (let r = 1; r < v.length; r++) {
     const row = v[r];
@@ -129,8 +131,8 @@ function readCatalog() {
       name: name,
       spec: String(row[at('규격')] || '').trim(),
       unit: String(row[at('단위')] || '식').trim(),
-      mat:  num(row[at('재료비')]),
-      lab:  num(row[at('노무비')]),
+      mat:  num(row[at('자재비')]),
+      lab:  num(row[at('인건비')]),
       exp:  num(row[at('경비')]),
       cost: num(row[at('원가')])
     });
