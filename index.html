@@ -180,6 +180,8 @@ tr.grand td.v{color:var(--accent)}
 .del:hover{color:var(--crit)}
 .margin-pos{color:var(--good)}.margin-neg{color:var(--crit)}
 .savebadge{font-size:11px;color:var(--ink-3)}
+/* 겹치는 공종 구분용 꼬리표 (화면에만) */
+.gtag{color:var(--ink-3);font-weight:500;font-size:11px;margin-right:2px}
 /* 견적 탭 — 적산 | 견적 | 견적이력 토글 + 세 화면 공통 버튼줄 */
 .estbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;padding-top:18px}
 .estbar+.panel{padding-top:14px}
@@ -774,6 +776,43 @@ for(const [d,gs] of Object.entries(TREE)) for(const g of gs) if(!GONG2DAE.has(g)
 const ALL_GONG = [...new Set(Object.values(TREE).flat())];
 const INTERIOR = "실내건축(인테리어)";
 /* 공종 정렬: 그 대공종의 목록 순서대로 (목록에 없는 공종은 뒤로) */
+/* 같은 공종 이름이 두 대공종에 다 있을 때(건축 미장공사 · 실내건축 미장공사) 화면에서 구분하기 위한 것.
+   꼬리표는 화면에만 붙고 시트·견적서 인쇄물에는 안 들어간다 */
+let DUPG = new Set();
+const daeShort = d => String(d||"").replace(/\(.*\)$/,"");      /* 실내건축(인테리어) → 실내건축 */
+function syncDupGong(){
+  const m=new Map();
+  for(const i of S.items){ const g=String(i.gong||"").trim(); if(!g) continue; if(!m.has(g)) m.set(g,new Set()); m.get(g).add(daeOf(i)); }
+  DUPG=new Set([...m].filter(([,set])=>set.size>1).map(([g])=>g));
+}
+/* 겹치는 공종이면 작업내용 앞에 (대공종) — withGong 이면 (대공종·공종) */
+function gTag(gong,dae,withGong){
+  const g=String(gong||"").trim(), out=[];
+  if(g&&DUPG.has(g)) out.push(daeShort(dae||GONG2DAE.get(g)||"미분류"));
+  if(withGong&&g) out.push(g);
+  return out.length?`<span class="gtag">(${esc(out.join("·"))})</span> `:"";
+}
+/* 공종 고르는 칸: 값이 "대공종|||공종" 이면 대공종까지 같이 걸러야 함 */
+const GSEP="|||";
+const parseGongSel = v => { const i=String(v||"").indexOf(GSEP); return i<0?{dae:"",gong:v||""}:{dae:v.slice(0,i),gong:v.slice(i+GSEP.length)}; };
+/* 화면에 있는 공종을 대공종별로 묶어 <optgroup> 으로. 겹치는 공종이 없으면 그냥 한 줄씩 */
+function gongSelectHtml(daeFilter,cur){
+  const byDae=new Map();
+  for(const i of S.items){
+    const d=daeOf(i), g=String(i.gong||"").trim()||"(공종 없음)";
+    if(daeFilter&&d!==daeFilter) continue;
+    if(!byDae.has(d)) byDae.set(d,new Set()); byDae.get(d).add(g);
+  }
+  const daeOrder=[...Object.keys(TREE),"미분류"];
+  const keys=[...daeOrder.filter(d=>byDae.has(d)),...[...byDae.keys()].filter(d=>!daeOrder.includes(d))];
+  let h=`<option value=""${cur?"":" selected"}>공종 전체</option>`;
+  for(const d of keys){
+    const gs=[...byDae.get(d)].sort(gongSort(d));
+    const opts=gs.map(g=>{ const v=d+GSEP+g; return `<option value="${esc(v)}"${v===cur?" selected":""}>${esc(g)}</option>`; }).join("");
+    h+=(keys.length>1||daeFilter)?`<optgroup label="${esc(d)}">${opts}</optgroup>`:opts;
+  }
+  return h;
+}
 const gongSort = dae => (a,b) => { const l=TREE[dae]||ALL_GONG, ia=l.indexOf(a), ib=l.indexOf(b); return (ia<0?9000+ALL_GONG.indexOf(a):ia)-(ib<0?9000+ALL_GONG.indexOf(b):ib); };
 /* 공종만 있고 대공종이 비면 목록에서 찾아 채움 (저장 직전에 씀) */
 const fillDae = it => { if(!it.dae && GONG2DAE.has(it.gong)) it.dae=GONG2DAE.get(it.gong); return it; };
@@ -856,28 +895,26 @@ function fillSelects(){
 }
 /* 단가 수정 탭 공종 목록: 고른 대공종에 실제로 있는 공종만 */
 function syncEGong(){
-  const dae=$("eDae").value, cur=$("eGong").value;
-  const gongs=[...new Set(S.items.filter(i=>!dae||daeOf(i)===dae).map(i=>String(i.gong||"").trim()||"(공종 없음)"))];
-  gongs.sort((a,b)=>ALL_GONG.indexOf(a)-ALL_GONG.indexOf(b));
-  $("eGong").innerHTML='<option value="">공종 전체</option>'+gongs.map(g=>`<option${g===cur?" selected":""}>${esc(g)}</option>`).join("");
+  syncDupGong();
+  $("eGong").innerHTML=gongSelectHtml($("eDae").value,$("eGong").value);
 }
 function syncGong(){
-  const dae=$("fDae").value, cur=$("fGong").value;
-  const gongs=[...new Set(S.items.filter(i=>!dae||daeOf(i)===dae).map(i=>i.gong))];
-  gongs.sort((a,b)=>ALL_GONG.indexOf(a)-ALL_GONG.indexOf(b));
-  $("fGong").innerHTML='<option value="">공종 전체</option>'+gongs.map(g=>`<option${g===cur?" selected":""}>${esc(g)}</option>`).join("");
+  syncDupGong();
+  $("fGong").innerHTML=gongSelectHtml($("fDae").value,$("fGong").value);
 }
 function filtered(){
-  const dae=$("fDae").value, gong=$("fGong").value, q=$("fQ").value.trim().toLowerCase();
+  const dae=$("fDae").value, sel=parseGongSel($("fGong").value), q=$("fQ").value.trim().toLowerCase();
   return S.items.filter(i=>{
     if(i.use===false) return false;                 // 숨김 품목은 견적 화면에서 제외
     if(dae && daeOf(i)!==dae) return false;
-    if(gong && i.gong!==gong) return false;
+    if(sel.dae && daeOf(i)!==sel.dae) return false;
+    if(sel.gong && String(i.gong||"").trim()!==sel.gong) return false;
     if(q && !((i.name+" "+(i.spec||"")+" "+(i.gong||"")).toLowerCase().includes(q))) return false;
     return true;
   });
 }
 function renderCat(){
+  syncDupGong();
   const list=filtered(), body=$("catBody"), q=$("fQ").value.trim();
   $("catCount").textContent=list.length.toLocaleString("ko-KR")+"개 품목";
   if(!S.items.length){
@@ -906,7 +943,7 @@ function renderCat(){
 function rowHtml(i){
   const u=unitOf(i), qv=S.pick[i.id]??"", sub=qv?u*N(qv):0;
   return `<tr data-item="${esc(i.id)}">
-    <td><div class="item-name"><b>${esc(i.name)}${u===0?'<span class="chip empty">단가 미입력</span>':""}</b><span class="item-meta">${esc(i.spec||"")}</span></div></td>
+    <td><div class="item-name"><b>${gTag(i.gong,daeOf(i))}${esc(i.name)}${u===0?'<span class="chip empty">단가 미입력</span>':""}</b><span class="item-meta">${esc(i.spec||"")}</span></div></td>
     <td>${esc(i.unit||"")}</td>
     <td class="num c-mat">${i.mat?F(i.mat):"–"}</td><td class="num c-lab">${i.lab?F(i.lab):"–"}</td><td class="num c-exp">${i.exp?F(i.exp):"–"}</td>
     <td class="num sum">${u?F(u):"–"}</td>
@@ -942,7 +979,7 @@ $("btnAddCart").addEventListener("click",()=>{
     const q=N(v); if(q<=0) continue; const i=S.items.find(x=>x.id===id); if(!i) continue;
     const ex=S.rows.find(r=>r.key===id);
     if(ex) ex.qty=N(ex.qty)+q;
-    else S.rows.push({key:id,gong:i.gong,name:i.name,spec:i.spec,unit:i.unit,qty:q,mat:N(i.mat),lab:N(i.lab),exp:N(i.exp),cost:N(i.cost)});
+    else S.rows.push({key:id,dae:daeOf(i),gong:i.gong,name:i.name,spec:i.spec,unit:i.unit,qty:q,mat:N(i.mat),lab:N(i.lab),exp:N(i.exp),cost:N(i.cost)});
   }
   S.pick={}; renderCat(); renderCartBar(); autoSchedule(); goTab("doc"); badge("저장 안 됨");
 });
@@ -981,6 +1018,7 @@ function origAdj(r){
 const pctTxt=p=>{ const v=Math.round(p*10)/10; return (v>0?"+":"")+v+"%"; };
 const pctCls=p=>Math.abs(p)<0.05?"":p>0?"up":"dn";
 function renderDoc(){
+  syncDupGong();
   const body=$("docBody"), g=groups();
   if(!S.rows.length){ body.innerHTML='<tr><td colspan="12" class="c" style="height:80px;color:var(--ink-3)">담긴 내역이 없습니다 — 단가 DB에서 수량을 넣고 내역담기</td></tr>'; return; }
   const m=v=>v?F(v):"";
@@ -995,7 +1033,7 @@ function renderDoc(){
       for(const k in t){ t[k]+=x[k]; all[k]+=x[k]; }
       const pi=k=>`<td class="pi${isChg(r,k)?" chg":""}"${isChg(r,k)?` title="단가 DB ${F(r.o[k])}"`:""}><input class="pin" data-f="${k}" type="text" inputmode="numeric" value="${m(N(r[k]))}" aria-label="${esc(r.name)} ${k==="mat"?"자재비":k==="lab"?"인건비":"경비"} 단가"></td>`;
       const p=adjPct(r);
-      h+=`<tr data-row="${esc(r.key)}"><td class="t" title="${esc(r.name)}">${esc(r.name)}</td><td class="sp" title="${esc(r.spec||"")}">${esc(r.spec||"")}</td><td class="c">${esc(r.unit||"")}</td>
+      h+=`<tr data-row="${esc(r.key)}"><td class="t" title="${esc(r.name)}">${gTag(r.gong,r.dae)}${esc(r.name)}</td><td class="sp" title="${esc(r.spec||"")}">${esc(r.spec||"")}</td><td class="c">${esc(r.unit||"")}</td>
         <td class="q"><input class="qty" type="text" inputmode="decimal" value="${fmtQty(r.qty,r.unit)}" ${qtyAttr(r.unit)} aria-label="${esc(r.name)} 수량"></td>
         ${PK.map(pi).join("")}<td>${m(unitOf(r))}</td><td>${m(x.amt)}</td><td class="z">${m(x.cost)}</td>
         <td class="aj"><span class="adjc"><button type="button" data-adj="-1" aria-label="1% 내림">▼</button><em class="${pctCls(p)}">${pctTxt(p)}</em><button type="button" data-adj="1" aria-label="1% 올림">▲</button></span><button type="button" class="orig" data-orig title="단가 DB 원래 숫자로">ORIGIN</button></td>
@@ -1351,10 +1389,10 @@ function syncStrayBtn(){
   b.hidden=!n; b.textContent=`실내건축 ${n}줄 → ${INTERIOR} 로 옮기기`;
 }
 function renderEdit(){
-  const q=$("eQ").value.trim().toLowerCase(), dae=$("eDae").value, gong=$("eGong").value, showH=$("eHidden").checked, body=$("editBody");
+  const q=$("eQ").value.trim().toLowerCase(), dae=$("eDae").value, sel=parseGongSel($("eGong").value), showH=$("eHidden").checked, body=$("editBody");
   const gName=i=>String(i.gong||"").trim()||"(공종 없음)";
-  syncStrayBtn();
-  const list=editRows().filter(i=>i.isNew||((showH||i.use!==false)&&(!dae||daeOf(i)===dae)&&(!gong||gName(i)===gong)&&(!q||(i.name+" "+(i.spec||"")).toLowerCase().includes(q))));
+  syncDupGong(); syncStrayBtn();
+  const list=editRows().filter(i=>i.isNew||((showH||i.use!==false)&&(!dae||daeOf(i)===dae)&&(!sel.dae||daeOf(i)===sel.dae)&&(!sel.gong||gName(i)===sel.gong)&&(!q||(i.name+" "+(i.spec||"")).toLowerCase().includes(q))));
   $("editCount").textContent=list.filter(i=>!i.isNew).length.toLocaleString("ko-KR")+"개";
   if(!list.length){ body.innerHTML='<tr><td colspan="11"><div class="empty-state">'+(S.items.length?"조건에 맞는 품목이 없습니다.":"단가 DB가 비어 있습니다.")+'</div></td></tr>'; return; }
   /* 대공종 → 공종 → 품목 */
