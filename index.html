@@ -2188,7 +2188,7 @@ document.querySelectorAll("#estBar [data-view]").forEach(b=>b.addEventListener("
   const d=LS.get("draft",null);
   if(d){ S.rows=d.rows||[]; S.sch=d.sch||[]; Object.assign(S.meta,d.meta||{}); }
   if(!S.meta.date) S.meta.date=new Date().toISOString().slice(0,10);
-  fillMeta(); S.open["d:건축"]=true;
+  fillMeta();   /* 단가 DB 는 대공종만 접힌 채로 시작 (공종은 눌러서 펼침) */
   loadCatalog(false); loadParties(false);
   if(!apiReady()) setTimeout(openConn,300);
 })();
