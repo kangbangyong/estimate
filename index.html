@@ -226,7 +226,11 @@ tr.hrow{cursor:pointer}
 .ein.xs{min-width:44px;width:56px;text-align:center}
 .ein.r{text-align:right;min-width:86px}
 tr.hid .ein{opacity:.55}
-#panel-edit table{min-width:1000px}
+select.ein{min-width:104px;padding:4px 5px}
+tr.neu .ein{border-color:var(--accent)}
+.cpy{background:transparent;border:1px solid var(--line);border-radius:5px;color:var(--ink-2);padding:3px 6px;font-size:11px;line-height:1}
+.cpy:hover{border-color:var(--accent);color:var(--accent)}
+#panel-edit table{min-width:1180px}
 #panel-edit td{padding:5px 6px}
 
 /* 거래처 — 세금계산서 양식 */
@@ -609,18 +613,20 @@ tr.hid .ein{opacity:.55}
     <label class="hint" style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" id="eHidden"> 숨긴 품목도 보기</label>
     <button class="btn sec sm" id="btnEditRefresh">↻ 새로고침</button>
     <button class="btn sec sm" id="btnCleanDup" title="값이 하나도 없는데 같은 이름의 품목이 따로 있는 행을 숨깁니다">빈 중복 숨기기</button>
+    <button class="btn sec sm" id="btnToInterior" hidden></button>
     <span class="hint" id="editCount"></span>
   </div>
   <div class="tablewrap">
     <table>
       <thead><tr>
-        <th style="width:26%">품목명</th><th style="width:20%">규격</th><th style="width:6%">단위</th>
-        <th style="width:10%">자재비</th><th style="width:10%">인건비</th><th style="width:9%">경비</th><th style="width:9%">원가</th><th style="width:10%"></th>
+        <th style="width:4%"></th><th style="width:13%">대공종</th><th style="width:12%">공종</th>
+        <th style="width:17%">품목명</th><th style="width:12%">규격</th><th style="width:5%">단위</th>
+        <th style="width:9%">자재비</th><th style="width:9%">인건비</th><th style="width:7%">경비</th><th style="width:7%">원가</th><th style="width:11%"></th>
       </tr></thead>
       <tbody id="editBody"></tbody>
     </table>
   </div>
-  <p class="hint" style="margin-top:10px">고치고 <b>저장</b>(또는 Enter) — 시트 단가DB의 그 행이 바로 바뀝니다. <b>숨김</b>은 지우는 게 아니라 견적 화면에서만 빼는 것(시트 J열 '사용'이 N). 완전 삭제는 시트에서 행을 지우세요.</p>
+  <p class="hint" style="margin-top:10px">맨 왼쪽 <b>복사</b>를 누르면 그 줄이 하나 더 생깁니다 — 대공종·공종만 바꿔 저장하면 같은 작업내용을 여러 공종에 둘 수 있습니다. 고치고 <b>저장</b>(또는 Enter) — 시트 단가DB의 그 행이 바로 바뀝니다. <b>숨김</b>은 지우는 게 아니라 견적 화면에서만 빼는 것(시트 J열 '사용'이 N). 완전 삭제는 시트에서 행을 지우세요.</p>
 </section>
 
 <!-- ======== 거래처 (시공사 · 발주처) — 세금계산서 기준 항목 ======== -->
@@ -755,15 +761,20 @@ tr.hid .ein{opacity:.55}
    그리다 견적 — GitHub Pages + Google Sheets(Apps Script)
    ========================================================== */
 const TREE = {
-  "건축":["설계","가설공사","기초공사","토공사","철근콘크리트공사","철골공사","조적공사","단열공사","미장공사","타일공사","석공사","목공사","금속공사","창호공사","유리공사","수장공사","도배공사","도장공사","지붕 및 홈통공사","경량철골공사","경량판넬공사","실내건축공사","미끄럼방지공사","항균방청공사","단청공사","전통건축/문화재 공사","해체공사","보강공사","내진보강공사","구조보강 금속부착공사","균열보수공사","표면열화 복원공사","유지보수공사(건축종합)","기타 건축특수공사","방수공사","일반방수공사","복합방수공사","방수특수공법","단열복합방수공사","도막라이닝공사","보수방수공사","바닥방수공사","기타방수공사"],
+  "건축":["설계","가설공사","기초공사","토공사","철근콘크리트공사","철골공사","조적공사","단열공사","미장공사","타일공사","석공사","목공사","금속공사","창호공사","유리공사","수장공사","도배공사","도장공사","지붕 및 홈통공사","경량철골공사","경량판넬공사","미끄럼방지공사","항균방청공사","단청공사","전통건축/문화재 공사","해체공사","보강공사","내진보강공사","구조보강 금속부착공사","균열보수공사","표면열화 복원공사","유지보수공사(건축종합)","기타 건축특수공사","방수공사","일반방수공사","복합방수공사","방수특수공법","단열복합방수공사","도막라이닝공사","보수방수공사","바닥방수공사","기타방수공사"],
+  "실내건축(인테리어)":["확장공사","철거 공사","가설 공사","바닥 레벨링 공사","구조보강공사","방수공사","목공사","금속&유리 공사","창호 공사","위생(도기) 공사","수전공사","전기 공사","조명 공사","설비 공사","덕트(환기) 공사","공조 공사","타일 공사","석재 공사","텍스 공사","시트 공사","도장 공사","바닥공사","도배공사","가구공사(싱크)","인조대리석 공사","준공청소","기타 공사","소방공사","도시가스공사","전기승압공사","외부공사"],
   "기계":["급배수설비공사","위생기구설비공사","공기조화설비공사","펌프 및 밸브공사","플랜트설비공사","해상기계설비공사","측정기기공사","위생용품공사","자동계측기 및 제어공사","유지보수(기계/철거)"],
   "전기":["전기공사"],"통신":["정보통신공사"],"소방":["소방기계설비공사","소방전기공사"],
   "토목":["토목구조물공사","도로포장공사","비탈면 보호공","보강토 옹벽공","항만공사"],
   "조경":["조경공사","조경식재공사","조경시설공사","조경구조물공사","사후관리 및 조경정비","유지관리부문(조경/토목)"],
   "기타":["공통자재공사","장비공사","사무공사","관리비/간접비","건설폐기물 처리공사","유지관리공사","유지보수 수공사","유지관리 평가공사","유지보수 평가공사","기타 특허공법","기타 간접공사"]
 };
-const GONG2DAE = new Map(Object.entries(TREE).flatMap(([d,gs])=>gs.map(g=>[g,d])));
-const ALL_GONG = Object.values(TREE).flat();
+const GONG2DAE = new Map();
+for(const [d,gs] of Object.entries(TREE)) for(const g of gs) if(!GONG2DAE.has(g)) GONG2DAE.set(g,d);   /* 목공사처럼 두 대공종에 다 있는 공종은 먼저 나온 쪽(건축)으로 추정 */
+const ALL_GONG = [...new Set(Object.values(TREE).flat())];
+const INTERIOR = "실내건축(인테리어)";
+/* 공종 정렬: 그 대공종의 목록 순서대로 (목록에 없는 공종은 뒤로) */
+const gongSort = dae => (a,b) => { const l=TREE[dae]||ALL_GONG, ia=l.indexOf(a), ib=l.indexOf(b); return (ia<0?9000+ALL_GONG.indexOf(a):ia)-(ib<0?9000+ALL_GONG.indexOf(b):ib); };
 /* 공종만 있고 대공종이 비면 목록에서 찾아 채움 (저장 직전에 씀) */
 const fillDae = it => { if(!it.dae && GONG2DAE.has(it.gong)) it.dae=GONG2DAE.get(it.gong); return it; };
 /* 대공종: 시트에 적힌 값 우선, 없으면 공종으로 추정. 품목 객체든 공종 문자열이든 받음 */
@@ -837,7 +848,7 @@ function fillSelects(){
   const cur=$("fDae").value;
   $("fDae").innerHTML='<option value="">대공종 전체</option>'+daes.map(d=>`<option${d===cur?" selected":""}>${esc(d)}</option>`).join("");
   syncGong();
-  const opts=ALL_GONG.map(g=>`<option${g==="수장공사"?" selected":""}>${esc(g)}</option>`).join("");
+  const opts=Object.entries(TREE).map(([d,gs])=>`<optgroup label="${esc(d)}">${gs.map(g=>`<option${g==="수장공사"?" selected":""}>${esc(g)}</option>`).join("")}</optgroup>`).join("");
   for(const id of ["impGong","adGong","xlGong"]) if(!$(id).options.length) $(id).innerHTML=opts;
   const curE=$("eDae").value;
   $("eDae").innerHTML='<option value="">대공종 전체</option>'+daes.map(d=>`<option${d===curE?" selected":""}>${esc(d)}</option>`).join("");
@@ -883,7 +894,7 @@ function renderCat(){
     const dOpen=S.open["d:"+dae]||!!q;
     h+=`<tr class="dae" data-node="d:${esc(dae)}"><td colspan="8"><span class="twist${dOpen?" open":""}">▸</span> ${esc(dae)}<span class="count">${total}개</span></td></tr>`;
     if(!dOpen) continue;
-    for(const gong of Object.keys(gongs).sort((a,b)=>ALL_GONG.indexOf(a)-ALL_GONG.indexOf(b))){
+    for(const gong of Object.keys(gongs).sort(gongSort(dae))){
       const items=gongs[gong], gOpen=S.open["g:"+dae+"/"+gong]||!!q;
       h+=`<tr class="gong" data-node="g:${esc(dae)}/${esc(gong)}"><td colspan="8"><span class="twist${gOpen?" open":""}">▸</span> ${esc(gong)}<span class="count">${items.length}개</span></td></tr>`;
       if(!gOpen) continue;
@@ -1323,24 +1334,44 @@ $("btnConnTest").addEventListener("click",async()=>{
 });
 
 /* ---------- 단가 수정 ---------- */
+/* 복사(맨 왼쪽)로 만든 줄은 시트에 바로 쓰지 않고 표에만 둔다 — 대공종·공종을 고쳐 저장을 누를 때 단가DB 끝에 추가됨
+   (같은 공종·작업내용·규격이 이미 있으면 시트가 거절하므로, 공종을 바꿔야 들어간다) */
+let NEWSEQ = 0;
+S.newRows = [];
+const editRows = () => [...S.items, ...S.newRows];
+const daeOptions = cur => {
+  const list=[...new Set([...Object.keys(TREE), cur&&TREE[cur]===undefined&&cur!=="미분류"?cur:null].filter(Boolean))];
+  return `<option value=""${cur?"":" selected"}>(미분류)</option>`+list.map(d=>`<option${d===cur?" selected":""}>${esc(d)}</option>`).join("");
+};
+const gongOptions = (dae,cur) => [...new Set([...(TREE[dae]||ALL_GONG), cur].filter(Boolean))].map(g=>`<option${g===cur?" selected":""}>${esc(g)}</option>`).join("");
+/* 건축에 섞여 있는 실내건축 줄 (공종이 실내건축공사 · 이름이 (주거시설)·(상업업무시설) 로 시작) */
+const interiorStrays = () => S.items.filter(i=>daeOf(i)!==INTERIOR&&(String(i.gong||"").trim()==="실내건축공사"||/^ *\((주거시설|상업업무시설)\)/.test(String(i.name||""))));
+function syncStrayBtn(){
+  const n=interiorStrays().length, b=$("btnToInterior");
+  b.hidden=!n; b.textContent=`실내건축 ${n}줄 → ${INTERIOR} 로 옮기기`;
+}
 function renderEdit(){
   const q=$("eQ").value.trim().toLowerCase(), dae=$("eDae").value, gong=$("eGong").value, showH=$("eHidden").checked, body=$("editBody");
   const gName=i=>String(i.gong||"").trim()||"(공종 없음)";
-  const list=S.items.filter(i=>(showH||i.use!==false)&&(!dae||daeOf(i)===dae)&&(!gong||gName(i)===gong)&&(!q||(i.name+" "+(i.spec||"")).toLowerCase().includes(q)));
-  $("editCount").textContent=list.length.toLocaleString("ko-KR")+"개";
-  if(!list.length){ body.innerHTML='<tr><td colspan="8"><div class="empty-state">'+(S.items.length?"조건에 맞는 품목이 없습니다.":"단가 DB가 비어 있습니다.")+'</div></td></tr>'; return; }
-  // 대공종 → 공종 → 품목
+  syncStrayBtn();
+  const list=editRows().filter(i=>i.isNew||((showH||i.use!==false)&&(!dae||daeOf(i)===dae)&&(!gong||gName(i)===gong)&&(!q||(i.name+" "+(i.spec||"")).toLowerCase().includes(q))));
+  $("editCount").textContent=list.filter(i=>!i.isNew).length.toLocaleString("ko-KR")+"개";
+  if(!list.length){ body.innerHTML='<tr><td colspan="11"><div class="empty-state">'+(S.items.length?"조건에 맞는 품목이 없습니다.":"단가 DB가 비어 있습니다.")+'</div></td></tr>'; return; }
+  /* 대공종 → 공종 → 품목 */
   const tree={}; for(const i of list){ const d=daeOf(i); (tree[d] ??= {}); (tree[d][gName(i)] ??= []).push(i); }
   const daeOrder=[...Object.keys(TREE),"미분류"];
   let h="";
   for(const d of [...daeOrder.filter(x=>tree[x]),...Object.keys(tree).filter(x=>!daeOrder.includes(x))]){
     const gs=tree[d], total=Object.values(gs).reduce((a,b)=>a+b.length,0);
-    h+=`<tr class="dae"><td colspan="8" style="cursor:default">${esc(d)}<span class="count">${total}개</span></td></tr>`;
-    for(const gg of Object.keys(gs).sort((a,b)=>ALL_GONG.indexOf(a)-ALL_GONG.indexOf(b))){
-    h+=`<tr class="gong"><td colspan="8" style="cursor:default">${esc(gg)}<span class="count">${gs[gg].length}개</span></td></tr>`;
+    h+=`<tr class="dae"><td colspan="11" style="cursor:default">${esc(d)}<span class="count">${total}개</span></td></tr>`;
+    for(const gg of Object.keys(gs).sort(gongSort(d))){
+    h+=`<tr class="gong"><td colspan="11" style="cursor:default">${esc(gg)}<span class="count">${gs[gg].length}개</span></td></tr>`;
     for(const i of gs[gg]){
-      const hid=i.use===false;
-      h+=`<tr data-eid="${esc(i.id)}"${hid?' class="hid"':""}>
+      const hid=i.use===false, nw=!!i.isNew, dv=i.dae||(GONG2DAE.get(String(i.gong||"").trim())||"");
+      h+=`<tr data-eid="${esc(i.id)}"${nw?' class="neu"':hid?' class="hid"':""}>
+        <td class="c">${nw?'<span class="chip empty">새</span>':'<button class="cpy" data-copy title="이 줄을 복사해서 다른 공종에도 두기">복사</button>'}</td>
+        <td><select class="ein" data-f="dae" aria-label="대공종">${daeOptions(dv)}</select></td>
+        <td><select class="ein" data-f="gong" aria-label="공종">${gongOptions(dv,String(i.gong||"").trim())}</select></td>
         <td><input class="ein" data-f="name" value="${esc(i.name)}" aria-label="품목명">${hid?'<span class="chip empty">숨김</span>':""}</td>
         <td><input class="ein" data-f="spec" value="${esc(i.spec||"")}" placeholder="규격" aria-label="규격"></td>
         <td><input class="ein xs" data-f="unit" value="${esc(i.unit||"")}" aria-label="단위"></td>
@@ -1348,38 +1379,76 @@ function renderEdit(){
         <td><input class="ein num r" data-f="lab" inputmode="numeric" value="${i.lab||""}" placeholder="0" aria-label="인건비"></td>
         <td><input class="ein num r" data-f="exp" inputmode="numeric" value="${i.exp||""}" placeholder="0" aria-label="경비"></td>
         <td><input class="ein num r" data-f="cost" inputmode="numeric" value="${i.cost||""}" placeholder="0" aria-label="원가"></td>
-        <td style="white-space:nowrap"><button class="btn sm" data-save disabled>저장</button> <button class="btn sec sm" data-hide title="${hid?"견적 화면에 다시 보이기":"견적 화면에서 숨기기"}">${hid?"보이기":"숨김"}</button></td></tr>`;
+        <td style="white-space:nowrap"><button class="btn sm" data-save${nw?"":" disabled"}>저장</button> ${nw
+          ?'<button class="btn sec sm" data-drop>취소</button>'
+          :`<button class="btn sec sm" data-hide title="${hid?"견적 화면에 다시 보이기":"견적 화면에서 숨기기"}">${hid?"보이기":"숨김"}</button>`}</td></tr>`;
     }
     }
   }
   body.innerHTML=h;
 }
+function rowPatch(tr){
+  const patch={};
+  tr.querySelectorAll(".ein").forEach(el=>{ const f=el.dataset.f; patch[f]=["mat","lab","exp","cost"].includes(f)?N(el.value):el.value.trim(); });
+  return patch;
+}
 async function saveItem(tr, patch){
   const id=tr.dataset.eid, i=S.items.find(x=>x.id===id); if(!i) return;
   if(!apiReady()) return openConn();
-  const item={id, prevName:i.name, gong:i.gong, name:i.name, spec:i.spec, unit:i.unit, mat:i.mat, lab:i.lab, exp:i.exp, cost:i.cost, use:i.use!==false, ...patch};
+  const item={id, prevName:i.name, dae:i.dae||"", gong:i.gong, name:i.name, spec:i.spec, unit:i.unit, mat:i.mat, lab:i.lab, exp:i.exp, cost:i.cost, use:i.use!==false, ...patch};
   const btn=tr.querySelector("[data-save]"); btn.disabled=true; btn.textContent="저장 중";
   try{
     await apiPost("updateItem",{item});
     delete item.prevName; Object.assign(i,item);
     LS.set("catalog",{at:Date.now(),items:S.items,settings:S.settings});
-    toast("저장됨 · "+i.name); renderEdit(); renderCat();
+    toast("저장됨 · "+i.name); fillSelects(); renderEdit(); renderCat();
   }catch(e){ toast("저장 실패: "+e.message); btn.disabled=false; btn.textContent="저장"; }
 }
+/* 복사로 만든 줄을 시트 단가DB 끝에 추가 */
+async function addNewRow(tr, patch){
+  if(!apiReady()) return openConn();
+  const item=fillDae({dae:patch.dae||"",gong:patch.gong,name:patch.name,spec:patch.spec,unit:patch.unit||"식",mat:patch.mat,lab:patch.lab,exp:patch.exp,cost:patch.cost});
+  const btn=tr.querySelector("[data-save]"); btn.disabled=true; btn.textContent="저장 중";
+  try{
+    const j=await apiPost("addItems",{items:[item]});
+    if(!j.added) throw new Error("같은 공종에 같은 품목명·규격이 이미 있습니다. 공종이나 규격을 바꿔 주세요.");
+    S.newRows=S.newRows.filter(x=>x.id!==tr.dataset.eid);
+    await loadCatalog(true); fillSelects(); renderEdit(); renderCat(); toast("추가됨 · "+item.name);
+  }catch(e){ toast(e.message); btn.disabled=false; btn.textContent="저장"; }
+}
 $("editBody").addEventListener("input",e=>{ const tr=e.target.closest("tr[data-eid]"); if(tr) tr.querySelector("[data-save]").disabled=false; });
+/* 대공종을 바꾸면 그 대공종의 공종 목록으로 갈아끼움 */
+$("editBody").addEventListener("change",e=>{
+  const tr=e.target.closest("tr[data-eid]"); if(!tr) return;
+  tr.querySelector("[data-save]").disabled=false;
+  if(e.target.dataset.f!=="dae") return;
+  const gsel=tr.querySelector('[data-f="gong"]'), cur=gsel.value;
+  gsel.innerHTML=gongOptions(e.target.value,cur);
+});
 $("editBody").addEventListener("keydown",e=>{
   if(e.key!=="Enter"||!e.target.classList.contains("ein")) return;
   e.preventDefault(); const b=e.target.closest("tr[data-eid]").querySelector("[data-save]"); if(!b.disabled) b.click();
 });
 $("editBody").addEventListener("click",e=>{
   const tr=e.target.closest("tr[data-eid]"); if(!tr) return;
+  const id=tr.dataset.eid, nw=S.newRows.some(x=>x.id===id);
   if(e.target.closest("[data-save]")){
-    const patch={}; tr.querySelectorAll(".ein").forEach(el=>{ const f=el.dataset.f; patch[f]=["mat","lab","exp","cost"].includes(f)?N(el.value):el.value.trim(); });
+    const patch=rowPatch(tr);
     if(!patch.name) return toast("품목명은 비울 수 없습니다.");
+    if(!patch.gong) return toast("공종을 골라 주세요.");
     if(!patch.unit) patch.unit="식";
-    saveItem(tr,patch);
+    nw?addNewRow(tr,patch):saveItem(tr,patch);
+  } else if(e.target.closest("[data-drop]")){
+    S.newRows=S.newRows.filter(x=>x.id!==id); renderEdit();
+  } else if(e.target.closest("[data-copy]")){
+    const i=S.items.find(x=>x.id===id); if(!i) return;
+    const nid="n"+(++NEWSEQ);
+    S.newRows.push({id:nid,isNew:true,dae:daeOf(i)==="미분류"?"":daeOf(i),gong:i.gong,name:i.name,spec:i.spec,unit:i.unit,mat:i.mat,lab:i.lab,exp:i.exp,cost:i.cost,use:true});
+    renderEdit();
+    const sel=$("editBody").querySelector('tr[data-eid="'+nid+'"] [data-f="dae"]'); if(sel){ sel.scrollIntoView({block:"center"}); sel.focus(); }
+    toast("복사했습니다 — 대공종·공종을 바꿔 저장하세요");
   } else if(e.target.closest("[data-hide]")){
-    const i=S.items.find(x=>x.id===tr.dataset.eid); saveItem(tr,{use:i.use===false});
+    const i=S.items.find(x=>x.id===id); saveItem(tr,{use:i.use===false});
   }
 });
 ["eQ","eGong","eHidden"].forEach(id=>$(id).addEventListener("input",renderEdit));
@@ -1397,7 +1466,21 @@ $("btnCleanDup").addEventListener("click",async()=>{
   LS.set("catalog",{at:Date.now(),items:S.items,settings:S.settings});
   toast(n+"건 숨김"); renderEdit(); renderCat();
 });
-$("btnEditRefresh").addEventListener("click",async()=>{ await loadCatalog(true); renderEdit(); });
+/* 건축에 섞여 있는 실내건축 줄의 대공종만 실내건축(인테리어) 로 옮김 (공종·이름은 그대로) */
+$("btnToInterior").addEventListener("click",async()=>{
+  if(!apiReady()) return openConn();
+  const rows=interiorStrays(); if(!rows.length) return;
+  const list=rows.slice(0,12).map(i=>"· "+(i.gong||"")+" > "+i.name).join("\n")+(rows.length>12?"\n… 외 "+(rows.length-12)+"줄":"");
+  if(!confirm(`${rows.length}줄의 대공종을 '${INTERIOR}' 로 옮깁니다.\n공종과 품목명은 그대로 둡니다 (공종은 단가 수정에서 직접 고치세요).\n\n${list}`)) return;
+  let n=0;
+  for(const i of rows){
+    try{ await apiPost("updateItem",{item:updPayload(i,{...i,dae:INTERIOR},i.use!==false)}); i.dae=INTERIOR; n++; }
+    catch(e){ toast("실패: "+i.name+" — "+e.message); break; }
+  }
+  LS.set("catalog",{at:Date.now(),items:S.items,settings:S.settings});
+  toast(n+"줄을 "+INTERIOR+" 로 옮겼습니다"); fillSelects(); renderEdit(); renderCat();
+});
+$("btnEditRefresh").addEventListener("click",async()=>{ await loadCatalog(true); fillSelects(); renderEdit(); });
 
 /* ---------- 거래처 (시공사 · 발주처) ---------- */
 S.parties={contractors:[],clients:[]};
