@@ -281,6 +281,8 @@ tr.neu .ein{border-color:var(--accent)}
 .gset-grid.two{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
 /* 갑지 설정 2단: 왼쪽 칸의 입력들은 전부 같은 폭 (비고 칸 끝 = 견적조건 상자 끝) */
 .gstack{display:flex;flex-direction:column;gap:16px;margin-top:10px}
+.grow0{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1.6fr) minmax(0,.9fr);gap:14px 24px;align-items:end}
+@media (max-width:900px){.grow0{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .grow1{display:grid;grid-template-columns:minmax(300px,1.15fr) minmax(0,1.7fr) minmax(0,1fr);gap:14px 24px;align-items:end}
 .gset .grow1 label.chk{align-self:end;padding-bottom:9px;flex-wrap:nowrap;white-space:nowrap}
 .grow1 .gpay-t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -710,6 +712,12 @@ tr.neu .ein{border-color:var(--accent)}
   <div class="card card-pad no-print gset">
     <div class="eyebrow">2 갑지 설정</div>
     <div class="gstack">
+      <div class="grow0">
+        <label>발주처 <span class="hint">거래처에 없으면 그냥 적으면 됩니다</span><input type="text" id="gOwner" list="clientList" placeholder="㈜○○○"></label>
+        <label>발주처 대표자 <span class="hint">비우면 안 나옴</span><input type="text" id="gOwnerCeo" placeholder="홍길동"></label>
+        <label>공사명<input type="text" id="gClient" placeholder="○○ 인테리어공사"></label>
+        <label>견적일<input type="date" id="gDate"></label>
+      </div>
       <div class="grow1">
         <div class="gpay">
         <span class="gpay-t">대금조건 % <em id="gPaySum" class="hint"></em></span>
@@ -737,7 +745,7 @@ tr.neu .ein{border-color:var(--accent)}
       <label>견적조건 <span class="hint">한 줄에 하나 — 번호는 자동. 갑지 맨 아래에 3줄 × 2칸(1·2·3 | 4·5·6)으로 들어갑니다</span><textarea id="gFoot" rows="6"></textarea></label>
     </div>
   </div>
-  <p class="hint no-print" style="margin:0 0 12px">시공사·발주처·공사명·견적일·내역은 <b>적산</b> 화면에서 고릅니다. <b>3 상세내역</b>은 공종 순서대로 100·200… 코드가 붙고, 품목이 많으면 여러 장으로 나뉩니다. <b>관공서·건설사 제출용</b>을 체크하면 자재비·인건비·경비를 단가/금액으로 모두 보여 줍니다.</p>
+  <p class="hint no-print" style="margin:0 0 12px">발주처·공사명·견적일은 여기서 바로 적어도 되고, <b>적산</b> 화면에서 고쳐도 같이 바뀝니다. 시공사·내역은 적산 화면에서 고릅니다. <b>3 상세내역</b>은 공종 순서대로 100·200… 코드가 붙고, 품목이 많으면 여러 장으로 나뉩니다. <b>관공서·건설사 제출용</b>을 체크하면 자재비·인건비·경비를 단가/금액으로 모두 보여 줍니다.</p>
   <div id="printDoc"></div>
 </section>
 </div>
@@ -1083,7 +1091,7 @@ $("docBody").addEventListener("input",e=>{
 });
 $("btnClear").addEventListener("click",()=>{ if(!S.rows.length) return; if(!confirm("내역 "+S.rows.length+"건을 비웁니다.")) return; S.rows=[]; S.sch=[]; renderDoc(); renderCartBar(); if(!$("panel-out").hidden) renderOut(); });
 const FIELD={dfClient:"client",dfOwner:"owner",dfStaff:"staff",dfDate:"date",schStart:"schStart"};
-for(const [id,k] of Object.entries(FIELD)) $(id).addEventListener("input",e=>{ S.meta[k]=e.target.value; persistDraft(); if(id==="schStart") renderSch(); });
+for(const [id,k] of Object.entries(FIELD)) $(id).addEventListener("input",e=>{ S.meta[k]=e.target.value; persistDraft(); if(id==="schStart") renderSch(); if(!$("panel-out").hidden) renderOut(); });
 
 $("btnSave").addEventListener("click",async()=>{
   if(!apiReady()) return openConn();
@@ -1094,7 +1102,7 @@ $("btnSave").addEventListener("click",async()=>{
     const j=await apiPost("save",{estimate:{no:S.meta.no,client:S.meta.client,owner:S.meta.owner,staff:S.meta.staff,
       contractor:_c?_c.name:"", clientBiz:_cl?bizFmt(_cl.bizno):"",
       grandTotal:calcG().total,                                   // 갑지 총계 (부가세 별도) → 이력의 공급가액
-      meta:{contractorKey:S.meta.contractorKey||"",clientKey:S.meta.clientKey||"",coverText:S.meta.coverText||"",date:S.meta.date||"",g:G(),orig:S.rows.map(r=>r.o?PK.map(k=>N(r.o[k])):0)},
+      meta:{contractorKey:S.meta.contractorKey||"",clientKey:S.meta.clientKey||"",coverText:S.meta.coverText||"",date:S.meta.date||"",ownerCeo:S.meta.ownerCeo||"",g:G(),orig:S.rows.map(r=>r.o?PK.map(k=>N(r.o[k])):0)},
       rows:S.rows.map(r=>({gong:r.gong,name:r.name,spec:r.spec,unit:r.unit,qty:N(r.qty),mat:r.mat,lab:r.lab,exp:r.exp,cost:r.cost}))}});
     S.meta.no=j.no; renderCartBar();
     badge("저장됨 · "+j.no+" · "+new Date().toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"}));
@@ -1104,7 +1112,7 @@ $("btnSave").addEventListener("click",async()=>{
 });
 $("btnNew").addEventListener("click",()=>{
   if(S.rows.length && !confirm("현재 견적을 닫고 새로 시작합니다. 저장 안 한 내용은 사라집니다.")) return;
-  S.rows=[]; S.sch=[]; S.pick={}; S.meta={no:"",client:"",owner:"",staff:"",date:new Date().toISOString().slice(0,10),schStart:"",contractorKey:S.meta.contractorKey||"",clientKey:"",coverText:""};   // 시공사 선택은 유지
+  S.rows=[]; S.sch=[]; S.pick={}; S.meta={no:"",client:"",owner:"",ownerCeo:"",staff:"",date:new Date().toISOString().slice(0,10),schStart:"",contractorKey:S.meta.contractorKey||"",clientKey:"",coverText:""};   // 시공사 선택은 유지
   fillMeta(); renderCat(); renderCartBar(); renderDoc(); badge(""); goTab("db");
 });
 function fillMeta(){ $("dfClient").value=S.meta.client||""; $("dfOwner").value=S.meta.owner||""; $("dfStaff").value=S.meta.staff||""; $("dfDate").value=S.meta.date||new Date().toISOString().slice(0,10); $("schStart").value=S.meta.schStart||""; }
@@ -1723,7 +1731,8 @@ function costRows(c){
 const jl=t=>`<span class="gj-k">${[...t].map(ch=>`<i>${esc(ch)}</i>`).join("")}</span>`;   // 글자를 칸 너비에 고르게 펼침
 function gapjiHtml(){
   const g=G(), c=calcG(), ct=curContractor(), cl=curClient();
-  const clientLine=[(cl&&cl.name)||String(S.meta.owner||"").trim(), cl&&cl.ceo?"대표 "+cl.ceo:""].filter(Boolean).join(" ");
+  const ceo=(cl&&cl.ceo)||String(S.meta.ownerCeo||"").trim();
+  const clientLine=[(cl&&cl.name)||String(S.meta.owner||"").trim(), ceo?"대표 "+ceo:""].filter(Boolean).join(" ");
   const d=String(S.meta.date||"").split("-"), dateStr=d.length===3?`${d[0]}년 ${d[1]}월 ${d[2]}일`:"";
   const logo=ct&&okImg(ct.logo)?ct.logo:"img/logo-navy.png";
   const notes=[];                                           /* 특기사항은 쓰지 않음 (견적조건으로 대체) */
@@ -1769,8 +1778,17 @@ function gapjiHtml(){
   </div></div>`;
 }
 /* 갑지 설정 칸 ↔ S.meta.g */
+/* 갑지 설정의 공사 정보 = S.meta (적산 화면 칸과 같은 값) */
+const GMETA={gOwner:"owner",gOwnerCeo:"ownerCeo",gClient:"client",gDate:"date"};
+for(const [id,k] of Object.entries(GMETA)) $(id).addEventListener("input",e=>{
+  const v=e.target.value;
+  S.meta[k]=v;
+  if(k==="owner"){ const hit=S.parties.clients.find(x=>x.name===v.trim()); S.meta.clientKey=hit?partyKey(hit):""; }
+  fillMeta(); persistDraft(); renderOut(); badge("저장 안 됨");
+});
 function fillGset(){
   const g=G();
+  for(const [id,k] of Object.entries(GMETA)){ const el=$(id); if(document.activeElement!==el) el.value=S.meta[k]||""; }
   for(const [id,k] of Object.entries(GSET)){ const el=$(id); if(document.activeElement!==el) el.value=g[k]??""; }
   $("gFormB").checked=!!g.formB;
   /* 단수정리|할인: 직접입력일 때만 금액 칸을 보이고, 옆에 실제로 빠지는 금액을 안내 */
@@ -1965,7 +1983,8 @@ async function exportXlsx(){
   {
     const ws=sheet("갑지",[26,16,8,8,15,18,16],true);
     const d=String(S.meta.date||"").split("-"), dateStr=d.length===3?`${d[0]}년 ${d[1]}월 ${d[2]}일`:"";
-    const clientLine=[(cl&&cl.name)||String(S.meta.owner||"").trim(), cl&&cl.ceo?"대표 "+cl.ceo:""].filter(Boolean).join(" ");
+    const ceo=(cl&&cl.ceo)||String(S.meta.ownerCeo||"").trim();
+  const clientLine=[(cl&&cl.name)||String(S.meta.owner||"").trim(), ceo?"대표 "+ceo:""].filter(Boolean).join(" ");
     ws.getRow(1).height=42;
     await addPng(ws,ct&&okImg(ct.logo)?ct.logo:"img/logo-navy.png",{col:0.1,row:0.12},im=>{ const h=40; return {width:Math.min(260,im.w*h/im.h),height:h}; });
     line(ws,1,1,7,"bottom","medium","FF000000");
