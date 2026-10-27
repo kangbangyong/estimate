@@ -494,6 +494,7 @@ tr.neu .ein{border-color:var(--accent)}
   </div>
   <div class="acts">
     <button class="btn" id="btnSave">구글 시트에 저장</button>
+    <button class="btn sec sm" id="btnSaveAs" title="지금 내용을 새 견적번호로 따로 저장 — 불러온 견적은 그대로 둡니다" hidden>새 번호로 저장</button>
     <button class="btn sec sm" id="btnXlsx" title="견적서(표지·갑지·합계표·세부내역)를 엑셀로">엑셀</button>
     <button class="btn sec sm" id="btnPrint" title="견적서(표지·갑지·상세내역)를 인쇄하거나 PDF로 저장">인쇄 / PDF</button>
     <button class="btn sec sm" id="btnClear">내역 비우기</button>
@@ -993,6 +994,7 @@ function renderCartBar(){
   $("topTotal").textContent=W(cartSum); $("tabDocN").textContent=S.rows.length;
   $("btnAddCart").disabled=pickIds.length===0;
   $("estNo").textContent=S.meta.no||"새 견적";
+  $("btnSaveAs").hidden=!S.meta.no;
   persistDraft();
 }
 $("btnAddCart").addEventListener("click",()=>{
@@ -1093,10 +1095,16 @@ $("btnClear").addEventListener("click",()=>{ if(!S.rows.length) return; if(!conf
 const FIELD={dfClient:"client",dfOwner:"owner",dfStaff:"staff",dfDate:"date",schStart:"schStart"};
 for(const [id,k] of Object.entries(FIELD)) $(id).addEventListener("input",e=>{ S.meta[k]=e.target.value; persistDraft(); if(id==="schStart") renderSch(); if(!$("panel-out").hidden) renderOut(); });
 
-$("btnSave").addEventListener("click",async()=>{
+/* copy = true → 견적번호를 비워 보내서 새 번호로 저장 (불러온 원본은 시트에 그대로 남음) */
+async function saveEstimate(copy){
   if(!apiReady()) return openConn();
   if(!S.rows.length) return toast("담긴 내역이 없습니다.");
-  $("btnSave").disabled=true; badge("저장 중…");
+  const was=S.meta.no;
+  if(copy){
+    if(!confirm(was+" 은(는) 그대로 두고, 지금 내용을 새 견적번호로 저장합니다.")) return;
+    S.meta.no="";
+  }
+  $("btnSave").disabled=true; $("btnSaveAs").disabled=true; badge("저장 중…");
   try{
     const _c=curContractor(), _cl=curClient();
     const j=await apiPost("save",{estimate:{no:S.meta.no,client:S.meta.client,owner:S.meta.owner,staff:S.meta.staff,
@@ -1104,12 +1112,14 @@ $("btnSave").addEventListener("click",async()=>{
       grandTotal:calcG().total,                                   // 갑지 총계 (부가세 별도) → 이력의 공급가액
       meta:{contractorKey:S.meta.contractorKey||"",clientKey:S.meta.clientKey||"",coverText:S.meta.coverText||"",date:S.meta.date||"",ownerCeo:S.meta.ownerCeo||"",g:G(),orig:S.rows.map(r=>r.o?PK.map(k=>N(r.o[k])):0)},
       rows:S.rows.map(r=>({gong:r.gong,name:r.name,spec:r.spec,unit:r.unit,qty:N(r.qty),mat:r.mat,lab:r.lab,exp:r.exp,cost:r.cost}))}});
-    S.meta.no=j.no; renderCartBar();
+    S.meta.no=j.no; S.hist=null; renderCartBar();
     badge("저장됨 · "+j.no+" · "+new Date().toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"}));
-    toast(j.no+" 저장 완료 · 합계 "+W(j.total));
-  }catch(e){ badge("저장 실패"); toast("저장 실패: "+e.message); }
-  $("btnSave").disabled=false;
-});
+    toast(copy?`사본 ${j.no} 으로 저장 완료 — ${was} 은(는) 그대로`:j.no+" 저장 완료 · 합계 "+W(j.total));
+  }catch(e){ S.meta.no=was; badge("저장 실패"); toast("저장 실패: "+e.message); }
+  $("btnSave").disabled=false; $("btnSaveAs").disabled=false;
+}
+$("btnSave").addEventListener("click",()=>saveEstimate(false));
+$("btnSaveAs").addEventListener("click",()=>saveEstimate(true));
 $("btnNew").addEventListener("click",()=>{
   if(S.rows.length && !confirm("현재 견적을 닫고 새로 시작합니다. 저장 안 한 내용은 사라집니다.")) return;
   S.rows=[]; S.sch=[]; S.pick={}; S.meta={no:"",client:"",owner:"",ownerCeo:"",staff:"",date:new Date().toISOString().slice(0,10),schStart:"",contractorKey:S.meta.contractorKey||"",clientKey:"",coverText:""};   // 시공사 선택은 유지
